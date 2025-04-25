@@ -16,7 +16,7 @@ from sklearn.preprocessing import StandardScaler
 import warnings
 import os  # To check if data file exists
 SYNTHETIC_DATA_CSV="synthetic_student_data.csv"
-NUM_STUDENTS = 10000 # Number of students to generate 
+NUM_STUDENTS = 10000 # Number of students to generate  
 # --- Configuration & Setup ---
 warnings.filterwarnings("ignore", category=UserWarning, module='sklearn')  # Suppress KMeans memory leak warning on Windows
 plt.style.use('seaborn-v0_8-whitegrid')  # Use a clean plot style
