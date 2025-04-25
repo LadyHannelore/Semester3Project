@@ -1,31 +1,46 @@
 import gradio as gr
+import streamlit as st
 import pandas as pd
 import numpy as np
 import random
 import networkx as nx
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm # Import colormap functionality
-import io # To handle plot image bytes
-import base64 # To encode plot image for HTML display
+import matplotlib.cm as cm  # Import colormap functionality
+import io  # To handle plot image bytes
+import base64  # To encode plot image for HTML display
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.cluster import KMeans, SpectralClustering
 from sklearn.preprocessing import StandardScaler
 import warnings
-import os # To check if data file exists
-
+import os  # To check if data file exists
+SYNTHETIC_DATA_CSV="synthetic_student_data.csv"
+NUM_STUDENTS = 10000 # Number of students to generate 
 # --- Configuration & Setup ---
-warnings.filterwarnings("ignore", category=UserWarning, module='sklearn') # Suppress KMeans memory leak warning on Windows
-plt.style.use('seaborn-v0_8-whitegrid') # Use a clean plot style
+warnings.filterwarnings("ignore", category=UserWarning, module='sklearn')  # Suppress KMeans memory leak warning on Windows
+plt.style.use('seaborn-v0_8-whitegrid')  # Use a clean plot style
 
-NUM_STUDENTS = 10000 # Keep consistent with data generation
-CLASS_SIZE_TARGET = 30
-N_CLUSTERS = max(1, NUM_STUDENTS // CLASS_SIZE_TARGET) # Ensure at least 1 cluster
-SYNTHETIC_DATA_CSV = "synthetic_student_data.csv"
+st.title("Classroom Allocation App")
+
+# Sidebar for settings
+with st.sidebar:
+    st.header("Settings")
+    # AI Allocation Priority Selection
+    allocation_priority = st.selectbox(
+        "Select AI Allocation Priority",
+        ["Balancing Academic Performance", "Maximizing Collaboration", "Minimizing Disruption"],
+        index=0,
+    )
+
+    # Customization Panel
+    st.header("Customization Panel")
+    academic_weight = st.slider("Academic Performance Weight", 0.0, 1.0, 0.5)
+    wellbeing_weight = st.slider("Wellbeing Indicator Weight", 0.0, 1.0, 0.5)
+    disruption_weight = st.slider("Disruptive Behavior Weight", 0.0, 1.0, 0.5)
+    social_weight = st.slider("Social Network Centrality Weight", 0.0, 1.0, 0.5)
 
 # --- Data Generation (Slightly modified from previous example) ---
-# (Include this function directly or ensure the CSV exists)
 def generate_synthetic_data(filename=SYNTHETIC_DATA_CSV, num_students=NUM_STUDENTS):
     """Generates synthetic student data if the CSV doesn't exist."""
     if os.path.exists(filename):
@@ -98,7 +113,6 @@ def generate_synthetic_data(filename=SYNTHETIC_DATA_CSV, num_students=NUM_STUDEN
     print(f"Synthetic data saved to {filename}")
     return df
 
-# --- Predictive Analytics & Clustering ---
 def run_analysis(df):
     """Performs prediction and clustering on the dataframe."""
     print("Running predictive analytics and clustering...")
@@ -152,7 +166,6 @@ def run_analysis(df):
         df['Wellbeing_Risk'] = 0.5
         df['Peer_Score'] = 0.5
 
-
     # 3. Clustering
     cluster_features = features + ['Academic_Risk', 'Wellbeing_Risk', 'Peer_Score']
     # Add network features (simplified)
@@ -200,8 +213,6 @@ def run_analysis(df):
 
     print("Analysis complete.")
     return df
-
-# --- Visualization Functions ---
 
 def plot_network(df_class, student_id_col='StudentID', friend_col='Friends', color_metric='Academic_Risk'):
     """Generates a NetworkX graph visualization for a class."""
@@ -286,9 +297,37 @@ def plot_histogram(df_class, metric, class_id):
     plt.close(fig) # Close the figure to free memory
     return f"data:image/png;base64,{img_str}" # Return base64 string for HTML
 
+# Main Panel
+st.header("Classroom Allocation")
+
+# Manual Adjustment Functionality
+st.subheader("Manual Adjustments")
+# Initialize df_processed and all_classes with default values
+df_processed = pd.DataFrame({'StudentID': ['Error'], 'Class_KMeans': [0], 'Class_Spectral': [0]})
+all_classes = [0]
+student_to_move = st.selectbox("Select Student to Move", df_processed["StudentID"].tolist())
+new_classroom = st.selectbox("Select New Classroom", all_classes)
+if st.button("Move Student"):
+    # Implement move student logic here
+    st.write(f"Moving {student_to_move} to Classroom {new_classroom}")
+
+student_1_swap = st.selectbox("Select First Student to Swap", df_processed["StudentID"].tolist(), key="swap1")
+student_2_swap = st.selectbox("Select Second Student to Swap", df_processed["StudentID"].tolist(), key="swap2")
+if st.button("Swap Students"):
+    # Implement swap student logic here
+    st.write(f"Swapping {student_1_swap} with {student_2_swap}")
+
+# Visualizations
+st.subheader("Visualizations")
+st.write("Within-Class Dynamics Visualization (Placeholder)")
+st.write("Broader Social Network Visualization (Placeholder)")
+
+NUM_STUDENTS = 10000 # Keep consistent with data generation
+CLASS_SIZE_TARGET = 30
+N_CLUSTERS = max(1, NUM_STUDENTS // CLASS_SIZE_TARGET) # Ensure at least 1 cluster
+SYNTHETIC_DATA_CSV = "synthetic_student_data.csv"
 
 # --- Load and Process Data Globally (or within launch context) ---
-# Ensure data is generated and analyzed once when the app starts
 try:
     df_synthetic = generate_synthetic_data()
     df_processed = run_analysis(df_synthetic.copy()) # Work on a copy
@@ -301,7 +340,6 @@ except Exception as e:
     # Create dummy data to prevent Gradio from crashing on launch
     df_processed = pd.DataFrame({'StudentID': ['Error'], 'Class_KMeans': [0], 'Class_Spectral': [0]})
     all_classes = [0]
-
 
 # --- Gradio Interface Function ---
 def update_visualizations(clustering_method, selected_class_id_str, color_metric):
@@ -320,7 +358,6 @@ def update_visualizations(clustering_method, selected_class_id_str, color_metric
          if not valid_classes:
              return pd.DataFrame(), "No classes found.", None, None, None
          selected_class_id = valid_classes[0] # Default to the first class
-
 
     # --- 1. Class Overview Table ---
     overview = df_processed.groupby(class_col).agg(
@@ -361,7 +398,6 @@ def update_visualizations(clustering_method, selected_class_id_str, color_metric
     else:
         network_img_html = f"Cannot generate plot: Class {selected_class_id} is empty or color metric '{color_metric}' not found."
 
-
     # --- 4. Histogram Plots ---
     print(f"Generating histograms for class {selected_class_id}...")
     hist_academic_b64 = plot_histogram(df_selected_class, 'Academic_Risk', selected_class_id)
@@ -369,7 +405,6 @@ def update_visualizations(clustering_method, selected_class_id_str, color_metric
 
     hist_academic_html = f'<img src="{hist_academic_b64}" alt="Academic Risk Distribution">' if hist_academic_b64 else "N/A"
     hist_wellbeing_html = f'<img src="{hist_wellbeing_b64}" alt="Wellbeing Risk Distribution">' if hist_wellbeing_b64 else "N/A"
-
 
     return overview, student_details_df, network_img_html, hist_academic_html, hist_wellbeing_html
 
@@ -399,7 +434,6 @@ with gr.Blocks(theme=gr.themes.Soft(), title="Classroom Allocation Visualizer") 
              interactive=True
         )
 
-
     gr.Markdown("## Class Overview")
     overview_table = gr.DataFrame(label="Summary statistics for all classes")
 
@@ -411,7 +445,7 @@ with gr.Blocks(theme=gr.themes.Soft(), title="Classroom Allocation Visualizer") 
             gr.Markdown("### Friendship Network")
             network_plot_html = gr.HTML(label="Class Network Graph") # Use HTML to display base64 image
 
-    gr.Markdown("### Metric Distributions for Selected Class")
+    gr.Markdown("## Metric Distributions for Selected Class")
     with gr.Row():
         academic_hist_html = gr.HTML(label="Academic Risk Distribution")
         wellbeing_hist_html = gr.HTML(label="Wellbeing Risk Distribution")
@@ -428,9 +462,8 @@ with gr.Blocks(theme=gr.themes.Soft(), title="Classroom Allocation Visualizer") 
     # Also load initial data when the app starts
     demo.load(update_visualizations, inputs=inputs, outputs=outputs)
 
-
 # --- Launch the App ---
 if __name__ == "__main__":
     print("Launching Gradio App...")
     # Share=True creates a public link (optional)
-    demo.launch(share=False) # Specify host and port if needed")
+    demo.launch(share=False) # Specify host and port if needed
