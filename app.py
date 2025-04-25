@@ -323,8 +323,8 @@ st.write("Within-Class Dynamics Visualization (Placeholder)")
 st.write("Broader Social Network Visualization (Placeholder)")
 
 NUM_STUDENTS = 10000 # Keep consistent with data generation
-CLASS_SIZE_TARGET = 30
-N_CLUSTERS = max(1, NUM_STUDENTS // CLASS_SIZE_TARGET) # Ensure at least 1 cluster
+CLASS_SIZE_TARGET = 25
+N_CLUSTERS = max(1, 400) # Ensure at least 1 cluster
 SYNTHETIC_DATA_CSV = "synthetic_student_data.csv"
 
 # --- Load and Process Data Globally (or within launch context) ---
