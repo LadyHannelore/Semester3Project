@@ -20,7 +20,7 @@ warnings.filterwarnings("ignore", category=UserWarning, module='sklearn')
 plt.style.use('seaborn-v0_8-whitegrid')
 
 SYNTHETIC_DATA_CSV = "synthetic_student_data.csv"
-NUM_STUDENTS = 1000 # Consider increasing for larger scale testing (e.g., 5000, 10000)
+NUM_STUDENTS = 10000 # Consider increasing for larger scale testing (e.g., 5000, 10000)
 CLASS_SIZE_TARGET = 25
 N_CLASSES = max(1, round(NUM_STUDENTS / CLASS_SIZE_TARGET)) # Renamed to N_CLASSES for clarity
 
