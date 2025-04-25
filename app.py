@@ -28,7 +28,7 @@ N_CLASSES = max(1, round(NUM_STUDENTS / CLASS_SIZE_TARGET)) # Renamed to N_CLASS
 BULLY_CRITICISES_THRESHOLD = 6 # Students with criticises score >= this are potential bullies
 VULNERABLE_WELLBEING_QUANTILE = 0.8 # Students in top 20% for Wellbeing_Risk are vulnerable
 
-# Genetic Algorithm Parameters
+# Genetic Algorithm ParametersS
 GA_POP_SIZE = 500 # Population size (suggested 500-1000)
 GA_NUM_GENERATIONS = 100 # Number of generations (suggested 100)
 GA_ELITISM_RATE = 0.05 # Percentage of top individuals to preserve (suggested 5%)
