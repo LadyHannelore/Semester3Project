@@ -20,7 +20,7 @@ warnings.filterwarnings("ignore", category=UserWarning, module='sklearn')
 plt.style.use('seaborn-v0_8-whitegrid')
 
 SYNTHETIC_DATA_CSV = "synthetic_student_data.csv"
-NUM_STUDENTS = 10000 # Consider increasing for larger scale testing (e.g., 5000, 10000)
+NUM_STUDENTS = 1000 # Consider increasing for larger scale testing (e.g., 5000, 10000)
 CLASS_SIZE_TARGET = 25
 N_CLASSES = max(1, round(NUM_STUDENTS / CLASS_SIZE_TARGET)) # Renamed to N_CLASSES for clarity
 
@@ -29,7 +29,7 @@ BULLY_CRITICISES_THRESHOLD = 6 # Students with criticises score >= this are pote
 VULNERABLE_WELLBEING_QUANTILE = 0.8 # Students in top 20% for Wellbeing_Risk are vulnerable
 
 # Genetic Algorithm ParametersS
-GA_POP_SIZE = 500 # Population size (suggested 500-1000)
+GA_POP_SIZE = 1000 # Population size (suggested 500-1000)
 GA_NUM_GENERATIONS = 100 # Number of generations (suggested 100)
 GA_ELITISM_RATE = 0.05 # Percentage of top individuals to preserve (suggested 5%)
 GA_MUTATION_RATE_LOW = 0.02 # Base mutation rate (suggested 2%)
