@@ -1,3 +1,7 @@
+# Install prerequisites:
+# pip install pyomo pandas numpy networkx matplotlib scikit-learn xgboost gradio
+# AND install a solver like CBC or GLPK (see instructions above, conda recommended)
+
 import gradio as gr
 import pandas as pd
 import numpy as np
@@ -14,232 +18,296 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler
 import warnings
 import os
 import time
+# --- Pyomo Imports ---
+import pyomo.environ as pyo
+from pyomo.opt import SolverFactory, SolverStatus, TerminationCondition
+# --- End Pyomo Imports ---
 
 # --- Configuration & Setup ---
+# ... (Keep existing configuration: SYNTHETIC_DATA_CSV, NUM_STUDENTS, etc.) ...
 warnings.filterwarnings("ignore", category=UserWarning, module='sklearn')
+warnings.filterwarnings("ignore", category=DeprecationWarning) # Pyomo can raise these
 plt.style.use('seaborn-v0_8-whitegrid')
 
 SYNTHETIC_DATA_CSV = "synthetic_student_data.csv"
-NUM_STUDENTS = 1000 # Consider increasing for larger scale testing (e.g., 5000, 10000)
+NUM_STUDENTS = 100 # Reduced for faster testing
 CLASS_SIZE_TARGET = 25
-N_CLASSES = max(1, round(NUM_STUDENTS / CLASS_SIZE_TARGET)) # Renamed to N_CLASSES for clarity
+N_CLASSES = max(1, round(NUM_STUDENTS / CLASS_SIZE_TARGET))
+
+# --- Hard Constraints (for CP/Pyomo) ---
+CLASS_SIZE_TOLERANCE = 3
+AVG_CLASS_SIZE = NUM_STUDENTS // N_CLASSES
+CLASS_SIZE_MIN = max(1, AVG_CLASS_SIZE - CLASS_SIZE_TOLERANCE)
+CLASS_SIZE_MAX = AVG_CLASS_SIZE + CLASS_SIZE_TOLERANCE + (NUM_STUDENTS % N_CLASSES > 0)
 
 # Define thresholds and parameters for Objectives/GA
-BULLY_CRITICISES_THRESHOLD = 6 # Students with criticises score >= this are potential bullies
-VULNERABLE_WELLBEING_QUANTILE = 0.8 # Students in top 20% for Wellbeing_Risk are vulnerable
+BULLY_CRITICISES_THRESHOLD = 6
+VULNERABLE_WELLBEING_QUANTILE = 0.8
 
-# Genetic Algorithm ParametersS
-GA_POP_SIZE = 1000 # Population size (suggested 500-1000)
-GA_NUM_GENERATIONS = 100 # Number of generations (suggested 100)
-GA_ELITISM_RATE = 0.05 # Percentage of top individuals to preserve (suggested 5%)
-GA_MUTATION_RATE_LOW = 0.02 # Base mutation rate (suggested 2%)
-GA_MUTATION_RATE_HIGH = 0.05 # Increased mutation rate (suggested 5%)
-GA_TOURNAMENT_SIZE = 5 # For parent selection
-GA_HEURISTIC_SEED_PERCENT = 0.20 # Percentage of population seeded heuristically (suggested 20%)
+# Genetic Algorithm Parameters
+GA_POP_SIZE = 100
+GA_NUM_GENERATIONS = 50
+GA_ELITISM_RATE = 0.05
+GA_MUTATION_RATE_LOW = 0.02
+GA_MUTATION_RATE_HIGH = 0.05
+GA_TOURNAMENT_SIZE = 5
+# CP_SEED_COUNT = 5 # Now Pyomo Seed Count
+PYOMO_SEED_COUNT = 3 # Adjust as needed, Pyomo might be slower than CP-SAT
+PYOMO_SOLVER = 'cbc' # Change to 'glpk' if you installed that, or provide path if needed
 
 # Adaptive Mutation Threshold
-# If fitness variance drops below this, increase mutation rate
-FITNESS_VARIANCE_THRESHOLD = 0.0005 # Example threshold, may need tuning
+FITNESS_VARIANCE_THRESHOLD = 0.0005
+FITNESS_IMPROVEMENT_THRESHOLD = 0.001
+IMPROVEMENT_CHECK_GENERATIONS = 10
 
-# Termination Criteria Thresholds
-FITNESS_IMPROVEMENT_THRESHOLD = 0.001 # Stop if best fitness improves by less than this
-IMPROVEMENT_CHECK_GENERATIONS = 10 # Check improvement over this many generations
-
-
-# Weights for the *scalar* fitness function (how we combine objectives for the GA)
-# These weights determine which point on the approximate Pareto front the GA converges towards.
-# Objectives will be normalized 0-1, then combined.
+# Weights for the *scalar* fitness function
 FITNESS_WEIGHTS = {
-    'academic_equity': 2.0, # Maximize 1/variance
-    'wellbeing_balance': 1.5, # Maximize 1/variance (using variance of average wellbeing risk)
-    'social_cohesion': 3.0, # Maximize (Friends - Conflicts)/N
+    'academic_equity': 2.0,
+    'wellbeing_balance': 1.5,
+    'social_cohesion': 3.0,
 }
 
+# Constraint Violation Penalty
+CONSTRAINT_PENALTY = 10000.0
 
-# --- Data Generation (Keep as is, generates necessary raw features) ---
+# --- Data Generation (Keep as is) ---
 def generate_synthetic_data(filename=SYNTHETIC_DATA_CSV, num_students=NUM_STUDENTS):
+    # ... (no changes needed in this function) ...
     """Generates synthetic student data if the CSV doesn't exist or is invalid."""
     if os.path.exists(filename):
         print(f"Loading existing data from {filename}")
         try:
             df = pd.read_csv(filename)
-            # Basic checks: correct number of students and essential columns
             required_cols = ['StudentID', 'Academic_Performance', 'Friends', 'criticises', 'k6_overall', 'School_support_engage', 'language']
+            # Ensure loaded data matches NUM_STUDENTS if reloading
             if len(df) == num_students and all(col in df.columns for col in required_cols):
                 print("Data loaded successfully.")
                 return df
             else:
-                print("CSV found but invalid (row count mismatch or missing columns), regenerating...")
+                print(f"CSV found but invalid (size {len(df)} != {num_students} or missing columns), regenerating...")
         except Exception as e:
             print(f"Error loading CSV: {e}. Regenerating...")
 
     print(f"Generating {num_students} new synthetic student records...")
-    # Define possible scales based on survey info
     LIKERT_SCALE_1_7 = list(range(1, 8))
     K6_SCALE_1_5 = list(range(1, 6))
-    LANGUAGE_SCALE = [0, 1] # 0: Primary language (e.g., English), 1: Other language
+    LANGUAGE_SCALE = [0, 1]
     PWI_SCALE = list(range(0, 11))
-
     student_ids = [f"S{i:04d}" for i in range(1, num_students + 1)]
     data = []
-
     for student_id in student_ids:
         academic_performance = max(0, min(100, round(np.random.normal(70, 15))))
         student_data = {
-            "StudentID": student_id,
-            "Academic_Performance": academic_performance,
-            "isolated": random.choice(LIKERT_SCALE_1_7),
-            "WomenDifferent": random.choice(LIKERT_SCALE_1_7),
-            "language": random.choices(LANGUAGE_SCALE, weights=[0.8, 0.2], k=1)[0], # 80% primary language, 20% other
-            "COVID": random.choice(LIKERT_SCALE_1_7),
-            "criticises": random.choice(LIKERT_SCALE_1_7), # Key for bullying
-            "MenBetterSTEM": random.choice(LIKERT_SCALE_1_7),
-            "pwi_wellbeing": random.choice(PWI_SCALE), # Key for wellbeing
-            "Intelligence1": random.choice(LIKERT_SCALE_1_7),
-            "Intelligence2": random.choice(LIKERT_SCALE_1_7),
-            "Soft": random.choice(LIKERT_SCALE_1_7),
-            "opinion": random.choice(LIKERT_SCALE_1_7),
-            "Nerds": random.choice(LIKERT_SCALE_1_7),
-            "comfortable": random.choice(LIKERT_SCALE_1_7),
-            "future": random.choice(LIKERT_SCALE_1_7),
-            "bullying": random.choice(LIKERT_SCALE_1_7), # Another bullying indicator
+            "StudentID": student_id, "Academic_Performance": academic_performance,
+            "isolated": random.choice(LIKERT_SCALE_1_7), "WomenDifferent": random.choice(LIKERT_SCALE_1_7),
+            "language": random.choices(LANGUAGE_SCALE, weights=[0.8, 0.2], k=1)[0],
+            "COVID": random.choice(LIKERT_SCALE_1_7), "criticises": random.choice(LIKERT_SCALE_1_7),
+            "MenBetterSTEM": random.choice(LIKERT_SCALE_1_7), "pwi_wellbeing": random.choice(PWI_SCALE),
+            "Intelligence1": random.choice(LIKERT_SCALE_1_7), "Intelligence2": random.choice(LIKERT_SCALE_1_7),
+            "Soft": random.choice(LIKERT_SCALE_1_7), "opinion": random.choice(LIKERT_SCALE_1_7),
+            "Nerds": random.choice(LIKERT_SCALE_1_7), "comfortable": random.choice(LIKERT_SCALE_1_7),
+            "future": random.choice(LIKERT_SCALE_1_7), "bullying": random.choice(LIKERT_SCALE_1_7),
              **{f"Manbox5_{i}": random.choice(LIKERT_SCALE_1_7) for i in range(1, 6)},
-             **{f"k6_{i}": random.choice(K6_SCALE_1_5) for i in range(1, 7)}, # Key for wellbeing (K6)
+             **{f"k6_{i}": random.choice(K6_SCALE_1_5) for i in range(1, 7)},
         }
         data.append(student_data)
-
     df = pd.DataFrame(data)
-
-    # --- Calculate Derived Fields ---
     df['Manbox5_overall'] = df[[f"Manbox5_{i}" for i in range(1, 6)]].mean(axis=1)
     df['Masculinity_contrained'] = df[['Soft', 'WomenDifferent', 'Nerds', 'MenBetterSTEM']].mean(axis=1)
     df['GrowthMindset'] = ((8.0 - df['Intelligence1']) + (8.0 - df['Intelligence2'])) / 2.0
-    df['k6_overall'] = df[[f"k6_{i}" for i in range(1, 7)]].sum(axis=1) # Higher is worse wellbeing
-    df['School_support_engage'] = (df['comfortable'] + df['future'] + (8.0 - df['isolated']) + (8.0 - df['opinion'])) / 4.0 # Higher is better
-
-    # Generate Friends string last, ensuring all students exist
+    df['k6_overall'] = df[[f"k6_{i}" for i in range(1, 7)]].sum(axis=1)
+    df['School_support_engage'] = (df['comfortable'] + df['future'] + (8.0 - df['isolated']) + (8.0 - df['opinion'])) / 4.0
     df['Friends'] = df['StudentID'].apply(
-        lambda x: ", ".join(random.sample([pid for pid in student_ids if pid != x], k=random.randint(0, min(7, num_students - 1)))) # Ensure k is valid
+        lambda x: ", ".join(random.sample([pid for pid in student_ids if pid != x], k=random.randint(0, min(7, num_students - 1))))
     )
     df['Friends_Count'] = df['Friends'].fillna('').apply(lambda x: len([f for f in x.split(',') if f.strip()]))
-
     df.to_csv(filename, index=False)
     print(f"Synthetic data saved to {filename}")
     return df
 
-# --- Predictive Analysis (Kept as it provides useful input features/scores for the GA objectives) ---
+# --- Predictive Analysis (Keep as is) ---
 def run_predictive_analysis(df):
+    # ... (no changes needed in this function) ...
     """Runs predictive models to get risk/score indicators and flags."""
     print("Running predictive analytics for risk scores...")
-
-    # Ensure all required raw columns exist, fill NaNs if necessary for calculations
     raw_cols_needed = [
         'Academic_Performance', 'isolated', 'WomenDifferent', 'language',
         'pwi_wellbeing', 'Intelligence1', 'Intelligence2', 'Soft', 'opinion',
         'Nerds', 'MenBetterSTEM', 'comfortable', 'future', 'bullying', 'criticises',
     ] + [f"Manbox5_{i}" for i in range(1, 6)] + [f"k6_{i}" for i in range(1, 7)]
-
     for col in raw_cols_needed:
-        if col not in df.columns:
-            print(f"Warning: Raw feature '{col}' not found. Adding with 0.")
-            df[col] = 0
+        if col not in df.columns: df[col] = 0
         elif df[col].isnull().any():
-            # Attempt conversion before filling to avoid errors if mixed types
             try:
-                 df[col] = pd.to_numeric(df[col], errors='coerce')
-                 df[col] = df[col].fillna(df[col].median())
-            except Exception as e:
-                 print(f"Could not convert column {col} to numeric: {e}. Filling with 0.")
-                 df[col] = df[col].fillna(0)
-
-    # Recalculate derived fields using cleaned raw data
+                df[col] = pd.to_numeric(df[col], errors='coerce')
+                df[col] = df[col].fillna(df[col].median())
+            except Exception: df[col] = df[col].fillna(0)
     df['Manbox5_overall'] = df[[f"Manbox5_{i}" for i in range(1, 6)]].mean(axis=1)
     df['Masculinity_contrained'] = df[['Soft', 'WomenDifferent', 'Nerds', 'MenBetterSTEM']].mean(axis=1)
     df['GrowthMindset'] = ((8.0 - df['Intelligence1']) + (8.0 - df['Intelligence2'])) / 2.0
     df['k6_overall'] = df[[f"k6_{i}" for i in range(1, 7)]].sum(axis=1)
     df['School_support_engage'] = (df['comfortable'] + df['future'] + (8.0 - df['isolated']) + (8.0 - df['opinion'])) / 4.0
     df['Friends_Count'] = df['Friends'].fillna('').apply(lambda x: len([f for f in x.split(',') if f.strip()]))
-
-
-    # Simulate Labels (for training predictive models)
     df['Academic_Success'] = (df['Academic_Performance'] > df['Academic_Performance'].quantile(0.75)).astype(int)
-    df['Wellbeing_Decline'] = (df['k6_overall'] > df['k6_overall'].quantile(0.75)).astype(int) # Higher k6 is worse
+    df['Wellbeing_Decline'] = (df['k6_overall'] > df['k6_overall'].quantile(0.75)).astype(int)
     df['Positive_Peer_Collab'] = (df['Friends_Count'] > df['Friends_Count'].median()).astype(int)
-
-    # Features for prediction
     features_for_prediction = [
         'Academic_Performance', 'isolated', 'WomenDifferent', 'language',
         'pwi_wellbeing', 'GrowthMindset', 'k6_overall', 'Manbox5_overall',
         'Masculinity_contrained', 'School_support_engage', 'Friends_Count'
     ]
-
-    # Ensure features exist and handle NaNs after initial processing
     X = df[features_for_prediction].copy()
     for col in X.columns:
-        if X[col].isnull().any():
-            # print(f"Warning: Feature '{col}' has NaNs before prediction. Filling with median.")
-            X[col] = X[col].fillna(X[col].median())
+        if X[col].isnull().any(): X[col] = X[col].fillna(X[col].median())
         if np.isinf(X[col]).any():
-             # print(f"Warning: Feature '{col}' has Infs before prediction. Replacing with NaN then filling median.")
-             X[col] = X[col].replace([np.inf, -np.inf], np.nan)
-             X[col] = X[col].fillna(X[col].median())
-
+            X[col] = X[col].replace([np.inf, -np.inf], np.nan)
+            X[col] = X[col].fillna(X[col].median())
     y_academic = df['Academic_Success']
     y_wellbeing = df['Wellbeing_Decline']
     y_peer = df['Positive_Peer_Collab']
-
-    # Handle cases where a target class might have only one label
     try:
         if len(y_academic.unique()) > 1:
             academic_model = XGBClassifier(random_state=42, use_label_encoder=False, eval_metric='logloss').fit(X, y_academic)
-            df['Academic_Risk'] = 1 - academic_model.predict_proba(X)[:, 1] # P(not succeeding) = 1 - P(succeeding)
-        else:
-            df['Academic_Risk'] = 1 - y_academic.iloc[0] # Assign 0 or 1 based on the single label
-            print("Warning: Academic_Success has only one unique value, skipping XGBoost training.")
-
+            df['Academic_Risk'] = 1 - academic_model.predict_proba(X)[:, 1]
+        else: df['Academic_Risk'] = 1 - y_academic.iloc[0]
         if len(y_wellbeing.unique()) > 1:
             wellbeing_model = RandomForestClassifier(random_state=42).fit(X, y_wellbeing)
-            df['Wellbeing_Risk'] = wellbeing_model.predict_proba(X)[:, 1] # P(decline)
-        else:
-             df['Wellbeing_Risk'] = y_wellbeing.iloc[0] # Assign 0 or 1 based on the single label
-             print("Warning: Wellbeing_Decline has only one unique value, skipping RandomForest training.")
-
+            df['Wellbeing_Risk'] = wellbeing_model.predict_proba(X)[:, 1]
+        else: df['Wellbeing_Risk'] = y_wellbeing.iloc[0]
         if len(y_peer.unique()) > 1:
             peer_model = XGBClassifier(random_state=42, use_label_encoder=False, eval_metric='logloss').fit(X, y_peer)
-            df['Peer_Score'] = peer_model.predict_proba(X)[:, 1] # P(positive collaboration)
-        else:
-            df['Peer_Score'] = y_peer.iloc[0] # Assign 0 or 1 based on the single label
-            print("Warning: Positive_Peer_Collab has only one unique value, skipping XGBoost training.")
-
+            df['Peer_Score'] = peer_model.predict_proba(X)[:, 1]
+        else: df['Peer_Score'] = y_peer.iloc[0]
     except Exception as e:
         print(f"Error during model training/prediction: {e}")
-        df['Academic_Risk'] = 0.5
-        df['Wellbeing_Risk'] = 0.5
-        df['Peer_Score'] = 0.5
+        df['Academic_Risk'], df['Wellbeing_Risk'], df['Peer_Score'] = 0.5, 0.5, 0.5
 
-    # Identify Bully/Vulnerable Students (using criteria from previous version)
+    # Identify Bully/Vulnerable Students (for CP/Pyomo constraints)
     df['Is_Bully'] = (df['criticises'] >= BULLY_CRITICISES_THRESHOLD).astype(int)
-    # Handle case where Wellbeing_Risk might not have enough variance for quantile
     if df['Wellbeing_Risk'].nunique() > 1:
         wellbeing_risk_threshold = df['Wellbeing_Risk'].quantile(VULNERABLE_WELLBEING_QUANTILE)
-    else:
-         wellbeing_risk_threshold = df['Wellbeing_Risk'].iloc[0] # Use the single value if no variance
-
+    else: wellbeing_risk_threshold = df['Wellbeing_Risk'].iloc[0]
     df['Is_Vulnerable'] = (df['Wellbeing_Risk'] >= wellbeing_risk_threshold).astype(int)
     df['Is_Supportive'] = (df['School_support_engage'] >= df['School_support_engage'].quantile(0.8) if df['School_support_engage'].nunique() > 1 else df['School_support_engage'].iloc[0] >= df['School_support_engage'].iloc[0]).astype(int)
-
-
     print("Predictive analysis complete.")
-    return df # Returns DataFrame with added risk scores and flags
+    return df
+
+# --- Pyomo Feasibility Helper ---
+
+def generate_pyomo_feasible_solution(df, num_classes, must_separate_pairs, class_min, class_max, solver_name='cbc'):
+    """Generates one feasible allocation using Pyomo and a specified solver."""
+    print(f"\nAttempting to generate a feasible solution using Pyomo (Solver: {solver_name})...")
+    print(f"(Min Size: {class_min}, Max Size: {class_max})")
+    start_pyomo_time = time.time()
+
+    model = pyo.ConcreteModel(name="Student_Allocation")
+
+    # --- Sets ---
+    student_ids_list = df['StudentID'].tolist()
+    model.STUDENTS = pyo.Set(initialize=student_ids_list)
+    model.CLASSES = pyo.RangeSet(0, num_classes - 1) # Classes indexed 0 to N-1
+
+    # Filter must_separate_pairs to only include students present in the dataframe
+    valid_student_set = set(student_ids_list)
+    filtered_separate_pairs = [
+        pair for pair in must_separate_pairs
+        if pair[0] in valid_student_set and pair[1] in valid_student_set
+    ]
+    model.MUST_SEPARATE_PAIRS = pyo.Set(initialize=filtered_separate_pairs, dimen=2)
+    if len(filtered_separate_pairs) != len(must_separate_pairs):
+         print(f"Warning: Filtered separation pairs from {len(must_separate_pairs)} to {len(filtered_separate_pairs)} due to missing students.")
+    print(f"Using {len(filtered_separate_pairs)} separation constraints.")
+
+    # --- Variables ---
+    # x[student_id, class_idx] = 1 if student is in class, 0 otherwise
+    model.x = pyo.Var(model.STUDENTS, model.CLASSES, domain=pyo.Binary)
+
+    # --- Constraints ---
+    # 1. Each student assigned to exactly one class
+    @model.Constraint(model.STUDENTS)
+    def assign_rule(m, s):
+        return sum(m.x[s, c] for c in m.CLASSES) == 1
+
+    # 2. Class size limits
+    @model.Constraint(model.CLASSES)
+    def min_size_rule(m, c):
+        return sum(m.x[s, c] for s in m.STUDENTS) >= class_min
+
+    @model.Constraint(model.CLASSES)
+    def max_size_rule(m, c):
+        return sum(m.x[s, c] for s in m.STUDENTS) <= class_max
+
+    # 3. Must-Separate pairs
+    @model.Constraint(model.MUST_SEPARATE_PAIRS, model.CLASSES)
+    def separate_rule(m, s1, s2, c):
+        # If s1 and s2 are defined for the constraint for class c, they cannot both be 1
+        return m.x[s1, c] + m.x[s2, c] <= 1
+
+    # --- Objective Function (Dummy - just need feasibility) ---
+    model.dummy_obj = pyo.Objective(expr=0, sense=pyo.minimize)
+
+    # --- Solve ---
+    allocation = None # Default to None
+    try:
+        # tee=True shows solver output in the console
+        solver = SolverFactory(solver_name)
+        results = solver.solve(model, tee=True)
+
+        end_pyomo_time = time.time()
+        print(f"Pyomo Solver ({solver_name}) finished in {end_pyomo_time - start_pyomo_time:.2f} seconds.")
+        print(f"Solver Status: {results.solver.status}, Termination Condition: {results.solver.termination_condition}")
+
+        # --- Extract Solution ---
+        if results.solver.termination_condition == TerminationCondition.optimal or \
+           results.solver.termination_condition == TerminationCondition.feasible:
+
+            print("Pyomo found a feasible solution.")
+            temp_allocation = [[] for _ in range(num_classes)]
+            for s in model.STUDENTS:
+                for c in model.CLASSES:
+                    # Check variable value (use tolerance for potential float issues)
+                    if pyo.value(model.x[s, c]) > 0.5:
+                        temp_allocation[c].append(s)
+                        break # Move to next student
+
+            # Verify extracted allocation sizes (redundant check, but good practice)
+            sizes = [len(cls) for cls in temp_allocation]
+            if all(class_min <= s <= class_max for s in sizes):
+                 allocation = temp_allocation # Assign the valid allocation
+                 print("Solution successfully extracted and verified.")
+            else:
+                 print(f"Error: Pyomo solution extracted, but size constraints violated? Sizes: {sizes}. Returning None.")
+                 # This suggests a potential issue in model definition or solver tolerance
+
+        elif results.solver.termination_condition == TerminationCondition.infeasible:
+            print("Pyomo determined the problem is Infeasible with the given constraints.")
+        else:
+            # Other conditions (unbounded, error, etc.)
+            print(f"Pyomo solver terminated with status: {results.solver.termination_condition}")
+
+    except Exception as e:
+        end_pyomo_time = time.time()
+        print(f"!!! Error during Pyomo model solving after {end_pyomo_time - start_pyomo_time:.2f} seconds !!!")
+        print(f"Error: {e}")
+        print(f"-> Please ensure the solver '{solver_name}' is installed and accessible in your PATH,")
+        print(f"-> OR that you provided the correct path if installed elsewhere.")
+        print(f"-> If using conda, try: conda install -c conda-forge {solver_name} (e.g., coincbc)")
+        allocation = None # Ensure allocation is None on error
+
+    return allocation
 
 
-# --- Genetic Algorithm Helper Functions ---
+# --- Genetic Algorithm Helper Functions (Modified Evaluation - Keep as is) ---
+# create_random_allocation, create_heuristic_allocation, check_hard_constraints,
+# evaluate_objectives_and_constraints, normalize_objectives, calculate_scalar_fitness
+# are reused, but check_hard_constraints will still be used within the GA loop
+# as a safety check and for fitness calculation, even though Pyomo provides initial feasibility.
 
+# (Keep these functions as they were in the previous hybrid version)
 def create_random_allocation(df, num_classes):
     """Creates a valid random allocation (list of lists)."""
     student_ids = df['StudentID'].tolist()
     random.shuffle(student_ids)
-    # Distribute students as evenly as possible
     k, m = divmod(len(student_ids), num_classes)
     classes = [student_ids[i * k + min(i, m):(i + 1) * k + min(i + 1, m)] for i in range(num_classes)]
     return classes
@@ -247,836 +315,567 @@ def create_random_allocation(df, num_classes):
 def create_heuristic_allocation(df, num_classes):
     """Creates an allocation based on simple heuristics (balancing academic, language)."""
     num_students = len(df)
-    # Sort students based on a combination of features
-    # Sort by Academic Performance descending, then language ascending
     df_sorted = df.sort_values(by=['Academic_Performance', 'language'], ascending=[False, True]).reset_index(drop=True)
     sorted_student_ids = df_sorted['StudentID'].tolist()
-
     allocation = [[] for _ in range(num_classes)]
-    # Assign students round-robin from the sorted list to balance features
     for i, student_id in enumerate(sorted_student_ids):
         class_id = i % num_classes
         allocation[class_id].append(student_id)
-
-    # Ensure class sizes are roughly equal after assignment (simple check)
-    # This round-robin approach on a sorted list naturally creates balanced classes.
     return allocation
 
+def check_hard_constraints(allocation, must_separate_pairs, class_min, class_max, student_data_map):
+    """Checks if an allocation violates hard constraints."""
+    student_to_class = {sid: i for i, cls in enumerate(allocation) for sid in cls}
 
-def evaluate_objectives(allocation, df, student_data_map, friends_map):
-    """Calculates the values for the three core objectives."""
-    num_classes = len(allocation)
+    # Check class sizes
+    for i, cls in enumerate(allocation):
+        if not (class_min <= len(cls) <= class_max):
+            return False # Size violation
+
+    # Check must-separate pairs
+    valid_student_set = set(student_data_map.keys()) # Get students actually in the data map
+    for s1_id, s2_id in must_separate_pairs:
+         # Check if both students are in the allocation and in the same class
+         if s1_id in student_to_class and s2_id in student_to_class: # Check if they exist in current allocation
+              if s1_id in valid_student_set and s2_id in valid_student_set: # Check they exist in data map
+                 if student_to_class[s1_id] == student_to_class[s2_id]:
+                      return False # Separation violation
+
+    return True # All hard constraints satisfied
+
+def evaluate_objectives_and_constraints(allocation, df, student_data_map, friends_map, must_separate_pairs, class_min, class_max):
+    """
+    Calculates objective values *if* hard constraints are met.
+    Returns (is_feasible, objective_values_dict or None)
+    """
     num_students = len(df)
-    objective_values = {} # Use objective values, not scores yet
+    if not num_students: return False, None # Handle empty df case
 
-    # --- Objective 1: Academic Equity (Minimize Variance of Avg Academic Performance) ---
+    # 1. Check Hard Constraints first
+    # student_data_map is needed for the check function now
+    is_feasible = check_hard_constraints(allocation, must_separate_pairs, class_min, class_max, student_data_map)
+
+    if not is_feasible:
+        return False, None # Return immediately if infeasible
+
+    # 2. Calculate Soft Objectives (only if feasible)
+    # ... (Objective calculation logic remains the same as before) ...
+    objective_values = {}
+    num_classes = len(allocation)
+
+    # --- Objective 1: Academic Equity ---
     class_academic_means = [np.mean([student_data_map[sid]['Academic_Performance'] for sid in cls]) for cls in allocation if cls]
-    # Handle case with only one class or empty classes
-    if len(class_academic_means) <= 1:
-        academic_variance = 0.0
-    else:
-        academic_variance = np.var(class_academic_means)
-
-    # We want to maximize 1/variance for academic equity. Minimize variance is equivalent for ranking.
-    # Store variance directly, normalization will handle inversion for fitness.
+    academic_variance = np.var(class_academic_means) if len(class_academic_means) > 1 else 0.0
     objective_values['academic_variance'] = academic_variance
 
-
-    # --- Objective 2: Well-Being Balance (Minimize Variance of Avg Wellbeing Risk) ---
-    # Using variance of average Wellbeing Risk across classes as a practical interpretation
+    # --- Objective 2: Well-Being Balance ---
     class_wellbeing_risks = [np.mean([student_data_map[sid]['Wellbeing_Risk'] for sid in cls]) for cls in allocation if cls]
-    if len(class_wellbeing_risks) <= 1:
-         wellbeing_risk_variance = 0.0
-    else:
-         wellbeing_risk_variance = np.var(class_wellbeing_risks)
-
-    # Minimize variance of average Wellbeing Risk
+    wellbeing_risk_variance = np.var(class_wellbeing_risks) if len(class_wellbeing_risks) > 1 else 0.0
     objective_values['wellbeing_risk_variance'] = wellbeing_risk_variance
 
-    # Note: The Gini coefficient of within-class distributions is a different objective
-    # and harder to integrate directly into this scalar fitness GA. Minimizing variance
-    # of class averages across classes is a common proxy for balancing.
-
-
-    # --- Objective 3: Social Cohesion ((Retained Friendships - Antagonistic Pairs) / Total Students) ---
+    # --- Objective 3: Social Cohesion ---
     intra_class_friendships = 0
-    antagonistic_classes_count = 0 # Count classes with conflicts
-
-    class_assignments = {} # Map student ID to class ID for quick lookup
-    for i, cls in enumerate(allocation):
-        for sid in cls:
-            class_assignments[sid] = i
+    antagonistic_classes_count = 0
+    class_assignments = {sid: i for i, cls in enumerate(allocation) for sid in cls}
 
     for class_id, cls in enumerate(allocation):
         class_bullies = [sid for sid in cls if student_data_map[sid]['Is_Bully'] == 1]
         class_vulnerables = [sid for sid in cls if student_data_map[sid]['Is_Vulnerable'] == 1]
-
-        # Antagonistic Pairs Count (sum over classes of (1 if bully+vulnerable) + (1 if multiple bullies))
         has_bully_vulnerable_conflict = len(class_bullies) > 0 and len(class_vulnerables) > 0
         has_multiple_bullies = len(class_bullies) > 1
-        if has_bully_vulnerable_conflict:
-             antagonistic_classes_count += 1
-        if has_multiple_bullies:
-             antagonistic_classes_count += 1 # Count this as another type of conflict instance
+        if has_bully_vulnerable_conflict: antagonistic_classes_count += 1
+        if has_multiple_bullies: antagonistic_classes_count += 1
 
-        # Count Intra-Class Friendships in this class
         for student_id in cls:
             friends_str = friends_map.get(student_id, "")
-            if friends_str and isinstance(friends_str, str): # Ensure it's a string before splitting
+            if friends_str and isinstance(friends_str, str):
                 friends_list = [f.strip() for f in friends_str.split(',') if f.strip()]
                 for friend_id in friends_list:
-                    # Check if friend is in the same class
                     if friend_id in class_assignments and class_assignments[friend_id] == class_id:
-                        intra_class_friendships += 0.5 # Count each friendship once (A->B and B->A)
+                        intra_class_friendships += 0.5
 
-    # Calculate Social Cohesion Score as (Friends - Conflicts) / Total Students
-    # Ensure total students is not zero if data generation failed
     social_cohesion_score = (intra_class_friendships - antagonistic_classes_count) / num_students if num_students > 0 else 0.0
     objective_values['social_cohesion'] = social_cohesion_score
 
-    return objective_values
+    return True, objective_values
+
 
 def normalize_objectives(objective_values_list):
-    """Normalize objective values across the population to 0-1."""
-    normalized_values_list = []
-    # Find min/max for each objective across the population
-    min_max_values = {}
-    # Initialize with dummy values to handle cases where list might be empty or all values are the same
-    if not objective_values_list:
-        return []
+    """Normalize objective values across the population to 0-1 (higher is better)."""
+    # ... (No changes needed in this function) ...
+    valid_objective_values = [ov for ov in objective_values_list if ov is not None]
+    if not valid_objective_values:
+        return [None] * len(objective_values_list)
 
-    # Get keys from the first set of objective values
-    objective_keys = objective_values_list[0].keys()
+    normalized_values_list = []
+    min_max_values = {}
+    objective_keys = valid_objective_values[0].keys()
 
     for key in objective_keys:
-        values = [values_dict.get(key, 0) for values_dict in objective_values_list] # Use .get with default 0
+        values = [values_dict.get(key, 0) for values_dict in valid_objective_values]
         min_max_values[key] = (min(values), max(values))
 
-    # Normalize each value
-    for values in objective_values_list:
-        normalized_values = {}
-        for key, value in values.items():
-            min_val, max_val = min_max_values.get(key, (0, 1)) # Use .get with default min/max
-            if max_val == min_val:
-                normalized_values[key] = 0.5 # Handle zero range
-            else:
-                # Academic and Wellbeing Variance are MINIMIZATION objectives -> Higher normalized is BETTER
-                # Social Cohesion is MAXIMIZATION objective -> Higher normalized is BETTER
-                if key in ['academic_variance', 'wellbeing_risk_variance']:
-                    # Scale to 0-1 where 0 is max variance and 1 is min variance (better)
-                    normalized_values[key] = 1.0 - ((value - min_val) / (max_val - min_val))
-                elif key == 'social_cohesion':
-                    # Scale to 0-1 where 0 is min social cohesion and 1 is max (better)
-                    normalized_values[key] = (value - min_val) / (max_val - min_val)
-                else:
-                    # Default to direct normalization if objective type is unknown (shouldn't happen with current objectives)
-                     normalized_values[key] = (value - min_val) / (max_val - min_val)
+    original_index = 0
+    for i in range(len(objective_values_list)):
+        values = objective_values_list[i]
+        if values is None:
+            normalized_values_list.append(None)
+            continue
 
+        normalized_values = {}
+        # Need to access the *original* value dict corresponding to the current valid one
+        current_valid_values = valid_objective_values[original_index]
+        for key, value in current_valid_values.items(): # Use item from valid list for calc range
+            min_val, max_val = min_max_values.get(key, (0, 1))
+            current_value = values.get(key, 0) # Use actual value for normalization calculation
+            if max_val == min_val:
+                normalized_values[key] = 0.5
+            else:
+                if key in ['academic_variance', 'wellbeing_risk_variance']: # Minimize these
+                    normalized_values[key] = 1.0 - ((current_value - min_val) / (max_val - min_val))
+                elif key == 'social_cohesion': # Maximize this
+                    normalized_values[key] = (current_value - min_val) / (max_val - min_val)
+                else: # Default direct normalization
+                    normalized_values[key] = (current_value - min_val) / (max_val - min_val)
         normalized_values_list.append(normalized_values)
+        original_index += 1
 
     return normalized_values_list
 
 
-def calculate_scalar_fitness(normalized_objective_values, weights):
-    """Combines normalized objectives into a single fitness score using weights."""
-    fitness = 0
-    # The normalized values are already adjusted so higher is always better (closer to 1)
-    # for maximizing the scalar fitness.
+def calculate_scalar_fitness(normalized_objective_values, weights, is_feasible):
+    """Combines normalized objectives into a single fitness score. Applies penalty if not feasible."""
+    # ... (No changes needed in this function) ...
+    if not is_feasible or normalized_objective_values is None:
+        return -CONSTRAINT_PENALTY
+    fitness = 0.0
     for key, weight in weights.items():
          fitness += normalized_objective_values.get(key, 0) * weight
-    return fitness
+    return fitness + 1e-9
 
 
+# --- GA Operators (Tournament, Crossover, Mutation - Keep as is) ---
 def tournament_selection(population, fitness_scores, num_parents, tournament_size):
-    """Selects parents using tournament selection."""
+    # ... (No changes needed in this function) ...
     parents = []
     pop_indices = list(range(len(population)))
-    # Ensure tournament size doesn't exceed population size
     current_tournament_size = min(tournament_size, len(pop_indices))
-    if current_tournament_size < 1: # Handle very small populations
-         return []
-
+    if current_tournament_size < 1: return []
     for _ in range(num_parents):
-        # Select random individuals for the tournament
         tournament_indices = random.sample(pop_indices, current_tournament_size)
-        # Find the winner (highest fitness)
         winner_index = max(tournament_indices, key=lambda i: fitness_scores[i])
         parents.append(population[winner_index])
     return parents
 
-
 def crossover(parent1_alloc, parent2_alloc, df):
-    """Performs crossover (simplified - swaps students between corresponding classes), followed by repair."""
+    # ... (No changes needed in this function) ...
     num_classes = len(parent1_alloc)
     num_students = len(df)
-
-    # Create mappings from student ID to their class index in each parent
     parent1_map = {sid: i for i, cls in enumerate(parent1_alloc) for sid in cls}
     parent2_map = {sid: i for i, cls in enumerate(parent2_alloc) for sid in cls}
-
-    # --- Crossover Step ---
-    # Create a temporary list of desired class assignments for the offspring
     temp_assignment = [None] * num_students
     student_ids = df['StudentID'].tolist()
 
     for i, student_id in enumerate(student_ids):
-         p1_class = parent1_map.get(student_id, -1)
-         p2_class = parent2_map.get(student_id, -1)
+        p1_class = parent1_map.get(student_id, random.randrange(num_classes))
+        p2_class = parent2_map.get(student_id, random.randrange(num_classes))
+        chosen_class = random.choice([p1_class, p2_class])
+        temp_assignment[i] = chosen_class
 
-         if p1_class == -1 and p2_class == -1:
-              chosen_class = random.randrange(num_classes) # Should not happen with valid parents
-         elif p1_class == -1:
-             chosen_class = p2_class
-         elif p2_class == -1:
-             chosen_class = p1_class
-         else:
-             # Randomly choose which parent's class assignment to inherit (50/50 chance)
-             chosen_class = random.choice([p1_class, p2_class])
-
-         temp_assignment[i] = chosen_class
-
-    # --- Repair Step ---
-    # Redistribute students to meet target class sizes
     offspring_alloc = [[] for _ in range(num_classes)]
     current_sizes = {i: temp_assignment.count(i) for i in range(num_classes)}
     target_size_base = num_students // num_classes
     target_sizes = {i: target_size_base + (1 if i < (num_students % num_classes) else 0) for i in range(num_classes)}
 
-    # Build initial allocation based on temp_assignment
     for i, student_id in enumerate(student_ids):
-         offspring_alloc[temp_assignment[i]].append(student_id)
+        offspring_alloc[temp_assignment[i]].append(student_id)
 
-
-    # Identify overloaded and underloaded classes
-    # Sort to prioritize removing from most overloaded and adding to most underloaded
     overloaded_classes = sorted([i for i, size in current_sizes.items() if size > target_sizes[i]], key=lambda i: current_sizes[i], reverse=True)
     underloaded_classes = sorted([i for i, size in current_sizes.items() if size < target_sizes[i]], key=lambda i: current_sizes[i])
 
-    # Move students from overloaded to underloaded classes
     while overloaded_classes and underloaded_classes:
         over_class_id = overloaded_classes[0]
         under_class_id = underloaded_classes[0]
+        num_to_move = min(current_sizes[over_class_id] - target_sizes[over_class_id], target_sizes[under_class_id] - current_sizes[under_class_id])
+        if num_to_move <= 0: break
 
-        # Determine how many students to move (min of excess in overloaded and deficit in underloaded)
-        num_to_move = min(current_sizes[over_class_id] - target_sizes[over_class_id],
-                          target_sizes[under_class_id] - current_sizes[under_class_id])
-
-        if num_to_move <= 0: # Should not happen if loops are active, but safety check
-             break
-
-        # Select random students from the overloaded class to move
-        students_in_over_class = offspring_alloc[over_class_id] # List of student IDs
-        # Ensure we don't try to sample more students than are available
+        students_in_over_class = offspring_alloc[over_class_id]
         students_to_move_ids = random.sample(students_in_over_class, min(num_to_move, len(students_in_over_class)))
 
         for student_id_to_move in students_to_move_ids:
-            # Remove from overloaded class and add to underloaded class
-            offspring_alloc[over_class_id].remove(student_id_to_move)
-            offspring_alloc[under_class_id].append(student_id_to_move)
+            if student_id_to_move in offspring_alloc[over_class_id]:
+                 offspring_alloc[over_class_id].remove(student_id_to_move)
+                 offspring_alloc[under_class_id].append(student_id_to_move)
+                 current_sizes[over_class_id] -= 1
+                 current_sizes[under_class_id] += 1
 
-            # Update current sizes
-            current_sizes[over_class_id] -= 1
-            current_sizes[under_class_id] += 1
-
-        # Update overloaded/underloaded lists if classes are now at target size
-        if current_sizes[over_class_id] == target_sizes[over_class_id]:
+        if current_sizes[over_class_id] <= target_sizes[over_class_id]:
             overloaded_classes.pop(0)
-        if current_sizes[under_class_id] == target_sizes[under_class_id]:
-            underloaded_classes.pop(0)
-
-    # Note: There might be a slight deficit/excess remaining if the repair logic is imperfect
-    # or if num_students is very small relative to num_classes. A robust repair ensures exact sizes.
-    # This basic repair should work for reasonable class sizes.
+        if current_sizes[under_class_id] >= target_sizes[under_class_id]:
+             underloaded_classes.pop(0)
 
     return offspring_alloc
 
-
 def mutate(allocation, mutation_rate):
-    """Performs mutation (swaps students between random classes) preserving class sizes."""
+    # ... (No changes needed in this function) ...
     num_classes = len(allocation)
-    num_students_total = sum(len(cls) for cls in allocation) # Get total students from allocation
-    mutated_alloc = [list(cls) for cls in allocation] # Create a deep copy
-
-    # Decide how many *students* to potentially involve in a swap
-    # Each swap involves 2 students, so number of swap operations is roughly mutation_rate * num_students_total / 2
+    num_students_total = sum(len(cls) for cls in allocation)
+    mutated_alloc = [list(cls) for cls in allocation]
     num_swap_operations = int(num_students_total * mutation_rate / 2)
 
     for _ in range(num_swap_operations):
-        # Ensure we have at least two classes to swap between and they are not empty
-        valid_classes = [i for i, cls in enumerate(mutated_alloc) if cls]
-        if len(valid_classes) < 2:
-            break
-
-        # Select two random, non-empty classes
+        valid_classes = [i for i, cls in enumerate(mutated_alloc) if len(cls) > 0]
+        if len(valid_classes) < 2: break
         class1_id, class2_id = random.sample(valid_classes, 2)
 
-        # Select one random student from each chosen class
-        student1_id = random.choice(mutated_alloc[class1_id])
-        student2_id = random.choice(mutated_alloc[class2_id])
+        if mutated_alloc[class1_id] and mutated_alloc[class2_id]:
+            student1_id = random.choice(mutated_alloc[class1_id])
+            student2_id = random.choice(mutated_alloc[class2_id])
 
-        # Perform the swap
-        mutated_alloc[class1_id].remove(student1_id)
-        mutated_alloc[class1_id].append(student2_id)
-
-        mutated_alloc[class2_id].remove(student2_id)
-        mutated_alloc[class2_id].append(student1_id)
+            mutated_alloc[class1_id].remove(student1_id)
+            mutated_alloc[class1_id].append(student2_id)
+            mutated_alloc[class2_id].remove(student2_id)
+            mutated_alloc[class2_id].append(student1_id)
 
     return mutated_alloc
 
+# --- Main Hybrid Allocation Function ---
 
-# --- Main Genetic Algorithm Function ---
-
-def run_genetic_allocation(df):
-    """Runs the Genetic Algorithm to find an optimal classroom allocation."""
-    print(f"Starting Genetic Algorithm with {NUM_STUDENTS} students, {N_CLASSES} classes...")
+def run_hybrid_allocation(df):
+    """Runs the Hybrid Pyomo-seeded GA to find an optimal classroom allocation."""
+    # --- Use Pyomo for Seeding ---
+    print(f"Starting Hybrid Allocation with {NUM_STUDENTS} students, {N_CLASSES} classes...")
+    print(f"Target Class Size: {CLASS_SIZE_TARGET}, Allowed Range: [{CLASS_SIZE_MIN}, {CLASS_SIZE_MAX}]")
     start_time = time.time()
 
     num_students = len(df)
-    num_classes = N_CLASSES # Use N_CLASSES defined globally
-    num_elitism = max(1, int(GA_POP_SIZE * GA_ELITISM_RATE)) # Number of individuals for elitism
+    num_classes = N_CLASSES
+    num_elitism = max(1, int(GA_POP_SIZE * GA_ELITISM_RATE))
 
-    # Pre-process data for faster objective evaluation
+    # Pre-process data
     student_data_map = df.set_index('StudentID').to_dict(orient='index')
     friends_map = df.set_index('StudentID')['Friends'].to_dict()
 
+    # Identify must-separate pairs
+    bullies = df[df['Is_Bully'] == 1]['StudentID'].tolist()
+    vulnerables = df[df['Is_Vulnerable'] == 1]['StudentID'].tolist()
+    must_separate_pairs = []
+    for b in bullies:
+        for v in vulnerables:
+            if b != v:
+                must_separate_pairs.append(tuple(sorted((b, v)))) # Store consistently sorted tuple
+    must_separate_pairs = list(set(must_separate_pairs)) # Keep unique pairs
+    print(f"Identified {len(must_separate_pairs)} unique bully-vulnerable pairs to separate.")
 
-    # 1. Population Initialization
+    # 1. Population Initialization (Pyomo Seeding + Random/Heuristic)
     population = []
-    num_heuristic = int(GA_POP_SIZE * GA_HEURISTIC_SEED_PERCENT)
+
+    # Try to generate feasible solutions using Pyomo
+    for i in range(PYOMO_SEED_COUNT):
+        print(f"\n--- Pyomo Seed Attempt {i+1}/{PYOMO_SEED_COUNT} ---")
+        # Pass the chosen solver name from config
+        pyomo_solution = generate_pyomo_feasible_solution(
+            df, num_classes, must_separate_pairs, CLASS_SIZE_MIN, CLASS_SIZE_MAX, solver_name=PYOMO_SOLVER
+        )
+        if pyomo_solution:
+            population.append(pyomo_solution)
+            print(f"Pyomo Seed {i+1} added to population.")
+        else:
+            print(f"Pyomo Seed {i+1} failed.")
+            if i == 0 and PYOMO_SEED_COUNT > 0:
+                 print("\nWARNING: Pyomo could not find even one initial feasible solution.")
+                 print("This might indicate conflicting constraints or solver issues.")
+                 print("The GA will proceed with random/heuristic initialization, but may struggle.")
+
+    num_pyomo_seeds = len(population)
+    print(f"\n--- Seeding GA Population ---")
+    print(f"Successfully seeded {num_pyomo_seeds} individuals using Pyomo.")
+
+    # Fill the rest of the population
+    num_to_fill = GA_POP_SIZE - num_pyomo_seeds
+    num_heuristic = min(num_to_fill // 2, num_to_fill)
+    num_random = num_to_fill - num_heuristic
+
+    print(f"Adding {num_heuristic} heuristic individuals...")
     for _ in range(num_heuristic):
         population.append(create_heuristic_allocation(df, num_classes))
+
+    print(f"Adding {num_random} random individuals...")
     while len(population) < GA_POP_SIZE:
         population.append(create_random_allocation(df, num_classes))
 
-    print(f"Initialized population of {GA_POP_SIZE} allocations ({num_heuristic} heuristic, {GA_POP_SIZE - num_heuristic} random).")
+    print(f"Initialized population of {len(population)}.")
 
-    best_allocation = None
-    best_fitness = -float('inf')
-    best_objectives = None
+    # --- GA Loop (remains largely the same logic as before) ---
+    best_allocation_overall = None
+    best_fitness_overall = -float('inf')
+    best_objectives_overall = None
     fitness_history = []
-    best_fitness_history_for_improvement_check = [] # Store only best fitness for termination check
+    best_fitness_history_for_improvement_check = []
 
-    # GA Loop
     for generation in range(GA_NUM_GENERATIONS):
-        # 2. Fitness Evaluation
-        objective_values_pop = [evaluate_objectives(alloc, df, student_data_map, friends_map) for alloc in population]
-        normalized_objective_values_pop = normalize_objectives(objective_values_pop)
-        fitness_scores = [calculate_scalar_fitness(norm_obj, FITNESS_WEIGHTS) for norm_obj in normalized_objective_values_pop]
+        gen_start_time = time.time()
+        # 2. Fitness Evaluation (Checks constraints internally)
+        eval_results = [evaluate_objectives_and_constraints(alloc, df, student_data_map, friends_map, must_separate_pairs, CLASS_SIZE_MIN, CLASS_SIZE_MAX) for alloc in population]
+        feasibility_flags = [res[0] for res in eval_results]
+        objective_values_pop = [res[1] for res in eval_results]
 
-        # Identify current best individual
-        current_best_index = np.argmax(fitness_scores)
-        current_best_fitness = fitness_scores[current_best_index]
-        current_best_allocation = population[current_best_index]
-        current_best_objectives = objective_values_pop[current_best_index]
+        # Normalize objectives
+        normalized_objective_values_pop = normalize_objectives(objective_values_pop)
+
+        # Calculate scalar fitness
+        fitness_scores = [calculate_scalar_fitness(norm_obj, FITNESS_WEIGHTS, is_feasible)
+                          for norm_obj, is_feasible in zip(normalized_objective_values_pop, feasibility_flags)]
+
+        num_feasible = sum(feasibility_flags)
+        avg_fitness = np.mean([f for f, feasible in zip(fitness_scores, feasibility_flags) if feasible]) if num_feasible > 0 else -CONSTRAINT_PENALTY
+        max_fitness = np.max(fitness_scores) if fitness_scores else -CONSTRAINT_PENALTY
+
+        # Identify current best *feasible* individual
+        current_best_fitness_gen = -float('inf')
+        current_best_alloc_gen = None
+        current_best_objectives_gen = None
+        feasible_indices = [i for i, feasible in enumerate(feasibility_flags) if feasible]
+
+        if feasible_indices:
+             current_best_idx_gen = max(feasible_indices, key=lambda i: fitness_scores[i])
+             current_best_fitness_gen = fitness_scores[current_best_idx_gen]
+             current_best_alloc_gen = population[current_best_idx_gen]
+             current_best_objectives_gen = objective_values_pop[current_best_idx_gen]
 
         # Update overall best
-        if current_best_fitness > best_fitness:
-            best_fitness = current_best_fitness
-            best_allocation = current_best_allocation # Store the allocation structure
-            best_objectives = current_best_objectives # Store the raw objectives
-            print(f"Generation {generation}: New best fitness = {best_fitness:.4f}")
-            obj_str = ", ".join([f"{k}: {v:.4f}" for k, v in best_objectives.items()])
-            print(f"  Objectives: {obj_str}")
+        if current_best_alloc_gen is not None and current_best_fitness_gen > best_fitness_overall:
+            best_fitness_overall = current_best_fitness_gen
+            best_allocation_overall = current_best_alloc_gen
+            best_objectives_overall = current_best_objectives_gen
+            print(f"Generation {generation}: New best FEASIBLE fitness = {best_fitness_overall:.4f} (Avg Fitness: {avg_fitness:.4f}, Feasible: {num_feasible}/{len(population)})")
+            if best_objectives_overall:
+                obj_str = ", ".join([f"{k}: {v:.4f}" for k, v in best_objectives_overall.items()])
+                print(f"  Objectives: {obj_str}")
+        elif generation % 10 == 0 or generation == GA_NUM_GENERATIONS - 1:
+             print(f"Generation {generation}: Max Fitness = {max_fitness:.4f} (Avg Fitness: {avg_fitness:.4f}, Feasible: {num_feasible}/{len(population)})")
 
-        fitness_history.append(current_best_fitness)
-        best_fitness_history_for_improvement_check.append(best_fitness)
-
+        fitness_history.append(max_fitness)
+        best_fitness_history_for_improvement_check.append(best_fitness_overall if best_fitness_overall > -float('inf') else max_fitness)
 
         # --- Adaptive Mutation ---
-        # Calculate fitness variance of the current population
         fitness_variance = np.var(fitness_scores) if len(fitness_scores) > 1 else 0.0
         current_mutation_rate = GA_MUTATION_RATE_HIGH if fitness_variance < FITNESS_VARIANCE_THRESHOLD else GA_MUTATION_RATE_LOW
-        # print(f"Gen {generation}: Fitness Variance = {fitness_variance:.6f}, Mutation Rate = {current_mutation_rate}")
 
-
-        # --- Termination Check (Improvement based) ---
+        # --- Termination Check ---
         if generation >= IMPROVEMENT_CHECK_GENERATIONS:
-             recent_best_fitness = best_fitness_history_for_improvement_check[-IMPROVEMENT_CHECK_GENERATIONS:]
-             improvement = best_fitness - min(recent_best_fitness) # Compare current best to best from N gens ago
-             # print(f"Gen {generation}: Improvement over last {IMPROVEMENT_CHECK_GENERATIONS} gens = {improvement:.6f}")
-             if improvement < FITNESS_IMPROVEMENT_THRESHOLD:
-                 print(f"Termination condition met: Improvement below {FITNESS_IMPROVEMENT_THRESHOLD} over {IMPROVEMENT_CHECK_GENERATIONS} generations.")
-                 break # Stop the GA loop
-
+            recent_best_feasible = [f for f in best_fitness_history_for_improvement_check[-IMPROVEMENT_CHECK_GENERATIONS:] if f > -CONSTRAINT_PENALTY]
+            if recent_best_feasible and best_fitness_overall > -CONSTRAINT_PENALTY:
+                 improvement = best_fitness_overall - min(recent_best_feasible)
+                 if improvement < FITNESS_IMPROVEMENT_THRESHOLD:
+                    print(f"Termination: Best feasible fitness improvement ({improvement:.6f}) below threshold.")
+                    break
+            elif len(recent_best_feasible) == 0 and generation > IMPROVEMENT_CHECK_GENERATIONS * 2:
+                 print(f"Termination: No feasible solution found for {IMPROVEMENT_CHECK_GENERATIONS} generations. Stopping.")
+                 break
 
         # --- Selection and Reproduction ---
-        # Elitism: Select the top individuals to carry over directly
         top_indices = np.argsort(fitness_scores)[-num_elitism:][::-1]
         next_population = [population[i] for i in top_indices]
+        parents = tournament_selection(population, fitness_scores, GA_POP_SIZE - num_elitism, GA_TOURNAMENT_SIZE)
 
-        # Select parents for crossover
-        parents = tournament_selection(population, fitness_scores, GA_POP_SIZE, GA_TOURNAMENT_SIZE)
-
-        # Generate offspring to fill the rest of the population
         offspring = []
-        while len(next_population) + len(offspring) < GA_POP_SIZE:
-             # Select two parents (can be the same) from the selected parent pool
-             p1, p2 = random.sample(parents, 2)
-             child = crossover(p1, p2, df)
-             mutated_child = mutate(child, current_mutation_rate) # Use adaptive mutation rate
-             offspring.append(mutated_child)
+        num_offspring_needed = GA_POP_SIZE - len(next_population)
+        current_parents_pool = parents
+
+        if not current_parents_pool and num_offspring_needed > 0:
+             print(f"Warning: No parents selected in generation {generation}. Adding random individuals.")
+             while len(next_population) < GA_POP_SIZE:
+                  next_population.append(create_random_allocation(df, num_classes))
+        else:
+            while len(offspring) < num_offspring_needed:
+                 if len(current_parents_pool) >= 2: p1, p2 = random.sample(current_parents_pool, 2)
+                 elif len(current_parents_pool) == 1: p1 = p2 = current_parents_pool[0]
+                 else: break # Should not happen
+                 child = crossover(p1, p2, df)
+                 mutated_child = mutate(child, current_mutation_rate)
+                 offspring.append(mutated_child)
 
         next_population.extend(offspring)
-        population = next_population # Replace old population
+        population = next_population[:GA_POP_SIZE] # Ensure population size doesn't exceed limit
 
+        gen_end_time = time.time()
+        # print(f"Generation {generation} took {gen_end_time - gen_start_time:.2f} seconds.")
 
+    # --- Final Result Processing (remains the same) ---
     end_time = time.time()
     duration = end_time - start_time
-    print(f"Genetic Algorithm finished after {generation + 1} generations in {duration:.2f} seconds.")
-    print(f"Best fitness found: {best_fitness:.4f}")
-    print("Best Allocation Objectives:")
-    if best_objectives:
-        for k, v in best_objectives.items():
-            print(f"  {k}: {v:.4f}")
+    print(f"\nHybrid Allocation finished after {generation + 1} generations in {duration:.2f} seconds.")
 
-    # Convert the best allocation (list of lists) to a DataFrame with 'Allocated_Class'
+    if best_allocation_overall is None:
+         print("\n>>> CRITICAL WARNING: No feasible solution satisfying all constraints was found by the hybrid algorithm. <<<")
+         final_best_idx = np.argmax(fitness_scores) if fitness_scores else 0
+         if final_best_idx < len(population):
+            final_best_alloc = population[final_best_idx]
+            final_best_fitness = fitness_scores[final_best_idx] if fitness_scores else -float('inf')
+            print(f"   Returning the 'best' found allocation (Fitness: {final_best_fitness:.4f}), but it likely violates constraints.")
+            # Perform constraint check on this allocation to report violations
+            is_final_feasible = check_hard_constraints(final_best_alloc, must_separate_pairs, CLASS_SIZE_MIN, CLASS_SIZE_MAX, student_data_map)
+            if not is_final_feasible: print("   Constraint check confirms final allocation is INFEASIBLE.")
+            best_allocation_overall = final_best_alloc
+         else:
+            print("   Error: Could not retrieve any allocation to return.")
+            best_allocation_overall = None # No allocation found
+         best_objectives_overall = {'academic_variance': float('nan'), 'wellbeing_risk_variance': float('nan'), 'social_cohesion': float('nan')}
+
+    else:
+        print(f"Best feasible fitness found: {best_fitness_overall:.4f}")
+        print("Best Feasible Allocation Objectives:")
+        if best_objectives_overall:
+            for k, v in best_objectives_overall.items():
+                print(f"  {k}: {v:.4f}")
+        else:
+            print("  (No objectives calculated - indicates an issue)")
+
+    # Convert best allocation to DataFrame
     allocated_student_list = []
-    # Ensure best_allocation is not None (could happen if GA loop breaks immediately or pop size is too small)
-    if best_allocation is not None:
-        for class_id, student_list in enumerate(best_allocation):
+    if best_allocation_overall:
+        for class_id, student_list in enumerate(best_allocation_overall):
             for student_id in student_list:
-                allocated_student_list.append({'StudentID': student_id, 'Allocated_Class': class_id})
-    else:
-         print("Warning: No valid allocation found by GA. Returning empty allocation.")
-         # Create a dummy allocation
-         allocated_student_list = [{'StudentID': sid, 'Allocated_Class': 0} for sid in df['StudentID']] # Assign all to class 0
-         best_objectives = {} # Empty objectives
-         best_allocation = [df['StudentID'].tolist()] # All students in one class
+                allocated_student_list.append({'StudentID': student_id, 'Allocated_Class': f"Class_{class_id+1}"})
+    else: # Fallback if absolutely no allocation is available
+        student_ids = df['StudentID'].tolist()
+        for student_id in student_ids:
+             allocated_student_list.append({'StudentID': student_id, 'Allocated_Class': f"Unassigned_ERROR"})
 
-    df_allocated = pd.DataFrame(allocated_student_list)
+    allocation_df = pd.DataFrame(allocated_student_list)
+    final_df = pd.merge(df, allocation_df, on='StudentID', how='left')
+    final_df['Allocated_Class'] = final_df['Allocated_Class'].fillna('Unassigned')
 
-    # Merge with the original df to get all student data including scores/flags
-    df_final = pd.merge(df, df_allocated, on='StudentID', how='left')
+    # --- Analysis/Visualization (remains the same) ---
+    plot_html = "<p>Analysis requires a feasible solution.</p>"
+    stats_df = pd.DataFrame()
+    if best_allocation_overall and best_fitness_overall > -CONSTRAINT_PENALTY:
+         # Recalculate final stats only if best solution was deemed feasible
+         final_feasible, final_objectives = evaluate_objectives_and_constraints(best_allocation_overall, df, student_data_map, friends_map, must_separate_pairs, CLASS_SIZE_MIN, CLASS_SIZE_MAX)
 
-    # --- Step 6: Validation and Reporting for the Best Allocation ---
-    allocation_validation_metrics = {}
+         if final_feasible and final_objectives:
+             print("\n--- Analysis of Best Feasible Allocation ---")
+             class_stats = []
+             for i, cls_list in enumerate(best_allocation_overall):
+                 class_name = f"Class_{i+1}"
+                 class_df = final_df[final_df['Allocated_Class'] == class_name]
+                 if not class_df.empty: # Ensure class DF is not empty before calculating stats
+                    stats = {
+                        'Class': class_name, 'Size': len(cls_list),
+                        'Avg_Academic': class_df['Academic_Performance'].mean(),
+                        'Avg_Wellbeing_Risk': class_df['Wellbeing_Risk'].mean(),
+                        'Num_Bullies': class_df['Is_Bully'].sum(),
+                        'Num_Vulnerable': class_df['Is_Vulnerable'].sum(),
+                        'Num_Supportive': class_df['Is_Supportive'].sum(),
+                    }
+                    class_stats.append(stats)
+                 else: # Handle empty class case if it somehow occurs
+                     class_stats.append({'Class': class_name, 'Size': 0})
 
-    # Calculate metrics per class using the final df with allocation
-    # Use the actual number of classes in the best allocation
-    actual_num_classes = len(best_allocation)
-    for class_id in range(actual_num_classes):
-        students_in_class = df_final[df_final['Allocated_Class'] == class_id]
-        if students_in_class.empty:
-             allocation_validation_metrics[f"Class {class_id}"] = {
-                 "Size": 0, "Avg Academic Perf": np.nan, "Avg Wellbeing Risk": np.nan,
-                 "Avg Peer Score": np.nan, "ESL %": np.nan, "Bully Count": 0,
-                 "Vulnerable Count": 0, "Bully-Vulnerable Conflicts": "No", "Multiple Bullies": "No",
-                 "Intra-Class Friends": 0
-             }
-             continue
+             stats_df = pd.DataFrame(class_stats).fillna(0) # FillNa just in case means were calculated on empty dfs
+             print(stats_df.round(2))
 
-        avg_academic = students_in_class['Academic_Performance'].mean()
-        avg_wellbeing_risk = students_in_class['Wellbeing_Risk'].mean()
-        avg_peer_score = students_in_class['Peer_Score'].mean()
-        esl_percentage = (students_in_class['language'] == 1).mean() * 100
-        bully_count = students_in_class['Is_Bully'].sum()
-        vulnerable_count = students_in_class['Is_Vulnerable'].sum()
+             print("\nObjective Values (Recalculated):")
+             print(f"  Academic Variance (Minimize): {final_objectives.get('academic_variance', float('nan')):.4f}")
+             print(f"  Wellbeing Risk Variance (Minimize): {final_objectives.get('wellbeing_risk_variance', float('nan')):.4f}")
+             print(f"  Social Cohesion (Maximize): {final_objectives.get('social_cohesion', float('nan')):.4f}")
 
-        has_bully = bully_count > 0
-        has_vulnerable = vulnerable_count > 0
-        bully_vulnerable_conflict = has_bully and has_vulnerable
+             # Generate plot
+             try:
+                plt.figure(figsize=(10, 6))
+                stats_df.plot(kind='bar', x='Class', y=['Avg_Academic', 'Avg_Wellbeing_Risk'], secondary_y=['Avg_Wellbeing_Risk'], rot=0)
+                plt.title('Class Profiles (Best Allocation)')
+                plt.ylabel('Average Score / Risk')
+                plt.xlabel('Class')
+                buf = io.BytesIO()
+                plt.savefig(buf, format='png', bbox_inches='tight')
+                buf.seek(0)
+                plot_base64 = base64.b64encode(buf.read()).decode('utf-8')
+                plt.close()
+                plot_html = f"<img src='data:image/png;base64,{plot_base64}'/>"
+             except Exception as e:
+                 print(f"Error generating plot: {e}")
+                 plot_html = "<p>Error generating plot.</p>"
+         else:
+              print("\nCould not recalculate statistics for the final allocation.")
+              plot_html = "<p>Could not generate analysis for the final allocation.</p>"
 
-        multiple_bullies = bully_count > 1
-
-        # Recalculate intra-class friendships specifically for this class
-        class_intra_friendships = 0
-        class_student_ids = students_in_class['StudentID'].tolist()
-        class_friends_map_subset = students_in_class.set_index('StudentID')['Friends'].to_dict()
-
-        for student_id in class_student_ids:
-            friends_str = class_friends_map_subset.get(student_id, "")
-            if friends_str and isinstance(friends_str, str): # Ensure it's a string before splitting
-                friends_list = [f.strip() for f in friends_str.split(',') if f.strip()]
-                for friend_id in friends_list:
-                    if friend_id in class_student_ids: # Check if friend is in the *same* class
-                         class_intra_friendships += 0.5 # Count each friendship once (A->B and B->A)
-
-
-        allocation_validation_metrics[f"Class {class_id}"] = {
-            "Size": len(students_in_class),
-            "Avg Academic Perf": round(avg_academic, 2),
-            "Avg Wellbeing Risk": round(avg_wellbeing_risk, 3),
-            "Avg Peer Score": round(avg_peer_score, 3),
-            "ESL %": round(esl_percentage, 2),
-            "Bully Count": int(bully_count),
-            "Vulnerable Count": int(vulnerable_count),
-            "Bully-Vulnerable Conflicts (Class)": "Yes" if bully_vulnerable_conflict else "No", # Renamed for clarity
-            "Multiple Bullies (Class)": "Yes" if multiple_bullies else "No", # Renamed for clarity
-            "Intra-Class Friends": int(class_intra_friendships)
-        }
-
-    validation_df = pd.DataFrame.from_dict(allocation_validation_metrics, orient='index')
-    validation_df.index.name = 'Class'
-    validation_df = validation_df.reset_index()
+    else: # Handle case where no feasible solution was ever found
+         print("\n--- No Feasible Allocation Found ---")
+         stats_df = pd.DataFrame([{"Status": "No Feasible Solution Found"}])
+         plot_html = "<p>No feasible allocation found.</p>"
 
 
-    print("Genetic Algorithm allocation and validation complete.")
-    return df_final, validation_df, best_objectives # Return final df, validation report, and overall GA objectives
+    return final_df, stats_df, plot_html
 
 
-# --- Gradio Interface Helper Functions ---
-def plot_network(df_class, student_id_col='StudentID', friend_col='Friends', color_metric='Academic_Performance'):
-    """Generates a NetworkX graph visualization for a class."""
-    if df_class.empty:
-        return None
+# --- Gradio Interface (remains the same) ---
+def run_allocation_interface(run_button_click):
+    if not run_button_click:
+        return pd.DataFrame(), pd.DataFrame(), "<p>Click 'Run Allocation' to start.</p>", "<p></p>"
 
-    G = nx.Graph()
-    all_students_in_class = df_class[student_id_col].tolist()
-    G.add_nodes_from(all_students_in_class)
+    print("\n--- Running Full Process ---")
+    student_df = generate_synthetic_data(num_students=NUM_STUDENTS)
+    if student_df is None or student_df.empty:
+        return pd.DataFrame(), pd.DataFrame(), "<p>Error generating/loading data.</p>", "<p></p>"
 
-    # Map student IDs to their metric value for coloring
-    if color_metric not in df_class.columns:
-        # Fallback if metric is missing
-        print(f"Warning: Color metric '{color_metric}' not found in class data. Using default color.")
-        node_colors = 'skyblue' # Default color
-        min_val, max_val = 0, 1 # Dummy range for colorbar
-        cmap = cm.viridis # Keep default colormap
-        norm = plt.Normalize(vmin=0, vmax=1)
-        is_colored = False
-    else:
-        metric_values = df_class.set_index(student_id_col)[color_metric]
-         # Handle potential non-numeric or NaN/inf values in the metric
-        metric_values = pd.to_numeric(metric_values, errors='coerce').fillna(metric_values.median() if not metric_values.empty and not metric_values.median() is np.nan else 0)
-        metric_values = metric_values.replace([np.inf, -np.inf], metric_values.median() if not metric_values.empty and not metric_values.median() is np.nan else 0)
-
-
-        min_val, max_val = metric_values.min(), metric_values.max()
-        cmap = cm.viridis
-        if min_val == max_val:
-            norm = plt.Normalize(vmin=min_val - 0.1, vmax=max_val + 0.1) # Add some range if constant
-        else:
-            norm = plt.Normalize(vmin=min_val, vmax=max_val)
-        node_colors = [cmap(norm(metric_values.get(node, norm.vmin))) for node in G.nodes()]
-        is_colored = True
-
-    # Add edges based on the 'Friends' column (within the class)
-    for index, row in df_class.iterrows():
-        student = row[student_id_col]
-        friends_str = row[friend_col]
-        if pd.isna(friends_str) or not friends_str:
-            continue
-        if not isinstance(friends_str, str): # Ensure friends_str is string
-             friends_str = str(friends_str)
-        friends_list = [f.strip() for f in friends_str.split(',') if f.strip()]
-        for friend in friends_list:
-            # Add edge only if the friend is also in the *same class*
-            if friend in all_students_in_class:
-                G.add_edge(student, friend)
-
-    fig, ax = plt.subplots(figsize=(10, 8))
+    student_df = run_predictive_analysis(student_df)
+    if 'Wellbeing_Risk' not in student_df.columns:
+         return student_df, pd.DataFrame(), "<p>Error during predictive analysis.</p>", "<p></p>"
 
     try:
-        graph_size = len(G.nodes())
-        k_value = 0.5 / np.sqrt(graph_size) if graph_size > 0 else 0.1
-        pos = nx.spring_layout(G, k=k_value, iterations=50, seed=42)
+        final_df, stats_df, plot_html = run_hybrid_allocation(student_df)
+        stats_html = stats_df.to_html(index=False, escape=False, classes='table table-striped table-sm')
+        return final_df, stats_df, plot_html, stats_html
     except Exception as e:
-         print(f"Error generating layout, using random_layout: {e}")
-         pos = nx.random_layout(G, seed=42)
+        print(f"An error occurred during the hybrid allocation: {e}")
+        import traceback
+        traceback.print_exc()
+        return student_df, pd.DataFrame(), f"<p>Error during allocation: {e}</p>", "<p></p>"
 
-    nx.draw(G, pos, ax=ax,
-            node_size=50,
-            width=0.5,
-            with_labels=False,
-            node_color=node_colors) # Use the calculated node_colors
+# Define Gradio components
+run_button = gr.Button("Run Allocation", variant="primary")
+output_df = gr.DataFrame(label="Final Allocation with Student Data")
+output_stats_df = gr.DataFrame(label="Class Statistics Summary (Raw Data)") # Hidden
+output_plot = gr.HTML(label="Class Profiles Visualization")
+output_stats_html = gr.HTML(label="Class Statistics Summary")
 
-    ax.set_title(f"Friendship Network within Class (Colored by {color_metric if is_colored else 'Default'})")
-
-    # Add a colorbar only if metric coloring was applied
-    if is_colored:
-        sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
-        sm.set_array([])
-        cbar = plt.colorbar(sm, ax=ax, orientation='vertical', fraction=0.046, pad=0.04)
-        cbar.set_label(color_metric)
-
-    buf = io.BytesIO()
-    plt.savefig(buf, format='png', bbox_inches='tight')
-    buf.seek(0)
-    img_str = base64.b64encode(buf.read()).decode('utf-8')
-    plt.close(fig)
-    return f"data:image/png;base64,{img_str}"
-
-def plot_histogram(df_class, metric, class_id):
-    """Generates a histogram for a given metric within a class."""
-    if df_class.empty or metric not in df_class.columns:
-        return None
-
-    # Handle potential non-numeric data by coercing to numeric and dropping NaNs
-    data = pd.to_numeric(df_class[metric], errors='coerce').dropna()
-
-    if data.empty:
-         return None
-
-    fig, ax = plt.subplots(figsize=(6, 4))
-    # Ensure bins are positive integer, max(5, min(20, len(data)//10)) can be 0 or less for small data
-    bins = max(5, min(20, int(len(data)/10))) if len(data) > 10 else min(max(1, len(data)//2), 5) # More robust bin calculation
-
-    ax.hist(data, bins=bins, alpha=0.7)
-    ax.set_title(f"{metric} Distribution in Class {class_id}")
-    ax.set_xlabel(metric)
-    ax.set_ylabel("Frequency")
-    plt.tight_layout()
-
-    buf = io.BytesIO()
-    plt.savefig(buf, format='png')
-    buf.seek(0)
-    img_str = base64.b64encode(buf.read()).decode('utf-8')
-    plt.close(fig)
-    return f"data:image/png;base64,{img_str}"
-
-
-# --- Data Loading and Processing (Global scope) ---
-# This runs once when the script starts
-df_processed = None
-allocation_validation_report = None
-best_ga_objectives = None
-ga_classes = []
-
-# Define available metrics for coloring networks and histograms
-all_available_metrics = ['Academic_Performance', 'Academic_Risk', 'Wellbeing_Risk',
-                          'Peer_Score', 'Friends_Count', 'k6_overall', 'criticises',
-                          'Is_Bully', 'Is_Vulnerable', 'Is_Supportive', 'language',
-                          'GrowthMindset', 'Manbox5_overall', 'Masculinity_contrained',
-                          'School_support_engage'] # Include all potentially useful metrics
-
-
-try:
-    df_synthetic = generate_synthetic_data()
-    # Run predictive analysis to get risk scores, bullying/vulnerable flags, etc.
-    # These are used as inputs for the GA objective functions.
-    df_processed = run_predictive_analysis(df_synthetic.copy())
-
-    # Run the Genetic Algorithm allocation
-    df_processed, allocation_validation_report, best_ga_objectives = run_genetic_allocation(df_processed)
-
-    # Get unique class labels for dropdowns from the GA result
-    if 'Allocated_Class' in df_processed.columns:
-        ga_classes = sorted(df_processed['Allocated_Class'].unique().tolist())
-
-    all_classes = ga_classes # Only GA allocation available now
-
-    # Update available metrics based on the final DataFrame columns
-    available_color_metrics = [metric for metric in all_available_metrics if metric in df_processed.columns]
-
-except Exception as e:
-    print(f"FATAL ERROR during initial data processing or GA allocation: {e}")
-    import traceback
-    traceback.print_exc() # Print traceback for debugging
-    # Create dummy data and classes to prevent Gradio from crashing on launch
-    df_processed = pd.DataFrame({'StudentID': [f'ErrorS{i}' for i in range(N_CLASSES * 25)], 'Allocated_Class': [i % N_CLASSES for i in range(N_CLASSES * 25)]})
-    # Add dummy essential columns that plot_network/histogram might need
-    for col in all_available_metrics + ['Friends', 'criticises', 'k6_overall', 'language', 'Is_Bully', 'Is_Vulnerable']:
-         if col not in df_processed.columns:
-              df_processed[col] = 0
-    df_processed['StudentID'] = df_processed['StudentID'].astype(str) # Ensure StudentID is string
-    df_processed['Friends'] = df_processed['StudentID'].apply(lambda x: f"ErrorS{random.randint(0, N_CLASSES*25-1)}") # Dummy friends
-
-    all_classes = sorted(df_processed['Allocated_Class'].unique().tolist())
-    ga_classes = all_classes
-    allocation_validation_report = pd.DataFrame({
-        'Class': [f'Error {i}' for i in range(N_CLASSES)], 'Size': [0] * N_CLASSES, 'Avg Academic Perf': [np.nan] * N_CLASSES,
-        'Avg Wellbeing Risk': [np.nan] * N_CLASSES, 'Avg Peer Score': [np.nan] * N_CLASSES,
-        'ESL %': [np.nan] * N_CLASSES, 'Bully Count': [0] * N_CLASSES, 'Vulnerable Count': [0] * N_CLASSES,
-        'Bully-Vulnerable Conflicts (Class)': ['Error'] * N_CLASSES, 'Multiple Bullies (Class)': ['Error'] * N_CLASSES,
-        'Intra-Class Friends': [0] * N_CLASSES
-    })
-    best_ga_objectives = {"Academic Equity": np.nan, "Wellbeing Balance": np.nan, "Social Cohesion": np.nan}
-    available_color_metrics = ['Academic_Performance'] # Fallback
-
-
-# --- Gradio Interface Update Function ---
-def update_visualizations(selected_class_id_str, color_metric):
-    """Updates dashboard outputs based on user selections (using GA allocation)."""
-    global df_processed, allocation_validation_report, best_ga_objectives # Access global dataframes
-
-    # Check for fatal error state
-    if df_processed is None or 'StudentID' not in df_processed or df_processed['StudentID'].iloc[0].startswith('Error'):
-         error_message = "Fatal Error during data loading or GA allocation. Cannot display results."
-         dummy_df = pd.DataFrame()
-         dummy_report = allocation_validation_report if allocation_validation_report is not None else pd.DataFrame()
-         dummy_objectives = best_ga_objectives if best_ga_objectives is not None else {}
-         obj_html = "### Overall GA Objective Scores<br>Data not available due to error."
-
-         return (dummy_report, dummy_df, error_message, obj_html,
-                 "Histogram not available due to error.", "Histogram not available due to error.",
-                 "Histogram not available due to error.", "Histogram not available due to error.")
-
-
-    class_col = 'Allocated_Class'
-
-    # Ensure selected_class_id is an integer
-    try:
-        selected_class_id = int(selected_class_id_str)
-    except (ValueError, TypeError):
-        valid_classes = sorted(df_processed[class_col].unique().tolist())
-        if not valid_classes:
-             return (pd.DataFrame(), pd.DataFrame(), "No classes found for this method.", "No objectives available.",
-                     None, None, None, None)
-        selected_class_id = valid_classes[0] # Default to the first valid class
-
-
-    # --- Display Overall GA Objectives ---
-    objective_summary_html = "### Overall GA Objective Scores<br>"
-    if best_ga_objectives:
-         # Map objective keys to user-friendly names and format
-         display_names = {
-             'academic_variance': 'Academic Equity (Variance)',
-             'wellbeing_risk_variance': 'Wellbeing Balance (Risk Variance)',
-             'social_cohesion': 'Social Cohesion ((Friends - Conflicts) / N)'
-         }
-         obj_details = []
-         # Display objectives in a consistent order based on weights or a defined list
-         ordered_keys = ['academic_variance', 'wellbeing_risk_variance', 'social_cohesion']
-         for key in ordered_keys:
-              if key in best_ga_objectives:
-                  display_name = display_names.get(key, key.replace('_', ' ').title())
-                  value = best_ga_objectives[key]
-                  # Add explanation of direction (minimize/maximize)
-                  direction = "(Minimize)" if key in ['academic_variance', 'wellbeing_risk_variance'] else "(Maximize)"
-                  obj_details.append(f"&bull; {display_name}: {value:.4f} {direction}")
-
-         objective_summary_html += "<br>".join(obj_details)
-    else:
-         objective_summary_html += "GA objectives not available."
-
-
-    # --- 1. Class Overview / Validation Report Table ---
-    # Use the pre-calculated validation report
-    overview = allocation_validation_report
-
-
-    # --- 2. Selected Class Details ---
-    df_selected_class = df_processed[df_processed[class_col] == selected_class_id].copy()
-
-    # Select relevant columns for the student table
-    student_table_cols = [
-        'StudentID', 'Academic_Performance', 'Academic_Risk',
-        'Wellbeing_Risk', 'Peer_Score', 'Friends_Count', 'k6_overall',
-        'criticises', 'language', 'Is_Bully', 'Is_Vulnerable', 'Is_Supportive',
-        'School_support_engage'
-    ]
-    # Add color metric if not already included and exists
-    if color_metric not in student_table_cols and color_metric in df_selected_class.columns:
-         student_table_cols.append(color_metric)
-
-    # Ensure all columns exist before selecting
-    student_table_cols = [col for col in student_table_cols if col in df_selected_class.columns]
-    student_details_df = df_selected_class[student_table_cols]
-    # Round numeric columns for display
-    for col in student_details_df.columns:
-        if pd.api.types.is_numeric_dtype(student_details_df[col]):
-            student_details_df[col] = student_details_df[col].round(3)
-        # Convert boolean flags to Yes/No or 1/0 if needed for clarity
-        if student_details_df[col].dtype == 'int64' and student_details_df[col].isin([0, 1]).all():
-             if col.startswith('Is_'):
-                  student_details_df[col] = student_details_df[col].map({0: 'No', 1: 'Yes'})
-
-
-    # --- 3. Network Plot ---
-    # Pass only the required columns to avoid issues in plotting function
-    df_plot = df_selected_class[[c for c in ['StudentID', 'Friends', color_metric] if c in df_selected_class.columns]]
-    network_img_html = "Plot not generated."
-    if not df_plot.empty and color_metric in df_plot.columns:
-        network_plot_b64 = plot_network(df_plot, color_metric=color_metric)
-        if network_plot_b64:
-            network_img_html = f'<img src="{network_plot_b64}" alt="Class Network Graph" style="max-width: 100%; height: auto;">'
-        else:
-            network_img_html = "Could not generate network plot (maybe no students/friends in class or invalid metric)."
-    else:
-         network_img_html = f"Cannot generate plot: Class {selected_class_id} is empty or required data for plot missing."
-
-
-    # --- 4. Histogram Plots ---
-    # Choose relevant metrics for histograms
-    hist_metrics = ['Academic_Performance', 'Wellbeing_Risk', 'Bullying_Score', 'Friends_Count', 'Peer_Score', 'k6_overall']
-    hist_html_outputs = {}
-
-    for metric in hist_metrics:
-         hist_b64 = plot_histogram(df_selected_class, metric, selected_class_id)
-         hist_html_outputs[f'{metric.lower().replace(" ", "_")}_hist_html'] = f'<img src="{hist_b64}" alt="{metric} Distribution" style="max-width: 100%; height: auto;">' if hist_b64 else f"Histogram for {metric} not available."
-
-
-    return (overview, student_details_df, network_img_html, objective_summary_html,
-            hist_html_outputs.get('academic_performance_hist_html', "Histogram not available."),
-            hist_html_outputs.get('wellbeing_risk_hist_html', "Histogram not available."),
-            hist_html_outputs.get('bullying_score_hist_html', "Histogram not available."),
-            hist_html_outputs.get('peer_score_hist_html', "Histogram not available."),
-           )
-
-# --- Define Gradio Interface ---
-with gr.Blocks(theme=gr.themes.Soft(), title="GA Classroom Allocation Visualizer") as demo:
-    gr.Markdown("# Genetic Algorithm-Based Classroom Allocation Visualization")
-    gr.Markdown("View the results of the multi-objective Genetic Algorithm allocation.")
-
-    with gr.Row():
-        # Only GA allocation available now
-        class_id_dd = gr.Dropdown(
-            label="Select Class ID",
-            choices=ga_classes if ga_classes else [0],
-            value=ga_classes[0] if ga_classes else None,
-            interactive=True
-        )
-        color_metric_dd = gr.Dropdown(
-            label="Color Network By",
-            choices=available_color_metrics,
-            value='Academic_Performance' if 'Academic_Performance' in available_color_metrics else available_color_metrics[0] if available_color_metrics else None,
-            interactive=True
-        )
-
-    gr.Markdown("## Allocation Objectives Summary")
-    # Display the overall objective scores found by the GA
-    ga_objectives_summary = gr.HTML(label="Overall Genetic Algorithm Objectives")
-
-
-    gr.Markdown("## Class Overview / Validation Report")
-    # This table shows the validation report for the GA allocation
-    overview_table = gr.DataFrame(label=f"Validation Report per Class (Target Total Classes: {N_CLASSES})")
-
-    gr.Markdown("## Selected Class Details")
-    with gr.Row():
-        with gr.Column(scale=2):
-            student_table = gr.DataFrame(label=f"Students in Selected Class (Target Size: {CLASS_SIZE_TARGET})")
-        with gr.Column(scale=3):
-            gr.Markdown("### Friendship Network")
-            network_plot_html = gr.HTML(label="Class Network Graph")
-
-    gr.Markdown("## Metric Distributions for Selected Class")
-    # Display histograms for key metrics
-    with gr.Row():
-        academic_perf_hist_html = gr.HTML(label="Academic Performance Distribution")
-        wellbeing_risk_hist_html = gr.HTML(label="Wellbeing Risk Distribution")
-    with gr.Row():
-         bullying_score_hist_html = gr.HTML(label="Bullying Score Distribution")
-         peer_score_hist_html = gr.HTML(label="Peer Score Distribution")
-
-
-    # Define update triggers
-    inputs = [class_id_dd, color_metric_dd]
-    outputs = [overview_table, student_table, network_plot_html, ga_objectives_summary,
-               academic_perf_hist_html, wellbeing_risk_hist_html, bullying_score_hist_html,
-               peer_score_hist_html]
-
-    # Trigger main visualization update when class ID or color metric changes
-    class_id_dd.change(
-        update_visualizations,
-        inputs=inputs,
-        outputs=outputs
+# Create Gradio Interface
+with gr.Blocks(theme=gr.themes.Soft()) as demo:
+    gr.Markdown(
+        """
+        # Hybrid Pyomo-GA Student Class Allocation Tool
+        This tool uses a hybrid approach combining **Pyomo (with a backend solver like CBC/GLPK)** and a **Genetic Algorithm (GA)**
+        to allocate students into classes.
+        - **Pyomo:** Enforces hard constraints (class size, separating specific students) by finding initial feasible solutions.
+        - **GA:** Optimizes soft objectives (academic equity, wellbeing balance, social cohesion).
+        Click 'Run Allocation' to start. **Requires Pyomo and a compatible solver (e.g., CBC) installed.**
+        """
     )
-    color_metric_dd.change(
-        update_visualizations,
-        inputs=inputs,
-        outputs=outputs
+    run_button.click(
+        fn=run_allocation_interface,
+        inputs=[run_button],
+        outputs=[output_df, output_stats_df, output_plot, output_stats_html]
     )
+    with gr.Row():
+        output_stats_html
+    with gr.Row():
+        output_plot
+    with gr.Accordion("Show Full Data with Allocations", open=False):
+         output_df
 
-    # Load initial data when the app starts
-    demo.load(
-        update_visualizations,
-        inputs=[class_id_dd, color_metric_dd], # Pass default initial values
-        outputs=outputs
-    )
-
-
-# --- Launch the App ---
+# Launch the Gradio app
 if __name__ == "__main__":
-    print("Launching Gradio App...")
-    # Share=True creates a public link (optional)
-    demo.launch(share=False) # Specify host and port if needed
+    print(f"\n--- Configuration Summary ---")
+    print(f"Num Students: {NUM_STUDENTS}, Target Class Size: {CLASS_SIZE_TARGET}, Num Classes: {N_CLASSES}")
+    print(f"Class Size Constraints: Min={CLASS_SIZE_MIN}, Max={CLASS_SIZE_MAX}")
+    print(f"GA Pop Size: {GA_POP_SIZE}, Generations: {GA_NUM_GENERATIONS}")
+    print(f"Pyomo Seeds Attempted: {PYOMO_SEED_COUNT}, Pyomo Solver: {PYOMO_SOLVER}") # Updated print
+    print(f"Bully Threshold: {BULLY_CRITICISES_THRESHOLD}, Vulnerable Quantile: {VULNERABLE_WELLBEING_QUANTILE}")
+    print(f"Fitness Weights: {FITNESS_WEIGHTS}")
+    print(f"Constraint Penalty: {CONSTRAINT_PENALTY}")
+    print("\n---> REMINDER: Ensure Pyomo is installed (`pip install pyomo`) <---")
+    print(f"---> AND ensure the solver '{PYOMO_SOLVER}' is installed and accessible (e.g., via conda) <---")
+    print("\nLaunching Gradio Interface...")
+    demo.launch()
