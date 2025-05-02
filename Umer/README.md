@@ -98,7 +98,7 @@ To run this project, you need Python and the following libraries. It is recommen
 3.  Run the script:
 
     ```bash
-    python your_script_name.py
+    python app.py
     ```
 4.  The script will check for/generate the synthetic data and then launch the Gradio application.
 5.  Open the provided local URL (usually `http://127.0.0.1:7860/`) in your web browser.
