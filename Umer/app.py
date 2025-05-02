@@ -30,8 +30,6 @@ SYNTHETIC_DATA_CSV = "synthetic_student_data_1000.csv" # Optional: Change filena
 GENERATIONS = 50 # Keep as is initially, maybe increase if results need improvement
 POPULATION_SIZE = 100 # Keep as is initially, maybe increase if results need improvement
 
-# ... rest of the script
-
 # --- 2. Data Generation (Provided Code) ---
 def generate_synthetic_data(filename=SYNTHETIC_DATA_CSV, num_students=NUM_STUDENTS):
     """Generates synthetic student data if the CSV doesn't exist or is invalid."""
@@ -472,4 +470,4 @@ if __name__ == "__main__":
     print("Checking for synthetic data...")
     _ = generate_synthetic_data(SYNTHETIC_DATA_CSV, NUM_STUDENTS) # Generate if needed
     print("Launching Gradio App...")
-    demo.launch(debug=True) # Use debug=True for development, remove for production
+    demo.launch(debug=True) 
