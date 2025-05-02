@@ -1,116 +1,129 @@
-# Hybrid Pyomo-GA Student Class Allocation
+# ClassForge: AI-Powered Customizable Classroom Allocation
 
-This project implements a hybrid optimization approach to solve the complex problem of allocating students into classes, balancing multiple objectives while adhering to strict constraints. It combines the power of **Pyomo** (a Python-based modeling language for optimization) to handle hard constraints and find initial feasible solutions with a **Genetic Algorithm (GA)** to explore the solution space and optimize various soft objectives. A **Gradio** interface is provided for easy interaction and visualization.
+## Project Description
+
+This project, **ClassForge**, is an application I've built using Python to tackle the challenging problem of assigning students to classrooms. The goal is not just to create any assignment, but one that thoughtfully considers multiple factors simultaneously, such as academic performance, student well-being, and social connections. I've used a sophisticated AI technique called multi-objective optimization to find the best possible compromises when these goals conflict. The results are presented through a user-friendly web interface created with Gradio.
+
+## What I Have Done
+
+Based on the code provided, I have implemented the following key components:
+
+1.  **Synthetic Data Generation**: I've created a function to generate realistic-looking synthetic data for a large number of students. This data includes academic scores, well-being indicators (like the K6 scale), and simulated friendships, allowing the system to run without needing real sensitive student information initially. The data is saved to a CSV file for persistence.
+2.  **Data Preprocessing**: I've written code to load the synthetic data, normalize academic scores, and build a social graph representing student friendships using the NetworkX library. This graph is crucial for evaluating the social cohesion objective.
+3.  **Defined the Optimization Problem**: I've formulated the classroom allocation as a multi-objective optimization problem. This involves defining:
+    * **Decision Variables**: How students are assigned to classes. Each student's class assignment is a variable the optimizer can change.
+    * **Objectives**: The specific goals to minimize simultaneously (variance in academic performance, variance in well-being scores, and the *negative* of retained friendships, which is the same as maximizing retained friendships).
+4.  **Integrated a Multi-Objective Evolutionary Algorithm (NSGA-II)**: I've used the `pymoo` library to apply NSGA-II, a powerful genetic algorithm designed for problems with multiple conflicting objectives.
+5.  **Built a Gradio Interface**: I've created an interactive web application using Gradio. This interface allows users to:
+    * Specify the desired number of classes.
+    * Set priorities (weights) for the different objectives (academic, well-being, social).
+    * Run the optimization process.
+    * Visualize the **Pareto front**, which shows the trade-offs between the objectives.
+    * See a summary of the solution selected based on their weights.
+    * View the final student-to-class allocation in a table.
+
+Essentially, I've taken the complex task of balancing multiple student needs in classroom assignments and built an automated system to find and present good compromise solutions using AI.
+
+## Non-Technical Explanation of the NSGA-II Algorithm
+
+Imagine you're trying to pick the best apples from a large orchard, but "best" means different things to different people. Some want the sweetest apples, others want the biggest, and maybe others want apples with the fewest bruises. You can't always find an apple that's the absolute sweetest *and* the absolute biggest *and* has zero bruises. You have to make trade-offs.
+
+This is like **multi-objective optimization**. We have several goals (objectives) that we want to achieve at the same time, but improving one might make another worse.
+
+NSGA-II (Non-dominated Sorting Genetic Algorithm II) is like having a team of smart apple pickers who work together over many rounds to find the best *set* of apples, considering all the different criteria. Here's how it works in simple terms:
+
+1.  **Start Picking (Initial Population)**: The team starts by randomly picking a large basket of apples (this is the initial "population" of possible classroom assignments). Some baskets might be good for sweetness, others for size, etc.
+2.  **Evaluate the Apples (Evaluate Objectives)**: For each apple in each basket, they measure how sweet it is, how big it is, and count its bruises (these are like our objective functions – calculating academic variance, well-being variance, and retained friendships for each classroom assignment).
+3.  **Sorting by "Goodness" (Non-dominated Sorting)**: Now, they sort the apples (or baskets) based on which ones are clearly better than others. An apple is "better" or **"dominates"** another if it's equal to or better in ALL criteria, and strictly better in at least one. Apples that aren't dominated by *any* other apple are considered part of the "elite front" or **Pareto front**. These represent the best possible trade-offs – you can't improve on one objective without making another worse. Apples on the Pareto front are preferred.
+4.  **Handling Ties on the Front (Crowding Distance)**: There might be many apples on the elite front. To encourage variety among these top apples (trade-offs), they also look at how "crowded" an apple is by others similar to it on the front. Apples in less crowded areas are slightly preferred, as they represent more unique trade-off points.
+5.  **Picking the Next Generation (Selection)**: Based on this sorting (prioritizing the elite front, then less crowded apples within a front), they select the "parent" apples that will be used to find new apples for the next round.
+6.  **Creating New Apples (Crossover and Mutation)**: They combine features from two parent apples (like cross-pollinating, called **crossover**) and introduce small random changes (like a random bruise or extra sweetness, called **mutation**) to create a new batch of "child" apples. This introduces diversity.
+7.  **Repeat! (Generations)**: They repeat steps 2-6 many times (these are the "generations"). With each generation, the overall quality of the apples in their baskets improves, and the elite front gets closer to the true best possible trade-offs.
+8.  **Final Result**: After many rounds, the algorithm converges, and the final set of apples on the elite front represents the best compromises found across all the criteria. The user can then look at this set (the Pareto front visualization) and decide which specific compromise (which basket of apples/classroom assignment) best fits their overall needs by setting weights.
+
+So, NSGA-II is essentially an intelligent trial-and-error process inspired by evolution, specifically designed to find a whole set of good compromise solutions when you have multiple things you want to achieve simultaneously.
 
 ## Features
 
-* **Hybrid Optimization:** Leverages Pyomo for constraint satisfaction and a Genetic Algorithm for multi-objective optimization.
-* **Hard Constraint Handling:** Ensures essential requirements like minimum/maximum class sizes and separation of specific student pairs (e.g., bully-vulnerable) are met using Pyomo seeding.
-* **Soft Objective Optimization:** Balances multiple goals, including minimizing variance in academic performance and wellbeing risk across classes, and maximizing social cohesion (e.g., keeping friends together).
-* **Pyomo Seeding:** Attempts to initialize the Genetic Algorithm population with feasible solutions found by an optimization solver via Pyomo.
-* **Genetic Algorithm:** Uses standard GA operators (selection, crossover, mutation) to iteratively improve solutions.
-* **Adaptive Mutation:** Adjusts the mutation rate based on population diversity to encourage exploration or convergence.
-* **Constraint Penalty Fitness:** Incorporates constraint violations into the fitness function to guide the GA away from infeasible regions if Pyomo seeding fails or during evolution.
-* **Elitism:** Preserves the best individuals from one generation to the next.
-* **Tournament Selection:** A robust selection mechanism.
-* **Heuristic & Random Initialization:** Provides fallback/supplementary initialization methods if Pyomo cannot find enough seeds.
-* **Termination Criteria:** Stops the GA if insufficient improvement is observed over a number of generations or if no feasible solution is found for an extended period.
-* **Automated Data Generation & Analysis:** Includes functions for generating synthetic student data and performing basic predictive analysis (assuming these exist elsewhere in the project).
-* **Gradio Interface:** Provides a simple web interface to run the allocation process and view the results, including final allocations, class statistics, and a summary plot.
+* **Synthetic Data Generation**: Creates realistic student data with various attributes and social connections.
+* **Social Network Modeling**: Builds a graph of student friendships.
+* **Multi-Objective Optimization**: Finds optimal classroom assignments balancing academic equity, well-being, and social cohesion.
+* **Pareto Front Visualization**: Interactive 3D plot showing the trade-offs between objectives.
+* **Weighted Solution Selection**: Choose a preferred allocation from the Pareto front based on your priorities.
+* **Detailed Allocation Table**: View the final class assignments and student details.
+* **Gradio Web Interface**: User-friendly interface to run the tool and explore results.
 
-## Requirements
+## Objectives (Minimized)
 
-* Python 3.x
-* `pandas`
-* `numpy`
-* `matplotlib`
-* `gradio`
-* `pyomo`
-* A Pyomo-compatible optimization solver. **Crucially**, you need a solver installed and accessible in your system's PATH or environment. Popular choices include:
-    * **CBC (Coin-or branch and cut):** Often included with Pyomo installations or available via `conda`.
-    * **GLPK (GNU Linear Programming Kit):** Also commonly available.
-    * Other commercial solvers (Gurobi, CPLEX) are also compatible if you have licenses.
+1.  Minimize Variance of Average Academic Performance per class.
+2.  Minimize Variance of Average K6 Wellbeing Score per class.
+3.  Minimize the Negative of Retained Friendships (Maximize Retained Friendships).
 
-The code uses a global variable `PYOMO_SOLVER` (e.g., `'cbc'`) to specify which solver Pyomo should use. Make sure this matches an installed and accessible solver.
+## Data
+
+* Synthetic student data is generated in `synthetic_student_data_1000.csv` (filename and student count are configurable).
+* Data includes simulated academic performance, well-being scores (K6, PWI), social attitudes, school engagement, language, and friendship connections.
+* Friendships are represented as edges in a NetworkX graph.
+
+## Optimization Details
+
+* **Algorithm**: NSGA-II from `pymoo`.
+* **Decision Variables**: For `N` students and `K` classes, there are `N` decision variables, each representing the assigned class index (0 to K-1) for a student.
+* **Operators**: Integer Random Sampling, Single Point Crossover, Bitflip Mutation.
+* **Termination**: Runs for a fixed number of `GENERATIONS`.
+
+## Gradio Interface
+
+The web interface has sections for:
+
+* **Configuration**: Input for the number of classes and sliders for setting the importance weights for Academic Equity, Well-being Balance, and Social Cohesion.
+* **Optimization Results**: Displays the interactive 3D Pareto front plot, a summary of the selected solution, and the final classroom allocation table.
+* **Status**: A textbox indicating the progress and outcome of the allocation process.
 
 ## Installation
 
-1.  **Clone the repository** (if applicable) or save the provided code as a Python file (e.g., `allocation_script.py`).
-2.  **Navigate to the directory** containing the file.
-3.  **Create a virtual environment** (recommended):
+To run this project, you need Python and the following libraries. It is recommended to use a virtual environment.
+
+1.  Clone or download the code file (`your_script_name.py`).
+2.  Install the required libraries:
+
     ```bash
-    python -m venv .venv
-    source .venv/bin/activate  # On Windows use `.venv\Scripts\activate`
+    pip install pandas numpy networkx plotly gradio pymoo
     ```
-4.  **Install Python dependencies:**
-    ```bash
-    pip install pandas numpy matplotlib gradio pyomo
-    ```
-5.  **Install a Pyomo Solver:** This step depends on your operating system and package manager. Using `conda` is often the easiest way to get CBC:
-    ```bash
-    conda install -c conda-forge coincbc
-    ```
-    Or GLPK:
-    ```bash
-    conda install -c conda-forge glpk
-    ```
-    Alternatively, you may need to download and install a solver executable manually and ensure its directory is added to your system's PATH.
 
 ## Usage
 
-1.  Ensure all requirements, including a Pyomo solver, are installed.
-2.  Modify the global configuration variables at the top of the script or in a separate `config.py` file (if you structure it that way) to set parameters like `NUM_STUDENTS`, `N_CLASSES`, `CLASS_SIZE_MIN`, `CLASS_SIZE_MAX`, `GA_POP_SIZE`, `GA_NUM_GENERATIONS`, `PYOMO_SEED_COUNT`, `PYOMO_SOLVER`, `FITNESS_WEIGHTS`, etc.
-3.  Run the script from your terminal:
+1.  Open your terminal or command prompt.
+2.  Navigate to the directory where you saved the Python file.
+3.  Run the script:
+
     ```bash
-    python app.py
+    python your_script_name.py
     ```
-4.  The script will print a configuration summary and then launch a Gradio web server.
-5.  Open the provided URL in your web browser.
-6.  Click the "Run Allocation" button in the Gradio interface.
-7.  The script will generate synthetic data, run the predictive analysis (simulated), execute the hybrid allocation algorithm, and display the results (final allocation table, class statistics, and plot) in the web interface.
+4.  The script will check for/generate the synthetic data and then launch the Gradio application.
+5.  Open the provided local URL (usually `http://127.0.0.1:7860/`) in your web browser.
+6.  Configure the number of classes and objective weights, then click "Generate Allocation".
+7.  View the Pareto front plot and the details of the selected allocation.
 
 ## Configuration
 
-The behavior of the algorithm is controlled by several global variables defined in the script. You will need to modify these directly to change the problem size, constraints, GA parameters, Pyomo settings, and objective weights.
+You can modify the following constants at the top of the Python script to change the scale and behavior:
 
-Key configuration variables include:
+* `NUM_STUDENTS`: Number of synthetic student records to generate.
+* `NUM_CLASSES`: Default number of classes to allocate students into.
+* `SYNTHETIC_DATA_CSV`: Name of the CSV file for synthetic data.
+* `GENERATIONS`: Number of generations for the NSGA-II algorithm. More generations can improve results but take longer.
+* `POPULATION_SIZE`: Number of solutions (allocations) in each generation. A larger population explores more options but requires more computation per generation.
 
-* `NUM_STUDENTS`, `N_CLASSES`, `CLASS_SIZE_TARGET`, `CLASS_SIZE_MIN`, `CLASS_SIZE_MAX`: Define the scale and constraints of the allocation problem.
-* `GA_POP_SIZE`, `GA_NUM_GENERATIONS`, `GA_ELITISM_RATE`, `GA_TOURNAMENT_SIZE`: Control the Genetic Algorithm's population size, runtime, and selection process.
-* `PYOMO_SEED_COUNT`, `PYOMO_SOLVER`: Configure the number of initial individuals attempted via Pyomo and the solver to use.
-* `BULLY_CRITICISES_THRESHOLD`, `VULNERABLE_WELLBEING_QUANTILE`: Parameters used in the simulated data generation/predictive analysis to identify specific student types.
-* `FITNESS_WEIGHTS`: A dictionary defining the weights for different objectives (e.g., `{'academic_variance': -1, 'wellbeing_risk_variance': -1, 'social_cohesion': 1}`) in the scalar fitness function. Negative weights indicate minimization, positive indicate maximization.
-* `CONSTRAINT_PENALTY`: The penalty applied to the fitness of infeasible solutions.
-* `FITNESS_VARIANCE_THRESHOLD`, `GA_MUTATION_RATE_HIGH`, `GA_MUTATION_RATE_LOW`: Parameters for adaptive mutation.
-* `IMPROVEMENT_CHECK_GENERATIONS`, `FITNESS_IMPROVEMENT_THRESHOLD`: Parameters for the termination criterion based on fitness improvement.
+## Dependencies
 
-## Input Data Format
-
-The `run_hybrid_allocation` function expects a pandas DataFrame with at least the following columns (assuming `generate_synthetic_data` and `run_predictive_analysis` provide these):
-
-* `StudentID`: Unique identifier for each student.
-* `Friends`: A list of `StudentID`s representing friends.
-* `Is_Bully`: Binary (1 if student is a bully, 0 otherwise).
-* `Is_Vulnerable`: Binary (1 if student is vulnerable, 0 otherwise).
-* `Is_Supportive`: Binary (1 if student is supportive, 0 otherwise).
-* `Academic_Performance`: A numerical score representing academic performance.
-* `Wellbeing_Risk`: A numerical score representing wellbeing risk (likely added by predictive analysis).
-* Potentially other student attributes used for objective evaluation.
-
-The provided Gradio interface handles the data generation and preparation internally.
-
-## Output
-
-The script outputs results via the Gradio web interface:
-
-1.  **Final Allocation Table:** A table showing each student's original data and their assigned class (`Allocated_Class`).
-2.  **Class Statistics Summary:** An HTML table providing statistics for each allocated class, including size, average academic performance, average wellbeing risk, and counts of bully, vulnerable, and supportive students.
-3.  **Class Profiles Visualization:** A bar chart summarizing the average academic performance and wellbeing risk for each class.
-
-The `run_hybrid_allocation` function itself returns the final allocation DataFrame, the statistics DataFrame, and the HTML string for the plot.
-
-## Notes and Warnings
-
-* **Solver Dependency:** The script *will not run* correctly if Pyomo cannot find the specified solver (`PYOMO_SOLVER`). Ensure the solver is installed and accessible.
-* **Feasibility:** If the constraints (`CLASS_SIZE_MIN`, `CLASS_SIZE_MAX`, `must_separate_pairs`) are too strict or conflicting, Pyomo may fail to find initial feasible solutions. The GA will then start from random/heuristic individuals and may struggle to find a feasible solution itself. The script includes warnings if no feasible solution is found.
-* **Performance:** For very large numbers of students or classes, the runtime of both the Pyomo seeding and the Genetic Algorithm can become significant.
+* `os`
+* `random`
+* `pandas`
+* `numpy`
+* `networkx`
+* `plotly`
+* `gradio`
+* `pymoo` (including `core.problem`, `algorithms.moo.nsga2`, `operators.sampling.rnd`, `operators.crossover.spx`, `operators.mutation.bitflip`, `optimize`, `termination`)
+* `collections`
+* `warnings`
