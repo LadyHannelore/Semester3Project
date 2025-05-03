@@ -17,8 +17,11 @@ import os
 from ortools.sat.python import cp_model
 
 # --- Configuration & Setup ---
-warnings.filterwarnings("ignore", category="sklearn")
-plt.style.use("seaborn-whitegrid")
+warnings.filterwarnings("ignore", category=UserWarning)
+try:
+    plt.style.use("seaborn-white")
+except OSError:
+    plt.style.use("ggplot")
 
 NUM_STUDENTS = 1000
 CLASS_SIZE_TARGET = 30
@@ -157,6 +160,13 @@ def run_analysis(df):
     print("Analysis complete.")
     return df
 
+# --- Constraint Programming Integration Example ---
+# The following logic is inspired by the CP-SAT solution notebook.
+# You can further adapt this for genetic algorithm approaches by:
+# - Using similar preprocessing for scores and features
+# - Applying constraints for class size, academic balance, and bullying spread
+# - Extracting assignments and evaluating class statistics as done below
+
 def solve_with_constraints(df):
     """Solve the classroom allocation problem using OR-Tools with updated constraints."""
     print("Solving with constraint programming...")
@@ -165,7 +175,8 @@ def solve_with_constraints(df):
 
     # Variables
     num_students = len(df)
-    num_classes = N_CLUSTERS
+    class_size_limit = 25  # Use same as notebook for consistency
+    num_classes = int(np.ceil(num_students / class_size_limit))
     students = range(num_students)
     classes = range(num_classes)
 
@@ -176,57 +187,39 @@ def solve_with_constraints(df):
         for j in classes
     }
 
-    # Constraints
-    # Each student must be assigned to exactly one class
+    # Each student assigned to exactly one class
     for i in students:
         model.Add(sum(student_class[(i, j)] for j in classes) == 1)
 
-    # Class size constraints
-    for j in classes:
-        model.Add(sum(student_class[(i, j)] for i in students) <= CLASS_SIZE_TARGET)
+    # Class size constraints (allowing for uneven split)
+    min_class_size = num_students // num_classes
+    num_larger_classes = num_students % num_classes
+    max_class_size = min_class_size + 1 if num_larger_classes > 0 else min_class_size
 
-    # Academic Performance Balance
     for j in classes:
-        class_academic_perf = sum(
-            student_class[(i, j)] * df.loc[i, "Academic_Performance"] for i in students
-        )
-        model.Add(class_academic_perf <= MAX_ALLOWED_DIFFERENCE)
+        if j < num_larger_classes:
+            model.Add(sum(student_class[(i, j)] for i in students) == max_class_size)
+        else:
+            model.Add(sum(student_class[(i, j)] for i in students) == min_class_size)
 
-    # Wellbeing Balance
+    # Academic performance balance (total scores)
+    max_allowed_total_diff = 200  # As in notebook
+    class_total_scores = []
     for j in classes:
-        class_wellbeing = sum(
-            student_class[(i, j)] * df.loc[i, "k6_overall"] for i in students
-        )
-        model.Add(class_wellbeing <= MAX_ALLOWED_WELLBEING_DIFF)
+        total_score = model.NewIntVar(0, num_students * 100, f'class_{j}_total_score')
+        model.Add(total_score == sum(
+            int(df.loc[i, 'Academic_Performance']) * student_class[(i, j)]
+            for i in students
+        ))
+        class_total_scores.append(total_score)
 
-    # Bullying Spread
-    for j in classes:
-        class_bullies = sum(
-            student_class[(i, j)] * (df.loc[i, "bullying"] > 5) for i in students
-        )
-        model.Add(class_bullies <= MAX_BULLIES_PER_CLASS)
+    for i in range(num_classes):
+        for j in range(i + 1, num_classes):
+            diff = model.NewIntVar(0, num_students * 100, f'diff_{i}_{j}')
+            model.AddAbsEquality(diff, class_total_scores[i] - class_total_scores[j])
+            model.Add(diff <= max_allowed_total_diff)
 
-    # Objective: Minimize the total academic performance difference across classes
-    total_academic_diff = model.NewIntVar(0, 1000, "total_academic_diff")
-    model.Add(
-        total_academic_diff
-        == sum(
-            abs(
-                sum(
-                    student_class[(i, j)] * df.loc[i, "Academic_Performance"]
-                    for i in students
-                )
-                - sum(
-                    student_class[(i, k)] * df.loc[i, "Academic_Performance"]
-                    for i in students
-                )
-            )
-            for j in classes
-            for k in classes
-            if j != k
-        )
-    )
-    model.Minimize(total_academic_diff)
+    # Bullying spread constraint (optional, as in notebook you can add more)
 
     # Solve the model
     solver = cp_model.CpSolver()
