@@ -2,41 +2,61 @@
 
 ## Project Description
 
-This project, **ClassForge**, is a Python application for exploring classroom allocation using clustering and constraint programming. It generates synthetic student data, applies predictive analytics, clusters students into classes using K-Means and Spectral Clustering, and demonstrates constraint-based allocation using OR-Tools. The results are visualized in an interactive Gradio web interface.
+This project, **ClassForge**, is a Python application for exploring classroom allocation using clustering, constraint programming, and optimization. It generates synthetic student data, applies predictive analytics, clusters students into classes, and demonstrates constraint-based allocation using OR-Tools and genetic algorithms. The results are visualized in an interactive Gradio web interface.
+
+---
+
+## Folder Contents and Explanations
+
+### 1. `synthetic_student_data_1000.csv`
+- **What it is:** A CSV file containing synthetic (fake but realistic) student data, including academic scores, well-being, social connections, and more.
+- **For non-technical users:** This is the "student list" the app uses to simulate a real school.
+
+### 2. `ga.py`
+- **What it does:** Implements a genetic algorithm to assign students to classes, aiming for balanced academic performance and social factors. Also provides interactive visualizations (tables, graphs, histograms) using Gradio.
+- **For non-technical users:** This is the main engine that tries to create fair and friendly classrooms, and lets you explore the results visually.
+
+### 3. `mine.py`
+- **What it does:** Generates synthetic data if not present, preprocesses it, builds a social network graph, and uses multi-objective optimization (NSGA-II) to allocate students to classes. Provides a Gradio interface for users to set priorities (academic, well-being, social) and see trade-offs.
+- **For non-technical users:** This lets you experiment with different ways to group students, showing how changing priorities affects classroom fairness and friendships.
+
+### 4. `cp-sat.ipynb`
+- **What it does:** A Jupyter notebook demonstrating classroom allocation using Google's OR-Tools CP-SAT solver. Shows how to set up constraints (like class size and academic balance) and solve them step by step.
+- **For non-technical users:** This notebook is like a recipe book for the computer, showing how it tries to make classes fair by following certain rules.
+
+### 5. `test.py`
+- **What it does:** Contains test code to check that the constraint programming logic works as expected, using a small sample dataset.
+- **For non-technical users:** This file is for checking that the "rules" for making classes work correctly.
+
+---
 
 ## What This Code Does
 
-- **Synthetic Data Generation**: Creates realistic synthetic student records with academic, well-being, and social attributes.
-- **Predictive Analytics**: Uses machine learning models (XGBoost, Random Forest) to estimate academic risk, well-being risk, and peer collaboration scores for each student.
-- **Clustering**: Assigns students to classes using K-Means and Spectral Clustering based on their features and predicted risks.
-- **Constraint Programming**: Demonstrates classroom allocation using OR-Tools CP-SAT solver, enforcing constraints on class size and academic balance.
-- **Visualization**: Provides interactive tables, network graphs, and histograms to explore class composition and student metrics.
+- **Synthetic Data Generation:** Creates realistic synthetic student records with academic, well-being, and social attributes.
+- **Predictive Analytics:** Uses machine learning models (XGBoost, Random Forest) to estimate academic risk, well-being risk, and peer collaboration scores for each student.
+- **Clustering & Optimization:** Assigns students to classes using clustering, genetic algorithms, and constraint programming, balancing academic and social factors.
+- **Constraint Programming:** Demonstrates classroom allocation using OR-Tools CP-SAT solver, enforcing constraints on class size and academic balance.
+- **Visualization:** Provides interactive tables, network graphs, and histograms to explore class composition and student metrics.
+
+---
 
 ## Features
 
-* **Synthetic Data Generation**: Generates and saves student data to CSV if not present.
-* **Predictive Modeling**: Estimates risk scores for academic performance, well-being, and peer collaboration.
-* **Clustering**: Groups students into classes using K-Means and Spectral Clustering.
-* **Constraint Programming**: Allocates students to classes with size and academic balance constraints using OR-Tools.
-* **Interactive Visualization**: Gradio interface to select clustering method, class, and metric for network coloring; view summary tables, student lists, friendship networks, and metric distributions.
+* **Synthetic Data Generation:** Generates and saves student data to CSV if not present.
+* **Predictive Modeling:** Estimates risk scores for academic performance, well-being, and peer collaboration.
+* **Clustering & Optimization:** Groups students into classes using K-Means, Spectral Clustering, genetic algorithms, and constraint programming.
+* **Constraint Programming:** Allocates students to classes with size and academic balance constraints using OR-Tools.
+* **Interactive Visualization:** Gradio interface to select clustering method, class, and metric for network coloring; view summary tables, student lists, friendship networks, and metric distributions.
 
-## Data
+---
 
-* Synthetic data is generated in `synthetic_student_data.csv`.
-* Each student has academic, well-being, social, and friendship attributes.
-* Friendships are represented as comma-separated lists of student IDs.
+## For Non-Technical Users
 
-## Gradio Interface
+- **You can use this project to see how computers can help make fair and friendly classrooms.**
+- **You can try different settings and see how the groups change.**
+- **The visualizations help you understand how students are grouped and how their friendships and academic levels are balanced.**
 
-The web interface allows you to:
-
-* Select the clustering method (K-Means or Spectral).
-* Choose a class ID to view.
-* Select a metric to color the friendship network.
-* View summary statistics for all classes.
-* See a table of students in the selected class.
-* Visualize the friendship network within the class, colored by the chosen metric.
-* View histograms of academic and well-being risk for the selected class.
+---
 
 ## Installation
 

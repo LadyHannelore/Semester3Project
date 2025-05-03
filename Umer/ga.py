@@ -9,12 +9,17 @@ import io
 import base64
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.cluster import KMeans, SpectralClustering
 from sklearn.preprocessing import StandardScaler
 import warnings
 import os
 from ortools.sat.python import cp_model
+from pymoo.core.problem import ElementwiseProblem
+from pymoo.algorithms.soo.nonconvex.ga import GA
+from pymoo.operators.sampling.rnd import IntegerRandomSampling
+from pymoo.operators.crossover.spx import SinglePointCrossover
+from pymoo.operators.mutation.bitflip import BitflipMutation
+from pymoo.optimize import minimize
+from pymoo.termination import get_termination
 
 # --- Configuration & Setup ---
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -103,10 +108,10 @@ def generate_synthetic_data(filename=SYNTHETIC_DATA_CSV, num_students=NUM_STUDEN
     print(f"Synthetic data saved to {filename}")
     return df
 
-# --- Predictive Analytics & Clustering ---
+# --- Predictive Analytics ---
 def run_analysis(df):
-    """Performs prediction and clustering on the dataframe."""
-    print("Running predictive analytics and clustering...")
+    """Performs prediction on the dataframe (no clustering)."""
+    print("Running predictive analytics...")
     df['Academic_Success'] = (df['Academic_Performance'] > df['Academic_Performance'].quantile(0.75)).astype(int)
     df['Wellbeing_Decline'] = (df['k6_overall'] > df['k6_overall'].quantile(0.75)).astype(int)
     df['Friends_Count'] = df['Friends'].fillna('').apply(lambda x: len(x.split(', ')) if x else 0)
@@ -143,137 +148,73 @@ def run_analysis(df):
         df['Wellbeing_Risk'] = 0.5
         df['Peer_Score'] = 0.5
 
-    cluster_features = features + ['Academic_Risk', 'Wellbeing_Risk', 'Peer_Score', 'Friends_Count']
-    scaler = StandardScaler()
-    X_cluster = scaler.fit_transform(df[cluster_features].fillna(0))
-
-    kmeans = KMeans(n_clusters=N_CLUSTERS, random_state=42, n_init=10)
-    df['Class_KMeans'] = kmeans.fit_predict(X_cluster)
-
-    spectral = SpectralClustering(n_clusters=N_CLUSTERS, affinity='rbf', random_state=42, n_init=10, assign_labels='kmeans')
-    try:
-        df['Class_Spectral'] = spectral.fit_predict(X_cluster)
-    except Exception as e:
-        print(f"Error during Spectral Clustering: {e}")
-        df['Class_Spectral'] = df['Class_KMeans']
-
     print("Analysis complete.")
     return df
 
-# --- Constraint Programming Integration Example ---
-# The following logic is inspired by the CP-SAT solution notebook.
-# You can further adapt this for genetic algorithm approaches by:
-# - Using similar preprocessing for scores and features
-# - Applying constraints for class size, academic balance, and bullying spread
-# - Extracting assignments and evaluating class statistics as done below
+# --- Genetic Algorithm for Class Assignment ---
+class ClassroomGAProblem(ElementwiseProblem):
+    def __init__(self, df, class_size_limit=25, max_allowed_total_diff=200):
+        num_students = len(df)
+        num_classes = int(np.ceil(num_students / class_size_limit))
+        super().__init__(
+            n_var=num_students, n_obj=1, n_constr=0, xl=0, xu=num_classes-1, vtype=int
+        )
+        self.df = df
+        self.num_students = num_students
+        self.num_classes = num_classes
+        self.class_size_limit = class_size_limit
+        self.max_allowed_total_diff = max_allowed_total_diff
+        self.academic_perf = df['Academic_Performance'].values
 
-def solve_with_constraints(df):
-    """Solve the classroom allocation problem using OR-Tools with updated constraints."""
-    print("Solving with constraint programming...")
+    def _evaluate(self, x, out, *args, **kwargs):
+        # x: array of class assignments for each student
+        class_sizes = np.zeros(self.num_classes, dtype=int)
+        class_totals = np.zeros(self.num_classes, dtype=int)
+        for i, cls in enumerate(x):
+            class_sizes[cls] += 1
+            class_totals[cls] += self.academic_perf[i]
+        # Penalize if class sizes are not within allowed bounds
+        min_class_size = self.num_students // self.num_classes
+        num_larger_classes = self.num_students % self.num_classes
+        max_class_size = min_class_size + 1 if num_larger_classes > 0 else min_class_size
+        size_penalty = 0
+        for j in range(self.num_classes):
+            if j < num_larger_classes:
+                if class_sizes[j] != max_class_size:
+                    size_penalty += abs(class_sizes[j] - max_class_size) * 1000
+            else:
+                if class_sizes[j] != min_class_size:
+                    size_penalty += abs(class_sizes[j] - min_class_size) * 1000
+        # Penalize if academic totals differ too much
+        total_penalty = 0
+        for i in range(self.num_classes):
+            for j in range(i+1, self.num_classes):
+                diff = abs(class_totals[i] - class_totals[j])
+                if diff > self.max_allowed_total_diff:
+                    total_penalty += (diff - self.max_allowed_total_diff) * 10
+        # Objective: minimize penalties
+        out["F"] = [size_penalty + total_penalty]
 
-    model = cp_model.CpModel()
-
-    # Variables
-    num_students = len(df)
-    class_size_limit = 25  # Use same as notebook for consistency
-    num_classes = int(np.ceil(num_students / class_size_limit))
-    students = range(num_students)
-    classes = range(num_classes)
-
-    # Decision variables: student_class[i][j] = 1 if student i is in class j
-    student_class = {
-        (i, j): model.NewBoolVar(f"student_{i}_class_{j}")
-        for i in students
-        for j in classes
-    }
-
-    # Each student assigned to exactly one class
-    for i in students:
-        model.Add(sum(student_class[(i, j)] for j in classes) == 1)
-
-    # Class size constraints (allowing for uneven split)
-    min_class_size = num_students // num_classes
-    num_larger_classes = num_students % num_classes
-    max_class_size = min_class_size + 1 if num_larger_classes > 0 else min_class_size
-
-    for j in classes:
-        if j < num_larger_classes:
-            model.Add(sum(student_class[(i, j)] for i in students) == max_class_size)
-        else:
-            model.Add(sum(student_class[(i, j)] for i in students) == min_class_size)
-
-    # Academic performance balance (total scores)
-    max_allowed_total_diff = 200  # As in notebook
-    class_total_scores = []
-    for j in classes:
-        total_score = model.NewIntVar(0, num_students * 100, f'class_{j}_total_score')
-        model.Add(total_score == sum(
-            int(df.loc[i, 'Academic_Performance']) * student_class[(i, j)]
-            for i in students
-        ))
-        class_total_scores.append(total_score)
-
-    for i in range(num_classes):
-        for j in range(i + 1, num_classes):
-            diff = model.NewIntVar(0, num_students * 100, f'diff_{i}_{j}')
-            model.AddAbsEquality(diff, class_total_scores[i] - class_total_scores[j])
-            model.Add(diff <= max_allowed_total_diff)
-
-    # Bullying spread constraint (optional, as in notebook you can add more)
-
-    # Solve the model
-    solver = cp_model.CpSolver()
-    status = solver.Solve(model)
-
-    if status in (cp_model.OPTIMAL, cp_model.FEASIBLE):
-        print("Solution found!")
-        class_assignments = [
-            next(
-                j
-                for j in classes
-                if solver.Value(student_class[(i, j)]) == 1
-            )
-            for i in students
-        ]
-        df["Class_OR_Tools"] = class_assignments
+def solve_with_genetic_algorithm(df):
+    print("Solving with genetic algorithm...")
+    class_size_limit = 25
+    problem = ClassroomGAProblem(df, class_size_limit=class_size_limit)
+    algorithm = GA(
+        pop_size=100,
+        sampling=IntegerRandomSampling(),
+        crossover=SinglePointCrossover(prob=0.9),
+        mutation=BitflipMutation(prob=1.0 / len(df)),
+        eliminate_duplicates=True
+    )
+    termination = get_termination("n_gen", 50)
+    res = minimize(problem, algorithm, termination, seed=1, verbose=False)
+    if res.X is not None:
+        print("GA solution found!")
+        df["Class_GA"] = res.X
     else:
-        print("No solution found.")
-        df["Class_OR_Tools"] = -1
-
+        print("No GA solution found.")
+        df["Class_GA"] = -1
     return df
-
-def update_visualizations(clustering_method, selected_class_id, color_metric):
-    """Updates the Gradio interface based on user selections."""
-    # Determine the column to use for class selection based on the clustering method
-    class_col = 'Class_KMeans' if clustering_method == 'K-Means' else 'Class_Spectral'
-
-    # Filter the DataFrame for the selected class
-    df_selected_class = df_processed[df_processed[class_col] == selected_class_id]
-
-    # Generate the overview table
-    overview = df_processed.groupby(class_col).agg(
-        Class_Size=('StudentID', 'count'),
-        Avg_Academic_Perf=('Academic_Performance', 'mean'),
-        Avg_Academic_Risk=('Academic_Risk', 'mean'),
-        Avg_Wellbeing_Risk=('Wellbeing_Risk', 'mean'),
-        Avg_Peer_Score=('Peer_Score', 'mean'),
-        Avg_Friends_Count=('Friends_Count', 'mean')
-    ).reset_index()
-
-    # Generate the student table for the selected class
-    student_table = df_selected_class[[
-        'StudentID', 'Academic_Performance', 'Academic_Risk',
-        'Wellbeing_Risk', 'Peer_Score', 'Friends_Count'
-    ]]
-
-    # Generate the network plot
-    network_plot_html = plot_network(df_selected_class, color_metric=color_metric)
-
-    # Generate histograms
-    academic_hist_html = plot_histogram(df_selected_class, 'Academic_Risk', selected_class_id)
-    wellbeing_hist_html = plot_histogram(df_selected_class, 'Wellbeing_Risk', selected_class_id)
-
-    return overview, student_table, network_plot_html, academic_hist_html, wellbeing_hist_html
 
 # --- Visualization Functions ---
 def plot_network(df_class, student_id_col='StudentID', friend_col='Friends', color_metric='Academic_Risk'):
@@ -333,8 +274,7 @@ def plot_network(df_class, student_id_col='StudentID', friend_col='Friends', col
     buf.seek(0)
     img_str = base64.b64encode(buf.read()).decode('utf-8')
     plt.close(fig)  # Close the figure to free memory
-    return f"data:image/png;base64,{img_str}"  # Return base64 string for HTML
-
+    return f'<img src="data:image/png;base64,{img_str}" style="max-width:100%"/>'
 
 def plot_histogram(df_class, metric, class_id):
     """Generates a histogram for a given metric within a class."""
@@ -354,32 +294,48 @@ def plot_histogram(df_class, metric, class_id):
     buf.seek(0)
     img_str = base64.b64encode(buf.read()).decode('utf-8')
     plt.close(fig)  # Close the figure to free memory
-    return f"data:image/png;base64,{img_str}"  # Return base64 string for HTML
+    # Wrap in <img> tag for Gradio HTML component
+    return f'<img src="data:image/png;base64,{img_str}" style="max-width:100%"/>'
 
 # Example: To print the DLL path as a string (for debugging or info)
 print(r"C:\Program Files\AHSDK\bin\ahscript.dll")
 
-# Process the data and solve with constraints
-df_processed = solve_with_constraints(run_analysis(generate_synthetic_data()))
+# Process the data and solve with genetic algorithm
+df_processed = solve_with_genetic_algorithm(run_analysis(generate_synthetic_data()))
 
 # Extract unique class IDs for dropdown
-all_classes = sorted(df_processed['Class_KMeans'].unique())  # Replace 'Class_KMeans' with the appropriate column if needed
+all_classes = sorted(df_processed['Class_GA'].unique())
+
+def update_visualizations(selected_class_id, color_metric):
+    """Updates the Gradio interface based on user selections."""
+    class_col = 'Class_GA'
+    df_selected_class = df_processed[df_processed[class_col] == selected_class_id]
+    overview = df_processed.groupby(class_col).agg(
+        Class_Size=('StudentID', 'count'),
+        Avg_Academic_Perf=('Academic_Performance', 'mean'),
+        Avg_Academic_Risk=('Academic_Risk', 'mean'),
+        Avg_Wellbeing_Risk=('Wellbeing_Risk', 'mean'),
+        Avg_Peer_Score=('Peer_Score', 'mean'),
+        Avg_Friends_Count=('Friends_Count', 'mean')
+    ).reset_index()
+    student_table = df_selected_class[[
+        'StudentID', 'Academic_Performance', 'Academic_Risk',
+        'Wellbeing_Risk', 'Peer_Score', 'Friends_Count'
+    ]]
+    network_plot_html = plot_network(df_selected_class, color_metric=color_metric)
+    academic_hist_html = plot_histogram(df_selected_class, 'Academic_Risk', selected_class_id)
+    wellbeing_hist_html = plot_histogram(df_selected_class, 'Wellbeing_Risk', selected_class_id)
+    return overview, student_table, network_plot_html, academic_hist_html, wellbeing_hist_html
 
 with gr.Blocks(theme=gr.themes.Soft(), title="Classroom Allocation Visualizer") as demo:
     gr.Markdown("# AI-Powered Classroom Allocation Visualization")
-    gr.Markdown("Explore the results of predictive modeling and clustering for student classroom allocation. Select a clustering method and class ID to view details.")
+    gr.Markdown("Explore the results of predictive modeling and classroom allocation using a genetic algorithm. Select a class ID to view details.")
 
     with gr.Row():
-        clustering_method_dd = gr.Dropdown(
-            label="Clustering Method",
-            choices=['K-Means', 'Spectral'],
-            value='K-Means',  # Default value
-            interactive=True
-        )
         class_id_dd = gr.Dropdown(
             label="Select Class ID",
             choices=all_classes,
-            value=all_classes[0] if all_classes else None,  # Default to first class
+            value=all_classes[0] if all_classes else None,
             interactive=True
         )
         color_metric_dd = gr.Dropdown(
@@ -398,27 +354,21 @@ with gr.Blocks(theme=gr.themes.Soft(), title="Classroom Allocation Visualizer") 
             student_table = gr.DataFrame(label="Students in Selected Class")
         with gr.Column(scale=3):
             gr.Markdown("### Friendship Network")
-            network_plot_html = gr.HTML(label="Class Network Graph")  # Use HTML to display base64 image
+            network_plot_html = gr.HTML(label="Class Network Graph")
 
     gr.Markdown("## Metric Distributions for Selected Class")
     with gr.Row():
         academic_hist_html = gr.HTML(label="Academic Risk Distribution")
         wellbeing_hist_html = gr.HTML(label="Wellbeing Risk Distribution")
 
-    # Define update triggers
-    inputs = [clustering_method_dd, class_id_dd, color_metric_dd]
+    inputs = [class_id_dd, color_metric_dd]
     outputs = [overview_table, student_table, network_plot_html, academic_hist_html, wellbeing_hist_html]
 
-    # Use change for dropdowns
-    clustering_method_dd.change(update_visualizations, inputs=inputs, outputs=outputs)
     class_id_dd.change(update_visualizations, inputs=inputs, outputs=outputs)
     color_metric_dd.change(update_visualizations, inputs=inputs, outputs=outputs)
-
-    # Also load initial data when the app starts
     demo.load(update_visualizations, inputs=inputs, outputs=outputs)
 
 if __name__ == "__main__":
     print("Launching Gradio App...")
-    demo.launch(share=False) # Set share=True for public link, False for local only
+    demo.launch(share=False)
     print("Gradio App launched.")
-    # Note: The app will run in the terminal or command line where this script is executed.
