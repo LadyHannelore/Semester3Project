@@ -20,6 +20,7 @@ from pymoo.operators.crossover.spx import SinglePointCrossover
 from pymoo.operators.mutation.bitflip import BitflipMutation
 from pymoo.optimize import minimize
 from pymoo.termination import get_termination
+import json
 
 # --- Configuration & Setup ---
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -67,9 +68,38 @@ def generate_synthetic_data(filename=SYNTHETIC_DATA_CSV, num_students=NUM_STUDEN
     data = []
 
     for student_id in student_ids:
-        academic_performance = max(0, min(100, round(np.random.normal(70, 15))))
+        # --- Introduce more outliers ---
+        # 10% chance for extreme academic performance
+        if random.random() < 0.1:
+            academic_performance = random.choice([random.randint(0, 40), random.randint(90, 100)])
+        else:
+            academic_performance = max(0, min(100, round(np.random.normal(70, 20))))  # wider stddev
+
+        # 5% chance for extreme wellbeing (k6)
+        if random.random() < 0.05:
+            k6_scores = {f"k6_{i}": random.choice([1, 5]) for i in range(1, 7)}
+        else:
+            k6_scores = {f"k6_{i}": random.choice(K6_SCALE_1_5) for i in range(1, 7)}
+
+        # 5% chance for extreme bullying
+        if random.random() < 0.05:
+            bullying = random.choice([1, 7])
+        else:
+            bullying = random.choice(LIKERT_SCALE_1_7)
+
+        # --- Generate more friendships ---
+        # 10% chance to have many friends (10-20), 10% chance to have none, else 4-10 friends
+        if random.random() < 0.1:
+            num_friends = random.randint(10, 20)
+        elif random.random() < 0.1:
+            num_friends = 0
+        else:
+            num_friends = random.randint(4, 10)
+        possible_friends = [pid for pid in student_ids if pid != student_id]
+        friends = ", ".join(random.sample(possible_friends, k=min(num_friends, len(possible_friends))))
+
         manbox5_scores = {f"Manbox5_{i}": random.choice(LIKERT_SCALE_1_7) for i in range(1, 6)}
-        k6_scores = {f"k6_{i}": random.choice(K6_SCALE_1_5) for i in range(1, 7)}
+
         student_data = {
             "StudentID": student_id,
             "Academic_Performance": academic_performance,
@@ -87,8 +117,8 @@ def generate_synthetic_data(filename=SYNTHETIC_DATA_CSV, num_students=NUM_STUDEN
             "Nerds": random.choice(LIKERT_SCALE_1_7),
             "comfortable": random.choice(LIKERT_SCALE_1_7),
             "future": random.choice(LIKERT_SCALE_1_7),
-            "bullying": random.choice(LIKERT_SCALE_1_7),
-            "Friends": ", ".join(random.sample([pid for pid in student_ids if pid != student_id], k=random.randint(0, 7))),
+            "bullying": bullying,
+            "Friends": friends,
             **manbox5_scores,
             **k6_scores,
         }
@@ -210,7 +240,26 @@ def solve_with_genetic_algorithm(df):
     res = minimize(problem, algorithm, termination, seed=1, verbose=False)
     if res.X is not None:
         print("GA solution found!")
-        df["Class_GA"] = res.X
+        # Ensure all class assignments are valid integers in [0, num_classes-1]
+        num_classes = int(np.ceil(len(df) / class_size_limit))
+        valid_assignments = np.array([
+            x if isinstance(x, (int, np.integer)) and 0 <= x < num_classes else -1
+            for x in res.X
+        ])
+        df["Class_GA"] = valid_assignments
+
+        # --- Store output classes with students' IDs in a JSON file ---
+        class_dict = {}
+        for class_id in sorted(set(valid_assignments)):
+            if class_id == -1:
+                continue  # skip invalid assignments
+            student_ids = df.loc[df["Class_GA"] == class_id, "StudentID"].tolist()
+            class_dict[int(class_id)] = student_ids
+        output_json_path = "class_assignments.json"
+        with open(output_json_path, "w") as f:
+            json.dump(class_dict, f, indent=2)
+        print(f"Class assignments saved to {output_json_path}")
+        # -------------------------------------------------------------
     else:
         print("No GA solution found.")
         df["Class_GA"] = -1
