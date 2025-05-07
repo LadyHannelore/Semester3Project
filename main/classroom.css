@@ -26,6 +26,8 @@
     background-color: #f8fafc;
     padding: 2rem;
     gap: 2rem;
+    max-width: 900px;
+    margin: 0 auto; /* Center horizontally */
 }
 
 /* Header styles */

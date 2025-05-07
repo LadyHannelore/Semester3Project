@@ -70,6 +70,8 @@ body {
     flex: 1;
     margin-left: 250px;
     padding: 2rem;
+    max-width: 900px;
+    margin: 0 auto; /* Center horizontally */
 }
 
 /* Top Bar Styles */

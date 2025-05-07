@@ -26,6 +26,8 @@
     background-color: #f8fafc;
     padding: 2rem;
     gap: 2rem;
+    max-width: 900px;
+    margin: 0 auto; /* Center horizontally */
 }
 
 /* Section styling */
@@ -46,10 +48,14 @@
 }
 
 .add-student-form .form-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
     margin-bottom: 1.5rem;
+}
+
+.add-student-form .form-group {
+    width: 100%;
 }
 
 .add-student-form .form-group label {
@@ -237,9 +243,9 @@
 }
 
 .validation-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
 .validation-card {
@@ -264,54 +270,10 @@
     color: #c53030;
 }
 
-/* Action Section */
-.action-section {
-    background-color: white;
-    border-radius: 1rem;
-    padding: 2rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
-.action-controls {
-    display: flex;
-    gap: 1rem;
-}
-
-.save-btn, .undo-btn, .reset-btn {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 0.5rem;
-    font-weight: 500;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: all 0.2s;
-}
-
-.save-btn {
-    background-color: #4299e1;
-    color: white;
-}
-
-.undo-btn {
-    background-color: #f7fafc;
-    color: #4a5568;
-}
-
-.reset-btn {
-    background-color: #f7fafc;
-    color: #4a5568;
-}
-
-.save-btn:hover, .undo-btn:hover, .reset-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
 /* Footer Navigation */
 .action-buttons {
     display: flex;
+    flex-direction: column;
     gap: 1rem;
     padding: 1.5rem;
     background-color: white;

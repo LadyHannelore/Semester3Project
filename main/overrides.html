@@ -49,23 +49,21 @@
                     <h3>➕ Add New Student</h3>
                 </div>
                 <form id="addStudentForm" class="add-student-form">
-                    <div class="form-grid">
-                        <div class="form-group" style="display: none;"> <!-- Hide or remove this block -->
-                            <label for="newStudentId">Student ID</label>
-                            <input type="text" id="newStudentId" placeholder="e.g., S1001" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="newAcademicScore">Academic Score (0-100)</label>
-                            <input type="number" id="newAcademicScore" min="0" max="100" step="1" placeholder="e.g., 75" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="newWellbeingScore">Wellbeing Score (0-10)</label>
-                            <input type="number" id="newWellbeingScore" min="0" max="10" step="1" placeholder="e.g., 7" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="newBullyingScore">Bullying Score (0-10)</label>
-                            <input type="number" id="newBullyingScore" min="0" max="10" step="1" placeholder="e.g., 2" required>
-                        </div>
+                    <div class="form-group" style="display: none;"> <!-- Hide or remove this block -->
+                        <label for="newStudentId">Student ID</label>
+                        <input type="text" id="newStudentId" placeholder="e.g., S1001" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newAcademicScore">Academic Score (0-100)</label>
+                        <input type="number" id="newAcademicScore" min="0" max="100" step="1" placeholder="e.g., 75" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newWellbeingScore">Wellbeing Score (0-10)</label>
+                        <input type="number" id="newWellbeingScore" min="0" max="10" step="1" placeholder="e.g., 7" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newBullyingScore">Bullying Score (0-10)</label>
+                        <input type="number" id="newBullyingScore" min="0" max="10" step="1" placeholder="e.g., 2" required>
                     </div>
                     <button type="submit" class="add-student-btn" aria-label="Add Student to Allocation">
                         <span class="icon">👤</span> Add Student to Allocation
@@ -121,29 +119,8 @@
                 </div>
             </section>
 
-            <!-- Action Section -->
-            <section class="action-section slide-up" aria-label="Commit Changes">
-                <div class="section-header">
-                    <h3>📤 Commit Changes</h3>
-                </div>
-                <div class="action-controls">
-                    <button class="save-btn" id="saveBtn" type="button" aria-label="Save and Lock Final Allocation">
-                        <span class="icon">✅</span> Save and Lock Final Allocation
-                    </button>
-                    <button class="undo-btn" id="undoBtn" type="button" aria-label="Undo Last Move">
-                        <span class="icon">🔁</span> Undo Last Move
-                    </button>
-                    <button class="reset-btn" id="resetBtn" type="button" aria-label="Reset to Last Auto Allocation">
-                        <span class="icon">🔄</span> Reset to Last Auto Allocation
-                    </button>
-                </div>
-            </section>
-
             <!-- Footer Navigation -->
             <div class="action-buttons fade-in">
-                <button class="action-btn" type="button" onclick="window.location.href='model-comparison.html'" aria-label="Back to Model Comparison">
-                    <span class="icon">📊</span> Back to Model Comparison
-                </button>
                 <button class="action-btn" type="button" onclick="window.location.href='visualizations.html'" aria-label="Go to Visualization Page">
                     <span class="icon">📈</span> Go to Visualization Page
                 </button>
