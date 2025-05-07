@@ -140,7 +140,7 @@
         </nav>
 
         <!-- Main Content -->
-        <main class="main-content">
+        <main class="main-content" role="main" aria-label="Upload & Simulate">
             <header class="top-bar">
                 <h2>Upload & Simulate Data</h2>
                 <div class="user-info">
@@ -156,10 +156,10 @@
                     <input type="file" id="fileInput" accept=".csv">
                     <p>Drag and drop your CSV file here or click to browse</p>
                 </div>
-                <button class="action-btn" onclick="validateDataset()">Validate Dataset</button>
-                <div id="validationResult"></div>
+                <button class="action-btn" type="button" onclick="validateDataset()">Validate Dataset</button>
+                <div id="validationResult" aria-live="polite"></div>
                 <div id="previewTable"></div>
-                <button class="action-btn" onclick="useUploadedData()" style="margin-top: 1rem;">Use This Data</button>
+                <button class="action-btn" type="button" onclick="useUploadedData()" style="margin-top: 1rem;">Use This Data</button>
             </section>
 
             <!-- Section 2: Generate Synthetic Data -->
@@ -179,30 +179,29 @@
                         <label for="includeMentalHealth">Add Mental Health Scores</label>
                     </div>
                 </div>
-                <button class="action-btn" onclick="generateSyntheticData()">Generate Dataset</button>
-                <div id="syntheticPreview"></div>
-                <button class="action-btn" onclick="useSyntheticData()" style="margin-top: 1rem;">Use This Synthetic Data</button>
+                <button class="action-btn" type="button" onclick="generateSyntheticData()">Generate Dataset</button>
+                <div id="syntheticPreview" aria-live="polite"></div>
+                <button class="action-btn" type="button" onclick="useSyntheticData()" style="margin-top: 1rem;">Use This Synthetic Data</button>
             </section>
 
             <!-- Section 3: Dataset Summary -->
             <section class="upload-section">
                 <h2>📊 Dataset Summary</h2>
-                <div id="datasetSummary">
+                <div id="datasetSummary" aria-live="polite">
                     <div class="placeholder">No dataset loaded yet</div>
                 </div>
             </section>
 
             <!-- Footer Actions -->
             <div class="action-buttons">
-                <button class="action-btn" onclick="window.location.href='student-explorer.html'">
+                <button class="action-btn" type="button" onclick="window.location.href='student-explorer.html'">
                     <span class="icon">🔎</span> Explore Students
                 </button>
-                <button class="action-btn" onclick="window.location.href='allocation.html'">
+                <button class="action-btn" type="button" onclick="window.location.href='allocation.html'">
                     <span class="icon">⚙️</span> Run Group Allocation
                 </button>
             </div>
         </main>
     </div>
-    <script src="upload.js"></script>
 </body>
-</html> 
+</html>

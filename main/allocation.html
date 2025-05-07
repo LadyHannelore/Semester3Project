@@ -47,32 +47,11 @@
                 <section class="strategy-section">
                     <h3>🎯 Allocation Strategy</h3>
                     <div class="strategy-options">
-                        <div class="strategy-card" data-strategy="kmeans">
-                            <input type="radio" name="strategy" id="kmeans" value="kmeans">
-                            <label for="kmeans">
-                                <h4>KMeans Clustering</h4>
-                                <p>Groups students based on similarity in academic performance, wellbeing, and bullying scores</p>
-                            </label>
-                        </div>
-                        <div class="strategy-card" data-strategy="cpsat">
-                            <input type="radio" name="strategy" id="cpsat" value="cpsat">
-                            <label for="cpsat">
-                                <h4>CP-SAT Only</h4>
-                                <p>Uses constraint programming to optimize classroom assignments with strict rules</p>
-                            </label>
-                        </div>
-                        <div class="strategy-card" data-strategy="hybrid">
-                            <input type="radio" name="strategy" id="hybrid" value="hybrid">
-                            <label for="hybrid">
-                                <h4>KMeans + CP-SAT (Hybrid)</h4>
-                                <p>Combines clustering with constraint satisfaction for balanced results</p>
-                            </label>
-                        </div>
                         <div class="strategy-card" data-strategy="genetic">
-                            <input type="radio" name="strategy" id="genetic" value="genetic">
+                            <input type="radio" name="strategy" id="genetic" value="genetic" checked disabled>
                             <label for="genetic">
                                 <h4>Genetic Algorithm</h4>
-                                <p>Advanced optimization using evolutionary algorithms (experimental)</p>
+                                <p>Advanced optimization using evolutionary algorithms (sole method used by this system)</p>
                             </label>
                         </div>
                     </div>
@@ -81,71 +60,9 @@
                 <!-- Model Parameters Section -->
                 <section class="parameters-section">
                     <h3>⚙️ Model Parameters</h3>
-                    
-                    <!-- KMeans Parameters -->
-                    <div class="parameter-group" id="kmeans-params">
-                        <div class="parameter-card">
-                            <label for="numClusters">Number of Clusters</label>
-                            <input type="number" id="numClusters" min="2" value="4">
-                            <p class="help-text">Based on total students ÷ class size</p>
-                        </div>
-                        <div class="parameter-card">
-                            <label>Feature Weights</label>
-                            <div class="slider-group">
-                                <div class="slider-item">
-                                    <label for="academicWeight">Academic Performance</label>
-                                    <input type="range" id="academicWeight" min="0" max="100" value="40">
-                                    <span class="slider-value">40%</span>
-                                </div>
-                                <div class="slider-item">
-                                    <label for="wellbeingWeight">Wellbeing</label>
-                                    <input type="range" id="wellbeingWeight" min="0" max="100" value="30">
-                                    <span class="slider-value">30%</span>
-                                </div>
-                                <div class="slider-item">
-                                    <label for="bullyingWeight">Bullying</label>
-                                    <input type="range" id="bullyingWeight" min="0" max="100" value="30">
-                                    <span class="slider-value">30%</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- CP-SAT Parameters -->
-                    <div class="parameter-group" id="cpsat-params" style="display: none;">
-                        <div class="parameter-card">
-                            <label for="maxClassSize">Maximum Class Size</label>
-                            <input type="number" id="maxClassSize" min="15" max="30" value="25">
-                        </div>
-                        <div class="parameter-card">
-                            <label for="maxAcademicDev">Maximum Academic Deviation</label>
-                            <input type="number" id="maxAcademicDev" min="5" max="20" value="10">
-                            <p class="help-text">Maximum difference in average academic performance between classes</p>
-                        </div>
-                        <div class="parameter-card">
-                            <label for="maxBullyingCount">Maximum Bullying Count per Class</label>
-                            <input type="number" id="maxBullyingCount" min="0" max="5" value="2">
-                        </div>
-                    </div>
-
-                    <!-- Hybrid Parameters -->
-                    <div class="parameter-group" id="hybrid-params" style="display: none;">
-                        <div class="tabs">
-                            <button class="tab-btn active" data-tab="kmeans-tab">KMeans Settings</button>
-                            <button class="tab-btn" data-tab="cpsat-tab">CP-SAT Settings</button>
-                        </div>
-                        <div class="tab-content">
-                            <div id="kmeans-tab" class="tab-pane active">
-                                <!-- KMeans parameters (same as above) -->
-                            </div>
-                            <div id="cpsat-tab" class="tab-pane">
-                                <!-- CP-SAT parameters (same as above) -->
-                            </div>
-                        </div>
-                    </div>
 
                     <!-- Genetic Algorithm Parameters -->
-                    <div class="parameter-group" id="genetic-params" style="display: none;">
+                    <div class="parameter-group" id="genetic-params">
                         <div class="parameter-card">
                             <label for="populationSize">Population Size</label>
                             <input type="number" id="populationSize" min="50" max="200" value="100">
@@ -158,6 +75,28 @@
                             <label for="mutationRate">Mutation Rate</label>
                             <input type="range" id="mutationRate" min="1" max="20" value="5">
                             <span class="slider-value">5%</span>
+                        </div>
+                        <div class="parameter-card">
+                            <label for="maxClassSize">Maximum Class Size</label>
+                            <input type="number" id="maxClassSize" min="15" max="40" value="25">
+                        </div>
+                        <div class="parameter-card">
+                            <label for="academicBalanceWeight">Academic Balance Weight</label>
+                            <input type="range" id="academicBalanceWeight" min="0" max="1" step="0.1" value="0.5">
+                            <span class="slider-value">0.5</span>
+                        </div>
+                        <div class="parameter-card">
+                            <label for="wellbeingBalanceWeight">Wellbeing Balance Weight</label>
+                            <input type="range" id="wellbeingBalanceWeight" min="0" max="1" step="0.1" value="0.5">
+                            <span class="slider-value">0.5</span>
+                        </div>
+                        <div class="parameter-card">
+                            <label for="maxBulliesPerClass">Max Bullies Per Class (Score > 7)</label>
+                            <input type="number" id="maxBulliesPerClass" min="0" max="5" value="2">
+                        </div>
+                        <div class="parameter-card">
+                            <label for="maxFriendsSplit">Max Friends Split (Pairs)</label>
+                            <input type="number" id="maxFriendsSplit" min="0" max="10" value="2">
                         </div>
                     </div>
                 </section>
@@ -188,19 +127,35 @@
                             <div class="metrics-grid">
                                 <div class="metric-card">
                                     <h5>Total Students</h5>
-                                    <div class="metric-value" id="totalStudents">-</div>
+                                    <div class="metric-value" id="resultsTotalStudents">-</div>
                                 </div>
                                 <div class="metric-card">
                                     <h5>Classes Created</h5>
-                                    <div class="metric-value" id="numClasses">-</div>
+                                    <div class="metric-value" id="resultsNumClasses">-</div>
                                 </div>
                                 <div class="metric-card">
                                     <h5>Avg Academic Score</h5>
-                                    <div class="metric-value" id="avgAcademic">-</div>
+                                    <div class="metric-value" id="resultsAvgAcademic">-</div>
                                 </div>
                                 <div class="metric-card">
                                     <h5>Avg Wellbeing</h5>
-                                    <div class="metric-value" id="avgWellbeing">-</div>
+                                    <div class="metric-value" id="resultsAvgWellbeing">-</div>
+                                </div>
+                                <div class="metric-card">
+                                    <h5>Balance Score</h5>
+                                    <div class="metric-value" id="balance-score">-</div>
+                                </div>
+                                <div class="metric-card">
+                                    <h5>Diversity Score</h5>
+                                    <div class="metric-value" id="diversity-score">-</div>
+                                </div>
+                                <div class="metric-card">
+                                    <h5>Constraint Satisfaction</h5>
+                                    <div class="metric-value" id="constraint-satisfaction">-</div>
+                                </div>
+                                <div class="metric-card">
+                                    <h5>Processing Time</h5>
+                                    <div class="metric-value" id="processing-time">-</div>
                                 </div>
                             </div>
                             <div class="constraint-violations" id="constraintViolations">
@@ -220,12 +175,9 @@
                 <button class="action-btn" onclick="window.location.href='classroom.html'" id="viewClassroomBtn" disabled>
                     <span class="icon">🏫</span> View Classroom Assignments
                 </button>
-                <button class="action-btn" onclick="window.location.href='model-comparison.html'" id="compareModelsBtn" disabled>
-                    <span class="icon">📈</span> Compare With Other Models
-                </button>
             </div>
         </main>
     </div>
     <script src="allocation.js"></script>
 </body>
-</html> 
+</html>

@@ -52,11 +52,18 @@ def generate_synthetic_data(filename=SYNTHETIC_DATA_CSV, num_students=NUM_STUDEN
                     print("Data loaded successfully.")
                     return df
                 else:
-                    print("Required columns missing in CSV, regenerating...")
+                    print("Required columns missing in CSV, using as-is.")
+                    return df  # Use the CSV as-is even if columns are missing
             else:
-                print(f"CSV found but has {len(df)} rows, expected {num_students}. Regenerating...")
+                print(f"CSV found but has {len(df)} rows, expected {num_students}. Using as-is.")
+                return df  # Use the CSV as-is even if row count differs
         except Exception as e:
-            print(f"Error loading CSV: {e}. Regenerating...")
+            print(f"Error loading CSV: {e}. Using as-is if possible.")
+            try:
+                df = pd.read_csv(filename)
+                return df
+            except Exception as e2:
+                print(f"Failed to load CSV at all: {e2}. Regenerating...")
 
     print(f"Generating {num_students} new synthetic student records...")
     LIKERT_SCALE_1_7 = list(range(1, 8))

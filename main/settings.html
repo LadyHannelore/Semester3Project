@@ -30,9 +30,9 @@
         </nav>
 
         <!-- Main Content -->
-        <main class="main-content">
+        <main class="main-content" role="main">
             <!-- Header -->
-            <header class="top-bar fade-in">
+            <header class="top-bar fade-in" aria-label="Settings Header">
                 <div class="header-content">
                     <h2>Settings</h2>
                     <p class="subtitle">Configure allocation parameters and system preferences</p>
@@ -43,68 +43,8 @@
                 </div>
             </header>
 
-            <!-- Class Configuration Section -->
-            <section class="settings-section slide-up">
-                <div class="section-header">
-                    <h3>⚙️ Class Configuration</h3>
-                </div>
-                <div class="settings-grid">
-                    <div class="setting-item">
-                        <label for="maxClassSize">Maximum Class Size</label>
-                        <input type="number" id="maxClassSize" min="15" max="40" value="25">
-                        <span class="setting-hint">Recommended: 20-30 students</span>
-                    </div>
-                    <div class="setting-item">
-                        <label for="totalClasses">Total Number of Classes</label>
-                        <select id="totalClasses">
-                            <option value="auto">Auto (Based on total students)</option>
-                            <option value="manual">Manual</option>
-                        </select>
-                        <input type="number" id="manualClassCount" min="1" max="20" disabled>
-                    </div>
-                    <div class="setting-item checkbox">
-                        <label>
-                            <input type="checkbox" id="allowUneven">
-                            Allow slightly uneven class sizes (±2)
-                        </label>
-                        <span class="setting-hint">Enables more flexible allocation</span>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Constraint Parameters Section -->
-            <section class="settings-section slide-up">
-                <div class="section-header">
-                    <h3>📏 Constraint Parameters</h3>
-                </div>
-                <div class="settings-grid">
-                    <div class="setting-item">
-                        <label for="academicThreshold">Academic Balance Threshold</label>
-                        <input type="range" id="academicThreshold" min="0" max="2" step="0.1" value="1">
-                        <span class="value-display">1.0 σ</span>
-                        <span class="setting-hint">Maximum allowed standard deviation between classes</span>
-                    </div>
-                    <div class="setting-item">
-                        <label for="wellbeingThreshold">Wellbeing Score Threshold</label>
-                        <input type="range" id="wellbeingThreshold" min="0" max="2" step="0.1" value="1">
-                        <span class="value-display">1.0 σ</span>
-                        <span class="setting-hint">Maximum allowed wellbeing spread</span>
-                    </div>
-                    <div class="setting-item">
-                        <label for="maxBullies">Maximum Bullies Per Class</label>
-                        <input type="number" id="maxBullies" min="0" max="5" value="2">
-                        <span class="setting-hint">Students with bullying score > 7</span>
-                    </div>
-                    <div class="setting-item">
-                        <label for="maxFriendsSplit">Maximum Friends Split</label>
-                        <input type="number" id="maxFriendsSplit" min="0" max="5" value="2">
-                        <span class="setting-hint">Maximum friend pairs split between classes</span>
-                    </div>
-                </div>
-            </section>
-
             <!-- Visualization Defaults Section -->
-            <section class="settings-section slide-up">
+            <section class="settings-section slide-up" aria-label="Visualization Defaults">
                 <div class="section-header">
                     <h3>📊 Visualization Defaults</h3>
                 </div>
@@ -131,7 +71,7 @@
             </section>
 
             <!-- Experimental Features Section -->
-            <section class="settings-section slide-up">
+            <section class="settings-section slide-up" aria-label="Experimental Features">
                 <div class="section-header">
                     <h3>🧠 Experimental Features</h3>
                     <span class="beta-tag">BETA</span>
@@ -162,15 +102,15 @@
             </section>
 
             <!-- Save & Reset Section -->
-            <section class="settings-section slide-up">
+            <section class="settings-section slide-up" aria-label="Save & Reset">
                 <div class="section-header">
                     <h3>💾 Save & Reset</h3>
                 </div>
                 <div class="action-controls">
-                    <button class="save-btn" id="saveSettingsBtn">
+                    <button class="save-btn" id="saveSettingsBtn" type="button" aria-label="Save Settings">
                         <span class="icon">💾</span> Save Settings
                     </button>
-                    <button class="reset-btn" id="resetSettingsBtn">
+                    <button class="reset-btn" id="resetSettingsBtn" type="button" aria-label="Reset to Defaults">
                         <span class="icon">♻️</span> Reset to Defaults
                     </button>
                 </div>
@@ -178,10 +118,10 @@
 
             <!-- Footer Navigation -->
             <div class="action-buttons fade-in">
-                <button class="action-btn" onclick="window.location.href='visualizations.html'">
+                <button class="action-btn" type="button" onclick="window.location.href='visualizations.html'" aria-label="Go to Visualizations">
                     <span class="icon">📈</span> Go to Visualizations
                 </button>
-                <button class="action-btn" onclick="window.location.href='reports.html'">
+                <button class="action-btn" type="button" onclick="window.location.href='reports.html'" aria-label="Go to Report Generator">
                     <span class="icon">🧾</span> Go to Report Generator
                 </button>
             </div>
@@ -190,4 +130,4 @@
 
     <script src="settings.js"></script>
 </body>
-</html> 
+</html>

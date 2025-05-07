@@ -436,24 +436,41 @@ function analyzeNetwork() {
 
 // Generate warnings
 function generateWarnings() {
+    if (!loadAllocationDataForVisualizations() || !allocationData || !Array.isArray(allocationData.classes)) {
+        return ["⚠️ Allocation data not available or invalid. Please run group allocation first."];
+    }
+
     const warnings = [];
 
     // Check for severe imbalances
     allocationData.classes.forEach((c, i) => {
-        if (c.students.length > 30) {
-            warnings.push(`⚠️ Class ${i} exceeds maximum recommended size.`);
-        }
-        
-        const highBullying = c.students.filter(s => s.bullyingScore > 7).length;
-        if (highBullying > 2) {
-            warnings.push(`⚠️ High concentration of bullying risk in Class ${i}.`);
+        if (!c || !Array.isArray(c.students)) {
+            warnings.push(`⚠️ Data for Class ${i} is incomplete or missing.`);
+            return; // Skip this class if data is malformed
         }
 
-        const lowWellbeing = c.students.filter(s => s.wellbeingScore < 5).length;
-        if (lowWellbeing > c.students.length * 0.4) {
-            warnings.push(`⚠️ Critical wellbeing situation in Class ${i}.`);
+        const className = `Class ${i}`; // Use a consistent name for messages
+
+        if (c.students.length > 30) { // Example threshold, could be from settings
+            warnings.push(`⚠️ ${className} (size ${c.students.length}) exceeds recommended maximum size of 30.`);
+        }
+        
+        const highBullyingStudents = c.students.filter(s => s && typeof s.bullyingScore === 'number' && s.bullyingScore > 7);
+        if (highBullyingStudents.length > 2) { // Example threshold
+            warnings.push(`⚠️ High concentration of bullying risk in ${className} (${highBullyingStudents.length} students).`);
+        }
+
+        const lowWellbeingStudents = c.students.filter(s => s && typeof s.wellbeingScore === 'number' && s.wellbeingScore < 5);
+        if (c.students.length > 0 && lowWellbeingStudents.length > c.students.length * 0.4) { // Example threshold
+            warnings.push(`⚠️ Critical wellbeing situation in ${className} (${lowWellbeingStudents.length} out of ${c.students.length} students affected).`);
         }
     });
+
+    if (warnings.length === 0 && allocationData.classes.length > 0) {
+        warnings.push("✅ No severe imbalances detected in class allocations based on current checks.");
+    } else if (allocationData.classes.length === 0) {
+        warnings.push("ℹ️ No classes found in the allocation data to analyze.");
+    }
 
     return warnings;
 }
@@ -524,10 +541,35 @@ function refreshData() {
 
 // Show error message
 function showError(message) {
-    alert(message);
+    alert("Genetic Algorithm: " + message);
 }
 
 // Show success message
 function showSuccess(message) {
-    alert(message);
-} 
+    alert("Genetic Algorithm: " + message);
+}
+
+// Function to load allocation data, can be called by any function needing it
+function loadAllocationDataForVisualizations() {
+    if (allocationData) return true; // Already loaded
+
+    const stored = localStorage.getItem('allocationResults');
+    if (stored) {
+        try {
+            allocationData = JSON.parse(stored);
+            if (!allocationData || !allocationData.classes) {
+                console.error("Visualizations: Invalid allocation data structure in localStorage.");
+                allocationData = null;
+                return false;
+            }
+            return true;
+        } catch (e) {
+            console.error("Visualizations: Error parsing allocation data from localStorage:", e);
+            allocationData = null;
+            return false;
+        }
+    } else {
+        console.warn("Visualizations: No allocation data found in localStorage. Please run allocation first.");
+        return false;
+    }
+}

@@ -186,6 +186,7 @@
 .warning-flags li {
     border-left: 4px solid #f56565;
     padding-left: 1rem;
+    background-color: #fff5f5;
 }
 
 .analyze-btn {
@@ -276,4 +277,4 @@
     .action-buttons {
         flex-direction: column;
     }
-} 
+}

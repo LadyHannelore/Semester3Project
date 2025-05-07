@@ -32,9 +32,9 @@
         </nav>
 
         <!-- Main Content -->
-        <main class="main-content">
+        <main class="main-content" role="main">
             <!-- Header -->
-            <header class="top-bar fade-in">
+            <header class="top-bar fade-in" aria-label="Visualizations Header">
                 <div class="header-content">
                     <h2>Visualizations</h2>
                     <p class="subtitle">Analyze classroom distribution and social dynamics</p>
@@ -46,11 +46,11 @@
             </header>
 
             <!-- Distribution Graphs Section -->
-            <section class="distribution-section slide-up">
+            <section class="distribution-section slide-up" aria-label="Distribution Graphs">
                 <div class="section-header">
                     <h3>📊 Distribution Graphs</h3>
                     <div class="chart-controls">
-                        <button class="refresh-btn" id="refreshChartsBtn">
+                        <button class="refresh-btn" id="refreshChartsBtn" type="button" aria-label="Refresh Data">
                             <span class="icon">🔄</span> Refresh Data
                         </button>
                     </div>
@@ -76,11 +76,11 @@
             </section>
 
             <!-- Network Graphs Section -->
-            <section class="network-section slide-up">
+            <section class="network-section slide-up" aria-label="Network Graphs">
                 <div class="section-header">
                     <h3>🌐 Network Graphs</h3>
                     <div class="network-controls">
-                        <select id="networkTypeSelect" class="network-select">
+                        <select id="networkTypeSelect" class="network-select" aria-label="Select Network Type">
                             <option value="friendship">Friendship Network</option>
                             <option value="disrespect">Disrespect Network</option>
                             <option value="advice">Advice Network</option>
@@ -98,29 +98,29 @@
             </section>
 
             <!-- Insights Panel -->
-            <section class="insights-section slide-up">
+            <section class="insights-section slide-up" aria-label="Insights">
                 <div class="section-header">
                     <h3>🎯 Insights</h3>
-                    <button class="analyze-btn" id="analyzeBtn">
+                    <button class="analyze-btn" id="analyzeBtn" type="button" aria-label="Analyze Data">
                         <span class="icon">🔍</span> Analyze Data
                     </button>
                 </div>
                 <div class="insights-grid">
                     <div class="insight-card distribution-insights">
                         <h4>Distribution Insights</h4>
-                        <ul id="distributionInsightsList">
+                        <ul id="distributionInsightsList" aria-live="polite">
                             <!-- Populated by JavaScript -->
                         </ul>
                     </div>
                     <div class="insight-card network-insights">
                         <h4>Network Insights</h4>
-                        <ul id="networkInsightsList">
+                        <ul id="networkInsightsList" aria-live="polite">
                             <!-- Populated by JavaScript -->
                         </ul>
                     </div>
                     <div class="insight-card warning-flags">
                         <h4>Warning Flags</h4>
-                        <ul id="warningFlagsList">
+                        <ul id="warningFlagsList" aria-live="polite">
                             <!-- Populated by JavaScript -->
                         </ul>
                     </div>
@@ -129,10 +129,10 @@
 
             <!-- Footer Navigation -->
             <div class="action-buttons fade-in">
-                <button class="action-btn" onclick="window.location.href='overrides.html'">
+                <button class="action-btn" type="button" onclick="window.location.href='overrides.html'" aria-label="Back to Manual Override">
                     <span class="icon">🔙</span> Back to Manual Override
                 </button>
-                <button class="action-btn" onclick="window.location.href='settings.html'">
+                <button class="action-btn" type="button" onclick="window.location.href='settings.html'" aria-label="Go to Settings Page">
                     <span class="icon">🛠</span> Go to Settings Page
                 </button>
             </div>
@@ -141,4 +141,4 @@
 
     <script src="visualizations.js"></script>
 </body>
-</html> 
+</html>

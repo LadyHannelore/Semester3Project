@@ -243,9 +243,8 @@ function normalizeScore(value, metric) {
     const allValues = modelResults.map(r => r[metric]);
     const min = Math.min(...allValues);
     const max = Math.max(...allValues);
-    
     // Invert the normalization since lower values are better
-    return 1 - ((value - min) / (max - min) || 0);
+    return max !== min ? 1 - ((value - min) / (max - min)) : 1;
 }
 
 // Apply selected model
@@ -284,4 +283,4 @@ function showError(message) {
 function showSuccess(message) {
     // Implementation depends on your UI notification system
     alert(message);
-} 
+}

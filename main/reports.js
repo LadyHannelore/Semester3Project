@@ -141,15 +141,16 @@ async function exportRawData() {
 function generateCSV(data, headers) {
     const csvRows = [];
     csvRows.push(headers.join(','));
-
     for (const row of data) {
         const values = headers.map(header => {
-            const value = row[header];
-            return `"${value}"`;
+            let value = row[header];
+            if (typeof value === 'string' && value.includes(',')) {
+                value = `"${value.replace(/"/g, '""')}"`;
+            }
+            return value;
         });
         csvRows.push(values.join(','));
     }
-
     return csvRows.join('\n');
 }
 
@@ -173,4 +174,4 @@ function showSuccess(message) {
 
 function showError(message) {
     alert('Error: ' + message); // Replace with your preferred notification system
-} 
+}

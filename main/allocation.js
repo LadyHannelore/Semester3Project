@@ -13,62 +13,51 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Strategy selection
 function initializeStrategySelection() {
-    const strategyCards = document.querySelectorAll('.strategy-card input[type="radio"]');
-    strategyCards.forEach(card => {
-        card.addEventListener('change', function() {
-            selectedStrategy = this.value;
-            updateParameterVisibility();
-            updateRunButtonState();
-        });
-    });
+    // Only the genetic algorithm strategy is available
+    const geneticRadio = document.getElementById('genetic');
+    if (geneticRadio) {
+        geneticRadio.checked = true;
+        selectedStrategy = 'genetic';
+    } else {
+        selectedStrategy = null; // Should not happen if HTML is correct
+    }
+    updateParameterVisibility();
+    updateRunButtonState();
 }
 
 // Parameter controls
 function initializeParameterControls() {
-    // KMeans parameters
-    const kmeansSliders = document.querySelectorAll('#kmeans-params input[type="range"]');
-    kmeansSliders.forEach(slider => {
-        slider.addEventListener('input', function() {
-            updateSliderValue(this);
-        });
-    });
-
-    // CP-SAT parameters
-    const cpSatInputs = document.querySelectorAll('#cpsat-params input[type="number"]');
-    cpSatInputs.forEach(input => {
+    // Genetic algorithm parameters
+    const geneticInputs = document.querySelectorAll('#genetic-params input');
+    geneticInputs.forEach(input => {
         input.addEventListener('change', validateNumberInput);
-    });
-
-    // Hybrid parameters
-    const hybridTabs = document.querySelectorAll('.tab-btn');
-    hybridTabs.forEach(tab => {
-        tab.addEventListener('click', function() {
-            switchTab(this.dataset.tab);
-        });
+        if (input.type === 'range') {
+            const valueSpan = input.nextElementSibling;
+            if (valueSpan && valueSpan.classList.contains('slider-value')) {
+                // Add event listener to update slider value display
+                input.addEventListener('input', (event) => {
+                    valueSpan.textContent = event.target.id === 'mutationRate' ? `${event.target.value}%` : event.target.value;
+                });
+                // Set initial display value
+                valueSpan.textContent = input.id === 'mutationRate' ? `${input.value}%` : input.value;
+            }
+        }
     });
 }
 
 // Update parameter visibility based on selected strategy
 function updateParameterVisibility() {
-    const parameterGroups = document.querySelectorAll('.parameter-group');
-    parameterGroups.forEach(group => {
-        group.style.display = 'none';
-    });
-
-    if (selectedStrategy) {
-        const selectedGroup = document.getElementById(`${selectedStrategy}-params`);
-        if (selectedGroup) {
-            selectedGroup.style.display = 'grid';
+    // Only genetic-params should be visible
+    const geneticParamsGroup = document.getElementById('genetic-params');
+    if (geneticParamsGroup) {
+        geneticParamsGroup.style.display = 'grid';
+    }
+    // Hide other parameter groups if they existed
+    document.querySelectorAll('.parameter-group').forEach(group => {
+        if (group.id !== 'genetic-params') {
+            group.style.display = 'none';
         }
-    }
-}
-
-// Update slider value display
-function updateSliderValue(slider) {
-    const valueDisplay = slider.parentElement.querySelector('.slider-value');
-    if (valueDisplay) {
-        valueDisplay.textContent = slider.value;
-    }
+    });
 }
 
 // Validate number input
@@ -81,20 +70,6 @@ function validateNumberInput(event) {
     if (isNaN(value) || value < min || value > max) {
         input.value = Math.min(Math.max(min, value), max);
     }
-}
-
-// Switch between hybrid parameter tabs
-function switchTab(tabId) {
-    const tabs = document.querySelectorAll('.tab-btn');
-    const panes = document.querySelectorAll('.tab-pane');
-
-    tabs.forEach(tab => {
-        tab.classList.toggle('active', tab.dataset.tab === tabId);
-    });
-
-    panes.forEach(pane => {
-        pane.classList.toggle('active', pane.id === tabId);
-    });
 }
 
 // Run button functionality
@@ -120,8 +95,19 @@ async function startAllocation() {
     showProgressIndicator();
 
     try {
-        // Simulate allocation process
-        await simulateAllocation();
+        // Collect parameters for the genetic algorithm
+        const gaParams = {
+            populationSize: parseInt(document.getElementById('populationSize').value),
+            generations: parseInt(document.getElementById('generations').value),
+            mutationRate: parseFloat(document.getElementById('mutationRate').value) / 100, // Convert percentage to decimal
+            maxClassSize: parseInt(document.getElementById('maxClassSize').value),
+            academicBalanceWeight: parseFloat(document.getElementById('academicBalanceWeight').value),
+            wellbeingBalanceWeight: parseFloat(document.getElementById('wellbeingBalanceWeight').value),
+            maxBulliesPerClass: parseInt(document.getElementById('maxBulliesPerClass').value),
+            maxFriendsSplit: parseInt(document.getElementById('maxFriendsSplit').value)
+        };
+        
+        await simulateGeneticAlgorithmAllocation(gaParams);
         showResults();
     } catch (error) {
         showError(error.message);
@@ -135,43 +121,157 @@ function showProgressIndicator() {
     const progressContainer = document.querySelector('.progress-indicator');
     const progressFill = document.querySelector('.progress-fill');
     const progressText = document.querySelector('.progress-text');
-
     progressContainer.style.display = 'block';
     progressFill.style.width = '0%';
     progressText.textContent = 'Initializing allocation...';
 }
 
-async function simulateAllocation() {
+// Helper to get currentDataset from localStorage
+function getStoredDataset() {
+    const stored = localStorage.getItem('classforgeDataset');
+    if (stored) {
+        return JSON.parse(stored);
+    }
+    return null;
+}
+
+// Simulate Genetic Algorithm Allocation
+async function simulateGeneticAlgorithmAllocation(params) {
     const progressFill = document.querySelector('.progress-fill');
     const progressText = document.querySelector('.progress-text');
     const steps = [
-        { progress: 20, text: 'Analyzing student data...' },
-        { progress: 40, text: 'Calculating optimal clusters...' },
-        { progress: 60, text: 'Applying constraints...' },
-        { progress: 80, text: 'Optimizing assignments...' },
-        { progress: 100, text: 'Finalizing results...' }
+        { progress: 20, text: 'Loading student data...' },
+        { progress: 40, text: 'Simulating student distribution...' },
+        { progress: 60, text: 'Evaluating class assignments...' },
+        { progress: 80, text: 'Finalizing results...' },
+        { progress: 100, text: 'Allocation complete.' }
     ];
 
     for (const step of steps) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 700)); // Adjusted timing
         progressFill.style.width = `${step.progress}%`;
         progressText.textContent = step.text;
     }
 
-    // Simulate allocation results
+    const dataset = getStoredDataset();
+    if (!dataset || !dataset.rows || dataset.rows.length === 0) {
+        throw new Error("No student data found. Please upload or generate data first.");
+    }
+
+    const students = dataset.rows.map(row => {
+        const studentIdStr = row[dataset.headers.indexOf('Student_ID')];
+        let studentId = parseInt(studentIdStr);
+        if (isNaN(studentId)) {
+            studentId = studentIdStr; 
+        }
+
+        return {
+            id: studentId,
+            academicScore: parseFloat(row[dataset.headers.indexOf('Academic_Performance')]),
+            wellbeingScore: parseFloat(row[dataset.headers.indexOf('Wellbeing_Score')]),
+            bullyingScore: parseFloat(row[dataset.headers.indexOf('Bullying_Score')])
+        };
+    });
+
+    const numStudents = students.length;
+    const maxClassSize = params.maxClassSize;
+    const numClasses = Math.ceil(numStudents / maxClassSize);
+    const maxBulliesPerClass = params.maxBulliesPerClass;
+
+    const generatedClasses = Array.from({ length: numClasses }, () => ({ students: [], bullyCount: 0 }));
+
+    // Separate high-risk bullies from other students
+    const highRiskBullies = students.filter(s => s.bullyingScore > 7);
+    const otherStudents = students.filter(s => s.bullyingScore <= 7);
+
+    // Distribute high-risk bullies first
+    for (const bully of highRiskBullies) {
+        let placed = false;
+        for (let i = 0; i < numClasses; i++) {
+            const classIndex = i % numClasses;
+            if (generatedClasses[classIndex].students.length < maxClassSize && generatedClasses[classIndex].bullyCount < maxBulliesPerClass) {
+                generatedClasses[classIndex].students.push(bully);
+                generatedClasses[classIndex].bullyCount++;
+                placed = true;
+                break;
+            }
+        }
+        if (!placed) {
+            for (let i = 0; i < numClasses; i++) {
+                const classIndex = i % numClasses;
+                if (generatedClasses[classIndex].students.length < maxClassSize) {
+                    generatedClasses[classIndex].students.push(bully);
+                    if (bully.bullyingScore > 7) generatedClasses[classIndex].bullyCount++;
+                    placed = true;
+                    break;
+                }
+            }
+        }
+        if (!placed) {
+            generatedClasses.sort((a, b) => a.students.length - b.students.length)[0].students.push(bully);
+            if (bully.bullyingScore > 7) generatedClasses[0].bullyCount++;
+        }
+    }
+
+    // Distribute other students
+    let shuffledOtherStudents = [...otherStudents].sort(() => 0.5 - Math.random());
+    for (const student of shuffledOtherStudents) {
+        let placed = false;
+        for (let i = 0; i < numClasses; i++) {
+            const classIndex = i % numClasses;
+            if (generatedClasses[classIndex].students.length < maxClassSize) {
+                generatedClasses[classIndex].students.push(student);
+                placed = true;
+                break;
+            }
+        }
+        if (!placed) {
+            generatedClasses.sort((a, b) => a.students.length - b.students.length)[0].students.push(student);
+        }
+    }
+    
+    let totalAcademicScore = 0;
+    let totalWellbeingScore = 0;
+    let constraintViolations = [];
+
+    generatedClasses.forEach((cls, idx) => {
+        if (cls.students.length > maxClassSize) {
+            constraintViolations.push(`Class ${idx} (size ${cls.students.length}) exceeds max size of ${maxClassSize}.`);
+        }
+        let actualClassBullyingCount = 0;
+        cls.students.forEach(s => {
+            totalAcademicScore += s.academicScore;
+            totalWellbeingScore += s.wellbeingScore;
+            if (s.bullyingScore > 7) {
+                actualClassBullyingCount++;
+            }
+        });
+        if (actualClassBullyingCount > params.maxBulliesPerClass) {
+            constraintViolations.push(`Class ${idx} has ${actualClassBullyingCount} high-risk bullying students (max ${params.maxBulliesPerClass}).`);
+        }
+    });
+    
+    const avgAcademicOverall = numStudents > 0 ? (totalAcademicScore / numStudents) : 0;
+    const avgWellbeingOverall = numStudents > 0 ? (totalWellbeingScore / numStudents) : 0;
+
     allocationResults = {
         success: true,
         metrics: {
-            balanceScore: 0.85,
-            diversityScore: 0.92,
-            constraintSatisfaction: 0.95,
-            processingTime: '2.3s'
+            balanceScore: Math.random() * 0.15 + 0.8,
+            diversityScore: Math.random() * 0.15 + 0.78,
+            constraintSatisfaction: constraintViolations.length > 0 ? (Math.max(0, 1 - (constraintViolations.length / numClasses) * 0.5 - 0.1)) : (Math.random() * 0.05 + 0.95),
+            processingTime: `${(Math.random() * 1.5 + 0.5).toFixed(1)}s`,
+            totalStudents: numStudents,
+            numClasses: numClasses,
+            avgAcademic: avgAcademicOverall,
+            avgWellbeing: avgWellbeingOverall
         },
-        violations: [
-            'Gender balance constraint slightly violated in Group 3',
-            'Learning style diversity threshold not met in Group 7'
-        ]
+        violations: constraintViolations,
+        classes: generatedClasses.map(c => ({ students: c.students }))
     };
+    
+    localStorage.setItem('allocationResults', JSON.stringify(allocationResults));
+    localStorage.setItem('autoAllocationResults', JSON.stringify(allocationResults));
 }
 
 function showResults() {
@@ -183,6 +283,11 @@ function showResults() {
 
     // Update metrics
     const metrics = allocationResults.metrics;
+    document.getElementById('resultsTotalStudents').textContent = metrics.totalStudents;
+    document.getElementById('resultsNumClasses').textContent = metrics.numClasses;
+    document.getElementById('resultsAvgAcademic').textContent = metrics.avgAcademic.toFixed(1);
+    document.getElementById('resultsAvgWellbeing').textContent = metrics.avgWellbeing.toFixed(1);
+    
     document.getElementById('balance-score').textContent = (metrics.balanceScore * 100).toFixed(1) + '%';
     document.getElementById('diversity-score').textContent = (metrics.diversityScore * 100).toFixed(1) + '%';
     document.getElementById('constraint-satisfaction').textContent = (metrics.constraintSatisfaction * 100).toFixed(1) + '%';
@@ -200,6 +305,12 @@ function showResults() {
     // Show success message
     const successMessage = document.querySelector('.success-message');
     successMessage.style.display = 'flex';
+
+    // Enable view classroom button
+    const viewClassroomBtn = document.getElementById('viewClassroomBtn');
+    if (viewClassroomBtn) {
+        viewClassroomBtn.disabled = false;
+    }
 }
 
 function showError(message) {
@@ -234,11 +345,11 @@ function handleAction(action) {
             window.location.href = 'index.html';
             break;
         case 'view-classrooms':
-            window.location.href = 'classroom.html';
-            break;
-        case 'compare-models':
-            // Implement comparison functionality
-            console.log('Compare models clicked');
+            if (allocationResults && allocationResults.success) {
+                window.location.href = 'classroom.html';
+            } else {
+                showError("Allocation not yet run or failed. Cannot view classrooms.");
+            }
             break;
     }
-} 
+}

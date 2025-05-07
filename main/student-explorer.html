@@ -154,91 +154,35 @@
             display: none;
             flex-direction: column;
             gap: 1.5rem;
+            overflow-y: auto; /* Allow scrolling if content overflows */
         }
 
         .profile-panel.active {
             display: flex;
         }
 
-        .profile-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .profile-header h3 {
-            margin: 0;
-            color: #2d3748;
-        }
-
-        .close-profile {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #718096;
-        }
-
-        .profile-stats {
+        .profile-details-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* Responsive grid */
             gap: 1rem;
+            margin-bottom: 1rem;
         }
 
-        .stat-card {
+        .profile-detail-card { /* New style for individual profile items */
             background-color: #f7fafc;
-            padding: 1rem;
+            padding: 0.75rem;
             border-radius: 0.5rem;
-            text-align: center;
-        }
-
-        .stat-card h4 {
-            margin: 0 0 0.5rem 0;
-            color: #4a5568;
             font-size: 0.875rem;
         }
-
-        .stat-card .value {
-            font-size: 1.25rem;
+        .profile-detail-card h5 {
+            margin: 0 0 0.25rem 0;
+            color: #4a5568;
+            font-size: 0.75rem;
+            text-transform: capitalize;
+        }
+        .profile-detail-card .value {
             font-weight: 600;
             color: #2d3748;
-        }
-
-        .radar-chart-container {
-            height: 300px;
-        }
-
-        .profile-actions {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .profile-actions button {
-            flex: 1;
-            padding: 0.75rem;
-            border: none;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            font-weight: 500;
-            transition: background-color 0.2s;
-        }
-
-        .flag-button {
-            background-color: #f7fafc;
-            color: #4a5568;
-        }
-
-        .flag-button:hover {
-            background-color: #edf2f7;
-        }
-
-        .flag-button.flagged {
-            background-color: #fed7d7;
-            color: #c53030;
-        }
-
-        .flag-button.flagged:hover {
-            background-color: #feb2b2;
         }
     </style>
 </head>
@@ -264,8 +208,8 @@
         </nav>
 
         <!-- Main Content -->
-        <main class="main-content">
-            <header class="top-bar fade-in">
+        <main class="main-content" role="main">
+            <header class="top-bar fade-in" aria-label="Student Explorer Header">
                 <div class="header-content">
                     <h2>Student Explorer</h2>
                     <p class="subtitle">Browse and analyze individual student records</p>
@@ -280,7 +224,7 @@
                 <!-- Main Data Table Section -->
                 <div class="table-section">
                     <!-- Filters Bar -->
-                    <div class="filters-bar">
+                    <div class="filters-bar" role="region" aria-label="Filters">
                         <div class="search-box">
                             <span class="search-icon">🔍</span>
                             <input type="text" id="searchInput" placeholder="Search by Student ID..." class="search-input">
@@ -300,39 +244,33 @@
                                 <option value="high">High (>7)</option>
                             </select>
                         </div>
+                        <div id="dynamicFiltersContainer" class="filter-group">
+                            <!-- Dynamic filters will be added here by JavaScript -->
+                        </div>
                     </div>
 
                     <!-- Data Table -->
-                    <div class="data-table-container">
-                        <table class="data-table">
+                    <div class="data-table-container" role="region" aria-label="Student Data Table">
+                        <table class="data-table" aria-label="Student Table">
                             <thead>
-                                <tr>
-                                    <th data-sort="id" class="sortable">Student ID <span class="sort-icon">↕️</span></th>
-                                    <th data-sort="academic" class="sortable">Academic Performance <span class="sort-icon">↕️</span></th>
-                                    <th data-sort="wellbeing" class="sortable">Wellbeing Score <span class="sort-icon">↕️</span></th>
-                                    <th data-sort="bullying" class="sortable">Bullying Score <span class="sort-icon">↕️</span></th>
-                                    <th>Language</th>
-                                    <th>Friends</th>
-                                    <th>Advice</th>
-                                    <th>Disrespect</th>
-                                </tr>
+                                <!-- Headers will be populated by JavaScript -->
                             </thead>
-                            <tbody id="studentTableBody">
+                            <tbody id="studentTableBody" aria-live="polite">
                                 <!-- Will be populated by JavaScript -->
                             </tbody>
                         </table>
 
                         <!-- Pagination -->
-                        <div class="pagination">
+                        <div class="pagination" role="navigation" aria-label="Pagination Controls">
                             <div class="pagination-info">
                                 Showing <span id="startRow">1</span> to <span id="endRow">25</span> of <span id="totalRows">0</span> entries
                             </div>
                             <div class="pagination-controls">
-                                <button class="pagination-button" id="prevPage">
+                                <button class="pagination-button" id="prevPage" type="button" aria-label="Previous Page">
                                     <span class="icon">←</span> Previous
                                 </button>
                                 <span id="currentPage" class="current-page">Page 1</span>
-                                <button class="pagination-button" id="nextPage">
+                                <button class="pagination-button" id="nextPage" type="button" aria-label="Next Page">
                                     Next <span class="icon">→</span>
                                 </button>
                             </div>
@@ -341,35 +279,20 @@
                 </div>
 
                 <!-- Student Profile Panel -->
-                <div class="profile-panel" id="profilePanel">
+                <div class="profile-panel" id="profilePanel" aria-label="Student Profile Panel" tabindex="0">
                     <div class="profile-header">
                         <h3>Student Profile</h3>
-                        <button class="close-profile" onclick="closeProfile()">×</button>
+                        <button class="close-profile" type="button" onclick="closeProfile()" aria-label="Close Profile">×</button>
                     </div>
                     <div class="profile-content">
-                        <div class="profile-stats">
-                            <div class="stat-card">
-                                <h4>Academic Performance</h4>
-                                <div class="value" id="profileAcademic">-</div>
-                            </div>
-                            <div class="stat-card">
-                                <h4>Wellbeing Score</h4>
-                                <div class="value" id="profileWellbeing">-</div>
-                            </div>
-                            <div class="stat-card">
-                                <h4>Bullying Score</h4>
-                                <div class="value" id="profileBullying">-</div>
-                            </div>
-                            <div class="stat-card">
-                                <h4>Risk Level</h4>
-                                <div class="value" id="profileRisk">-</div>
-                            </div>
+                        <div class="profile-details-grid" id="profileDetailsContainer">
+                            <!-- Student details will be populated by JavaScript -->
                         </div>
                         <div class="radar-chart-container">
-                            <canvas id="profileRadarChart"></canvas>
+                            <canvas id="profileRadarChart" aria-label="Student Radar Chart"></canvas>
                         </div>
                         <div class="profile-actions">
-                            <button class="flag-button" id="flagButton" onclick="toggleFlag()">
+                            <button class="flag-button" id="flagButton" type="button" onclick="toggleFlag()" aria-label="Flag for Review">
                                 Flag for Review
                             </button>
                         </div>
@@ -379,13 +302,13 @@
 
             <!-- Footer Actions -->
             <div class="action-buttons fade-in">
-                <button class="action-btn export-btn" onclick="exportFilteredData()">
+                <button class="action-btn export-btn" type="button" onclick="exportFilteredData()" aria-label="Export Filtered Data">
                     <span class="icon">📤</span> Export Filtered Data (CSV)
                 </button>
-                <button class="action-btn" onclick="window.location.href='index.html'">
+                <button class="action-btn" type="button" onclick="window.location.href='index.html'" aria-label="Back to Overview">
                     <span class="icon">↩</span> Back to Overview
                 </button>
-                <button class="action-btn primary" onclick="window.location.href='allocation.html'">
+                <button class="action-btn primary" type="button" onclick="window.location.href='allocation.html'" aria-label="Run Group Allocation">
                     <span class="icon">⚙️</span> Run Group Allocation
                 </button>
             </div>
@@ -393,4 +316,4 @@
     </div>
     <script src="student-explorer.js"></script>
 </body>
-</html> 
+</html>

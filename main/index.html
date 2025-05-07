@@ -30,88 +30,100 @@
         </nav>
 
         <!-- Main Content -->
-        <main class="main-content">
-            <!-- Top Bar -->
-            <header class="top-bar">
-                <h2>Admin Dashboard</h2>
-                <div class="user-info">
-                    <span class="user-name">Admin User</span>
-                    <span class="user-avatar">👤</span>
+        <main class="main-content dashboard-main" role="main">
+            <!-- Professional Top Bar -->
+            <header class="top-bar" aria-label="Dashboard Header">
+                <div class="top-bar-left">
+                    <h2>Admin Dashboard</h2>
+                </div>
+                <div class="top-bar-right user-info" aria-label="User Info">
+                    <span class="user-name" id="userName">Admin User</span>
+                    <span class="user-avatar" aria-label="User Avatar">👤</span>
                 </div>
             </header>
 
-            <!-- Summary Cards -->
-            <div class="summary-cards">
-                <div class="card">
+            <!-- Summary Cards (Dynamic) -->
+            <section class="summary-cards" aria-label="Summary Statistics">
+                <div class="card" id="cardTotalStudents">
                     <h3>Total Students</h3>
-                    <p class="number">10,000</p>
+                    <p class="number" id="totalStudents"><span class="loading-placeholder">--</span></p>
                 </div>
-                <div class="card">
+                <div class="card" id="cardTotalClasses">
                     <h3>Total Classes</h3>
-                    <p class="number">400</p>
+                    <p class="number" id="totalClasses"><span class="loading-placeholder">--</span></p>
                 </div>
-                <div class="card">
+                <div class="card" id="cardAvgAcademicScore">
                     <h3>Avg Academic Score</h3>
-                    <p class="number">70.2</p>
+                    <p class="number" id="avgAcademicScore"><span class="loading-placeholder">--</span></p>
                 </div>
-                <div class="card">
+                <div class="card" id="cardAvgWellbeingScore">
                     <h3>Avg Wellbeing Score</h3>
-                    <p class="number">75.8</p>
+                    <p class="number" id="avgWellbeingScore"><span class="loading-placeholder">--</span></p>
                 </div>
-                <div class="card">
+                <div class="card" id="cardHighRiskBullies">
                     <h3>High-Risk Bullies</h3>
-                    <p class="number">28.97%</p>
+                    <p class="number" id="highRiskBullies"><span class="loading-placeholder">--</span></p>
                 </div>
-                <div class="card">
+                <div class="card" id="cardUnassignedStudents">
                     <h3>Unassigned Students</h3>
-                    <p class="number">45</p>
+                    <p class="number" id="unassignedStudents"><span class="loading-placeholder">--</span></p>
                 </div>
-            </div>
+            </section>
 
-            <!-- Charts Section -->
-            <div class="charts-section">
-                <div class="chart-container">
-                    <canvas id="academicScoreChart"></canvas>
+            <!-- Charts Section (Dynamic) -->
+            <section class="charts-section" aria-label="Data Visualizations">
+                <div class="chart-container" id="academicScoreChartContainer">
+                    <h4>Academic Score Distribution</h4>
+                    <canvas id="academicScoreChart" aria-label="Academic Score Chart" width="250" height="250"></canvas>
+                    <div class="chart-loading" id="academicScoreChartLoading">Loading...</div>
                 </div>
-                <div class="chart-container">
-                    <canvas id="wellbeingScoreChart"></canvas>
+                <div class="chart-container" id="wellbeingScoreChartContainer">
+                    <h4>Wellbeing Score Distribution</h4>
+                    <canvas id="wellbeingScoreChart" aria-label="Wellbeing Score Chart" width="250" height="250"></canvas>
+                    <div class="chart-loading" id="wellbeingScoreChartLoading">Loading...</div>
                 </div>
-                <div class="chart-container">
-                    <canvas id="bullyingRiskChart"></canvas>
+                <div class="chart-container" id="bullyingRiskChartContainer">
+                    <h4>Bullying Risk Levels</h4>
+                    <canvas id="bullyingRiskChart" aria-label="Bullying Risk Chart" width="250" height="250"></canvas>
+                    <div class="chart-loading" id="bullyingRiskChartLoading">Loading...</div>
                 </div>
-            </div>
+            </section>
 
-            <!-- Recent Activity -->
-            <div class="recent-activity">
+            <!-- Recent Activity (Dynamic) -->
+            <section class="recent-activity" aria-label="Recent Activity Log">
                 <h3>Recent Activity</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Date/Time</th>
-                            <th>Model Name</th>
-                            <th>Result Summary</th>
-                        </tr>
-                    </thead>
-                    <tbody id="activityLog">
-                        <!-- Will be populated by JavaScript -->
-                    </tbody>
-                </table>
-            </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date/Time</th>
+                                <th>Activity</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody id="activityLog" aria-live="polite">
+                            <tr>
+                                <td colspan="3" class="loading-placeholder">Loading activity...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
 
             <!-- Action Buttons -->
-            <div class="action-buttons">
-                <button class="action-btn" onclick="window.location.href='upload.html'">
+            <footer class="action-buttons-footer" aria-label="Quick Actions">
+                <button class="action-btn" type="button" onclick="window.location.href='upload.html'">
                     <span class="icon">📤</span> Upload / Simulate Data
                 </button>
-                <button class="action-btn" onclick="window.location.href='allocation.html'">
+                <button class="action-btn primary" type="button" onclick="window.location.href='allocation.html'">
                     <span class="icon">⚙️</span> Run Group Allocation
                 </button>
-                <button class="action-btn" onclick="window.location.href='student-explorer.html'">
+                <button class="action-btn" type="button" onclick="window.location.href='student-explorer.html'">
                     <span class="icon">🔎</span> Explore Students
                 </button>
-            </div>
+            </footer>
         </main>
     </div>
     <script src="script.js"></script>
 </body>
-</html> 
+</html>

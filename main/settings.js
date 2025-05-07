@@ -109,11 +109,10 @@ function updateUI() {
 function handleClassConfigChange(event) {
     const id = event.target.id;
     const value = event.target.type === 'checkbox' ? event.target.checked : event.target.value;
-    
+
     if (id === 'totalClasses') {
         document.getElementById('manualClassCount').disabled = value === 'auto';
     }
-
     currentSettings.classConfig[id] = value;
     validateSettings();
 }
@@ -143,11 +142,13 @@ function handleExperimentalChange(event) {
     }
 }
 
-// Update range value displays
+// Update range value displays for sliders
 function updateRangeValue(event) {
     const input = event.target;
     const display = input.nextElementSibling;
-    display.textContent = `${input.value} σ`;
+    if (display) {
+        display.textContent = `${input.value} σ`;
+    }
 }
 
 // Save settings
@@ -214,17 +215,20 @@ function broadcastSettingsChange() {
     localStorage.setItem('settingsUpdated', Date.now().toString());
 }
 
-// Show success message
+// Show success message (replace alert with a notification system for production)
 function showSuccess(message) {
-    alert(message); // Replace with your preferred notification system
+    // TODO: Replace alert with a professional notification system
+    alert(message);
 }
 
-// Show error message
+// Show error message (replace alert with a notification system for production)
 function showError(message) {
-    alert('Error: ' + message); // Replace with your preferred notification system
+    // TODO: Replace alert with a professional notification system
+    alert('Error: ' + message);
 }
 
-// Show warning message
+// Show warning message (replace alert with a notification system for production)
 function showWarning(message) {
-    alert('Warning: ' + message); // Replace with your preferred notification system
-} 
+    // TODO: Replace alert with a professional notification system
+    alert('Warning: ' + message);
+}

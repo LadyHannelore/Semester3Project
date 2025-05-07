@@ -31,9 +31,9 @@
         </nav>
 
         <!-- Main Content -->
-        <main class="main-content">
+        <main class="main-content" role="main">
             <!-- Header -->
-            <header class="top-bar fade-in">
+            <header class="top-bar fade-in" aria-label="Model Comparison Header">
                 <div class="header-content">
                     <h2>Model Comparison</h2>
                     <p class="subtitle">Compare and analyze different allocation model results</p>
@@ -45,17 +45,17 @@
             </header>
 
             <!-- Results Table Section -->
-            <section class="results-table-section slide-up">
+            <section class="results-table-section slide-up" aria-label="Model Results Comparison">
                 <div class="section-header">
                     <h3>📋 Model Results Comparison</h3>
                     <div class="table-controls">
-                        <button class="refresh-btn">
+                        <button class="refresh-btn" type="button" aria-label="Refresh Data">
                             <span class="icon">🔄</span> Refresh Data
                         </button>
                     </div>
                 </div>
                 <div class="table-container">
-                    <table id="modelComparisonTable">
+                    <table id="modelComparisonTable" aria-label="Model Comparison Table">
                         <thead>
                             <tr>
                                 <th>Model Name</th>
@@ -68,7 +68,7 @@
                                 <th>Preferred</th>
                             </tr>
                         </thead>
-                        <tbody id="modelComparisonBody">
+                        <tbody id="modelComparisonBody" aria-live="polite">
                             <!-- Populated by JavaScript -->
                         </tbody>
                     </table>
@@ -99,16 +99,15 @@
                 </div>
                 <div class="action-controls">
                     <div class="model-selection">
-                        <select id="modelSelect" class="model-dropdown">
-                            <option value="">Select a model result to use...</option>
-                            <!-- Options populated by JavaScript -->
+                        <select id="modelSelect" class="model-dropdown" disabled>
+                            <option value="genetic">Genetic Algorithm (Active)</option>
                         </select>
-                        <button class="apply-btn" id="applyModelBtn">
+                        <button class="apply-btn" id="applyModelBtn" type="button" disabled>
                             <span class="icon">✅</span> Use Selected Result
                         </button>
                     </div>
                     <div class="model-actions">
-                        <button class="rerun-btn" id="rerunModelBtn">
+                        <button class="rerun-btn" id="rerunModelBtn" type="button" disabled>
                             <span class="icon">🔄</span> Re-run Selected Model
                         </button>
                     </div>
@@ -117,10 +116,10 @@
 
             <!-- Footer Navigation -->
             <div class="action-buttons fade-in">
-                <button class="action-btn" onclick="window.location.href='classroom.html'">
+                <button class="action-btn" type="button" onclick="window.location.href='classroom.html'" aria-label="Back to Classroom View">
                     <span class="icon">🔙</span> Back to Classroom View
                 </button>
-                <button class="action-btn" onclick="window.location.href='overrides.html'">
+                <button class="action-btn" type="button" onclick="window.location.href='overrides.html'" aria-label="Proceed to Manual Override">
                     <span class="icon">✏️</span> Proceed to Manual Override
                 </button>
             </div>
@@ -128,4 +127,4 @@
     </div>
     <script src="model-comparison.js"></script>
 </body>
-</html> 
+</html>

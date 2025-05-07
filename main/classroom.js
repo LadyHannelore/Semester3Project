@@ -36,17 +36,14 @@ function loadAllocationData() {
     }
 }
 
-// Initialize event listeners
+// Initialize event listeners for search, filter, and sorting
 function initializeEventListeners() {
     // Class search
     document.getElementById('classSearch').addEventListener('input', filterClassList);
-
     // Student search
     document.getElementById('studentSearch').addEventListener('input', filterStudentTable);
-
     // Filter button
     document.getElementById('filterBtn').addEventListener('click', showFilterModal);
-
     // Table sorting
     document.querySelectorAll('th[data-sort]').forEach(th => {
         th.addEventListener('click', () => sortTable(th.dataset.sort));
@@ -396,4 +393,4 @@ function showError(message) {
             </button>
         </div>
     `;
-} 
+}

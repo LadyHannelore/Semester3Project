@@ -30,9 +30,9 @@
         </nav>
 
         <!-- Main Content -->
-        <main class="main-content">
+        <main class="main-content" role="main">
             <!-- Header -->
-            <header class="top-bar fade-in">
+            <header class="top-bar fade-in" aria-label="Classroom View Header">
                 <div class="header-content">
                     <h2>Classroom View</h2>
                     <p class="subtitle">View and manage classroom assignments</p>
@@ -45,14 +45,14 @@
 
             <div class="classroom-container">
                 <!-- Section 1: Class Selection -->
-                <aside class="class-selector slide-up">
+                <aside class="class-selector slide-up" aria-label="Class Selector">
                     <div class="selector-header">
                         <h3>🏫 Classes</h3>
                         <div class="search-box">
-                            <input type="text" id="classSearch" placeholder="Search class...">
+                            <input type="text" id="classSearch" placeholder="Search class..." aria-label="Search class">
                         </div>
                     </div>
-                    <div class="class-list" id="classList">
+                    <div class="class-list" id="classList" aria-live="polite">
                         <!-- Classes will be populated by JavaScript -->
                     </div>
                 </aside>
@@ -88,14 +88,14 @@
                     </section>
 
                     <!-- Students Table -->
-                    <section class="students-table">
+                    <section class="students-table" aria-label="Students in Class">
                         <div class="table-header">
                             <h3>👨‍🎓 Students in Class</h3>
                             <div class="table-controls">
                                 <div class="search-box">
-                                    <input type="text" id="studentSearch" placeholder="Search students...">
+                                    <input type="text" id="studentSearch" placeholder="Search students..." aria-label="Search students">
                                 </div>
-                                <button class="filter-btn" id="filterBtn">
+                                <button class="filter-btn" id="filterBtn" type="button" aria-label="Filter Students">
                                     <span class="icon">🔍</span> Filter
                                 </button>
                             </div>
@@ -112,7 +112,7 @@
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody id="studentsTableBody">
+                                <tbody id="studentsTableBody" aria-live="polite">
                                     <!-- Students will be populated by JavaScript -->
                                 </tbody>
                             </table>
@@ -120,25 +120,25 @@
                     </section>
 
                     <!-- Quick Reassign Modal -->
-                    <div class="modal" id="reassignModal">
+                    <div class="modal" id="reassignModal" role="dialog" aria-modal="true" aria-label="Reassign Student Modal">
                         <div class="modal-content">
                             <h4>Move Student to Another Class</h4>
                             <p>Select destination class for Student <span id="moveStudentId"></span>:</p>
-                            <select id="destinationClass">
+                            <select id="destinationClass" aria-label="Destination Class">
                                 <!-- Classes will be populated by JavaScript -->
                             </select>
                             <div class="warning-message" id="moveWarning" style="display: none;">
                                 ⚠️ This move will cause constraint violations
                             </div>
                             <div class="modal-actions">
-                                <button class="cancel-btn" onclick="closeReassignModal()">Cancel</button>
-                                <button class="confirm-btn" onclick="confirmMove()">Confirm Move</button>
+                                <button class="cancel-btn" type="button" onclick="closeReassignModal()">Cancel</button>
+                                <button class="confirm-btn" type="button" onclick="confirmMove()">Confirm Move</button>
                             </div>
                         </div>
                     </div>
 
                     <!-- Filter Modal -->
-                    <div class="modal" id="filterModal">
+                    <div class="modal" id="filterModal" role="dialog" aria-modal="true" aria-label="Filter Students Modal">
                         <div class="modal-content">
                             <h4>Filter Students</h4>
                             <div class="filter-group">
@@ -166,8 +166,8 @@
                                 </div>
                             </div>
                             <div class="modal-actions">
-                                <button class="cancel-btn" onclick="closeFilterModal()">Cancel</button>
-                                <button class="confirm-btn" onclick="applyFilters()">Apply Filters</button>
+                                <button class="cancel-btn" type="button" onclick="closeFilterModal()">Cancel</button>
+                                <button class="confirm-btn" type="button" onclick="applyFilters()">Apply Filters</button>
                             </div>
                         </div>
                     </div>
@@ -176,13 +176,13 @@
 
             <!-- Footer Navigation -->
             <div class="action-buttons fade-in">
-                <button class="action-btn" onclick="window.location.href='allocation.html'">
+                <button class="action-btn" type="button" onclick="window.location.href='allocation.html'" aria-label="Back to Group Allocation">
                     <span class="icon">↩</span> Back to Group Allocation
                 </button>
-                <button class="action-btn" onclick="window.location.href='model-comparison.html'">
+                <button class="action-btn" type="button" onclick="window.location.href='model-comparison.html'" aria-label="Compare Model Results">
                     <span class="icon">📈</span> Compare Model Results
                 </button>
-                <button class="action-btn" onclick="window.location.href='overrides.html'">
+                <button class="action-btn" type="button" onclick="window.location.href='overrides.html'" aria-label="Edit Assignments Manually">
                     <span class="icon">⚙️</span> Edit Assignments Manually
                 </button>
             </div>
@@ -190,4 +190,4 @@
     </div>
     <script src="classroom.js"></script>
 </body>
-</html> 
+</html>

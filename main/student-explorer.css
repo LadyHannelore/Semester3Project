@@ -23,12 +23,25 @@
     animation: slideUp 0.5s ease-out;
 }
 
+/* CSS Variables */
+:root {
+    --primary-blue: #4299e1;
+    --primary-blue-dark: #3182ce;
+    --accent-green: #48bb78;
+    --accent-yellow: #ecc94b;
+    --accent-red: #f56565;
+    --gray-bg: #f8fafc;
+    --gray-border: #e2e8f0;
+    --gray-text: #4a5568;
+    --gray-light: #f7fafc;
+}
+
 /* Main layout */
 .main-content {
     display: flex;
     flex-direction: column;
     height: 100vh;
-    background-color: #f8fafc;
+    background-color: var(--gray-bg);
     padding: 2rem;
     gap: 2rem;
 }
@@ -100,14 +113,14 @@
 .search-input {
     width: 100%;
     padding: 0.75rem 1rem 0.75rem 2.5rem;
-    border: 2px solid #e2e8f0;
+    border: 2px solid var(--gray-border);
     border-radius: 0.75rem;
     font-size: 1rem;
     transition: all 0.2s;
 }
 
 .search-input:focus {
-    border-color: #4299e1;
+    border-color: var(--primary-blue);
     box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
     outline: none;
 }
@@ -119,13 +132,13 @@
 }
 
 .filter-group label {
-    color: #4a5568;
+    color: var(--gray-text);
     font-weight: 500;
 }
 
 .filter-select {
     padding: 0.75rem 2.5rem 0.75rem 1rem;
-    border: 2px solid #e2e8f0;
+    border: 2px solid var(--gray-border);
     border-radius: 0.75rem;
     font-size: 0.875rem;
     background-color: white;
@@ -139,7 +152,7 @@
 }
 
 .filter-select:focus {
-    border-color: #4299e1;
+    border-color: var(--primary-blue);
     box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
     outline: none;
 }
@@ -163,12 +176,12 @@
 }
 
 .data-table th {
-    background-color: #f8fafc;
+    background-color: var(--gray-bg);
     padding: 1rem 1.5rem;
     text-align: left;
     font-weight: 600;
     color: #2d3748;
-    border-bottom: 2px solid #e2e8f0;
+    border-bottom: 2px solid var(--gray-border);
     position: sticky;
     top: 0;
     z-index: 10;
@@ -191,8 +204,8 @@
 
 .data-table td {
     padding: 1rem 1.5rem;
-    border-bottom: 1px solid #e2e8f0;
-    color: #4a5568;
+    border-bottom: 1px solid var(--gray-border);
+    color: var(--gray-text);
 }
 
 .data-table tbody tr {
@@ -200,15 +213,22 @@
 }
 
 .data-table tbody tr:hover {
-    background-color: #f7fafc;
+    background-color: var(--gray-light);
     transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Accessibility: Focus states */
+.data-table th:focus,
+.data-table tr:focus {
+    outline: 2px solid var(--primary-blue);
+    outline-offset: 2px;
 }
 
 /* Risk highlighting */
 .high-risk {
     background-color: #fff5f5;
-    border-left: 4px solid #fc8181;
+    border-left: 4px solid var(--accent-red);
 }
 
 .low-wellbeing {
@@ -220,14 +240,14 @@
 .pagination {
     padding: 1.5rem;
     background-color: white;
-    border-top: 1px solid #e2e8f0;
+    border-top: 1px solid var(--gray-border);
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
 .pagination-info {
-    color: #4a5568;
+    color: var(--gray-text);
     font-size: 0.875rem;
 }
 
@@ -239,10 +259,10 @@
 
 .pagination-button {
     padding: 0.75rem 1.5rem;
-    border: 2px solid #e2e8f0;
+    border: 2px solid var(--gray-border);
     border-radius: 0.75rem;
     background-color: white;
-    color: #4a5568;
+    color: var(--gray-text);
     font-size: 0.875rem;
     font-weight: 500;
     cursor: pointer;
@@ -253,9 +273,9 @@
 }
 
 .pagination-button:hover:not(:disabled) {
-    background-color: #f7fafc;
-    border-color: #4299e1;
-    color: #4299e1;
+    background-color: var(--gray-light);
+    border-color: var(--primary-blue);
+    color: var(--primary-blue);
 }
 
 .pagination-button:disabled {
@@ -265,7 +285,7 @@
 
 .current-page {
     padding: 0.75rem 1.5rem;
-    background-color: #f7fafc;
+    background-color: var(--gray-light);
     border-radius: 0.75rem;
     color: #2d3748;
     font-weight: 500;
@@ -289,7 +309,7 @@
 
 .profile-header {
     padding: 1.5rem;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--gray-border);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -314,8 +334,8 @@
 }
 
 .close-profile:hover {
-    background-color: #f7fafc;
-    color: #4a5568;
+    background-color: var(--gray-light);
+    color: var(--gray-text);
 }
 
 .profile-content {
@@ -332,7 +352,7 @@
 }
 
 .stat-card {
-    background-color: #f8fafc;
+    background-color: var(--gray-bg);
     padding: 1.5rem;
     border-radius: 1rem;
     text-align: center;
@@ -356,11 +376,52 @@
     color: #2d3748;
 }
 
+.profile-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
 .radar-chart-container {
-    background-color: #f8fafc;
+    background-color: var(--gray-bg);
     padding: 1.5rem;
     border-radius: 1rem;
     margin-bottom: 2rem;
+}
+
+.radar-warning {
+    color: var(--gray-text);
+    text-align: center;
+    margin: 0.5rem 0;
+    font-size: 0.95em;
+}
+
+/* Empty state message */
+.empty-state-message {
+    color: var(--gray-text);
+    font-style: italic;
+    text-align: center;
+    padding: 2rem 0;
+}
+.empty-state-message ul {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0 0 0;
+}
+.empty-state-message button {
+    margin-top: 1rem;
+    background: var(--primary-blue);
+    color: #fff;
+    border: none;
+    border-radius: 0.375rem;
+    padding: 0.5rem 1.5rem;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+.empty-state-message button:hover {
+    background: var(--primary-blue-dark);
 }
 
 /* Action buttons */
@@ -384,8 +445,8 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    background-color: #f7fafc;
-    color: #4a5568;
+    background-color: var(--gray-light);
+    color: var(--gray-text);
 }
 
 .action-btn:hover {
@@ -394,17 +455,17 @@
 }
 
 .action-btn.primary {
-    background-color: #4299e1;
+    background-color: var(--primary-blue);
     color: white;
 }
 
 .action-btn.primary:hover {
-    background-color: #3182ce;
+    background-color: var(--primary-blue-dark);
 }
 
 .export-btn {
     background-color: #f0fff4;
-    color: #2f855a;
+    color: var(--accent-green);
 }
 
 .export-btn:hover {
@@ -462,4 +523,4 @@
     .data-table td {
         padding: 0.75rem 1rem;
     }
-} 
+}
