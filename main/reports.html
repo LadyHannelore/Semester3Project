@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClassForge - Reports & Exports</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="reports.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="logo">
+                <h1>ClassForge</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html"><span class="icon">📊</span> Overview</a></li>
+                <li><a href="upload.html"><span class="icon">📤</span> Upload & Simulate</a></li>
+                <li><a href="student-explorer.html"><span class="icon">👥</span> Student Explorer</a></li>
+                <li><a href="allocation.html"><span class="icon">🎯</span> Group Allocation</a></li>
+                <li><a href="classroom.html"><span class="icon">🏫</span> Classroom View</a></li>
+                <li><a href="model-comparison.html"><span class="icon">📈</span> Model Comparison</a></li>
+                <li><a href="overrides.html"><span class="icon">⚙️</span> Manual Overrides</a></li>
+                <li><a href="visualizations.html"><span class="icon">📊</span> Visualizations</a></li>
+                <li><a href="settings.html"><span class="icon">⚙️</span> Settings</a></li>
+                <li class="active"><a href="reports.html"><span class="icon">📑</span> Reports & Exports</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="top-bar fade-in">
+                <div class="header-content">
+                    <h2>Reports & Exports</h2>
+                    <p class="subtitle">Generate reports and export allocation data</p>
+                </div>
+                <div class="user-info">
+                    <span class="user-name">Admin User</span>
+                    <span class="user-avatar">👤</span>
+                </div>
+            </header>
+
+            <!-- Export Final Allocation Section -->
+            <section class="export-section slide-up">
+                <div class="section-header">
+                    <h3>📄 Export Final Allocation</h3>
+                </div>
+                <div class="export-grid">
+                    <div class="export-item">
+                        <h4>Student-Class Assignment</h4>
+                        <p>Export detailed student assignments with scores</p>
+                        <button class="export-btn" id="exportStudentAssignments">
+                            <span class="icon">📊</span> Download Student-Class Assignment (CSV)
+                        </button>
+                    </div>
+                    <div class="export-item">
+                        <h4>Class Summary</h4>
+                        <p>Export aggregated class statistics</p>
+                        <button class="export-btn" id="exportClassSummary">
+                            <span class="icon">📈</span> Download Class Summary (CSV)
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Generate Final Report Section -->
+            <section class="export-section slide-up">
+                <div class="section-header">
+                    <h3>🧾 Generate Final Report</h3>
+                </div>
+                <div class="report-preview">
+                    <div class="preview-content">
+                        <div class="preview-header">
+                            <h4>Report Preview</h4>
+                            <p>Generated PDF will include:</p>
+                        </div>
+                        <ul class="report-contents">
+                            <li><span class="icon">📋</span> Project & Admin Information</li>
+                            <li><span class="icon">🎯</span> Allocation Model Details</li>
+                            <li><span class="icon">📊</span> Summary Metrics & Statistics</li>
+                            <li><span class="icon">📈</span> Performance Visualizations</li>
+                            <li><span class="icon">💡</span> Insights & Recommendations</li>
+                        </ul>
+                    </div>
+                    <button class="generate-btn" id="generatePDFReport">
+                        <span class="icon">📄</span> Generate Allocation Report (PDF)
+                    </button>
+                </div>
+            </section>
+
+            <!-- Export Raw Dataset Section -->
+            <section class="export-section slide-up">
+                <div class="section-header">
+                    <h3>📦 Export Raw Dataset</h3>
+                    <span class="optional-tag">Optional</span>
+                </div>
+                <div class="export-item">
+                    <p>Download the original dataset with any manual adjustments</p>
+                    <button class="export-btn secondary" id="exportRawData">
+                        <span class="icon">📂</span> Download Active Dataset (CSV)
+                    </button>
+                </div>
+            </section>
+
+            <!-- Footer Navigation -->
+            <div class="action-buttons fade-in">
+                <button class="action-btn" onclick="window.location.href='index.html'">
+                    <span class="icon">🔙</span> Back to Overview
+                </button>
+                <button class="action-btn" onclick="window.location.href='settings.html'">
+                    <span class="icon">⚙️</span> Adjust Settings
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <script src="reports.js"></script>
+</body>
+</html> 

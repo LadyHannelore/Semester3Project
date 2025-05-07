@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClassForge - Student Explorer</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="student-explorer.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Additional styles specific to student explorer */
+        .explorer-container {
+            display: flex;
+            gap: 2rem;
+            height: calc(100vh - 200px);
+        }
+
+        .main-content {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filters-bar {
+            background-color: #fff;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 0.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+        }
+
+        .data-table-container {
+            background-color: #fff;
+            border-radius: 0.75rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            flex: 1;
+            overflow: auto;
+        }
+
+        .data-table th {
+            position: sticky;
+            top: 0;
+            background-color: #f7fafc;
+            z-index: 10;
+            cursor: pointer;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .data-table tbody tr {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .data-table tbody tr:hover {
+            background-color: #f7fafc;
+        }
+
+        .high-risk {
+            background-color: rgba(245, 101, 101, 0.1);
+        }
+
+        .low-wellbeing {
+            background-color: rgba(66, 153, 225, 0.1);
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background-color: #fff;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .pagination-button {
+            padding: 0.5rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.375rem;
+            background-color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .pagination-button:hover {
+            background-color: #f7fafc;
+        }
+
+        .pagination-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Student Profile Panel */
+        .profile-panel {
+            width: 400px;
+            background-color: #fff;
+            border-radius: 0.75rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            display: none;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .profile-panel.active {
+            display: flex;
+        }
+
+        .profile-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .profile-header h3 {
+            margin: 0;
+            color: #2d3748;
+        }
+
+        .close-profile {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #718096;
+        }
+
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .stat-card {
+            background-color: #f7fafc;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            text-align: center;
+        }
+
+        .stat-card h4 {
+            margin: 0 0 0.5rem 0;
+            color: #4a5568;
+            font-size: 0.875rem;
+        }
+
+        .stat-card .value {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .radar-chart-container {
+            height: 300px;
+        }
+
+        .profile-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .profile-actions button {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .flag-button {
+            background-color: #f7fafc;
+            color: #4a5568;
+        }
+
+        .flag-button:hover {
+            background-color: #edf2f7;
+        }
+
+        .flag-button.flagged {
+            background-color: #fed7d7;
+            color: #c53030;
+        }
+
+        .flag-button.flagged:hover {
+            background-color: #feb2b2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="logo">
+                <h1>ClassForge</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html"><span class="icon">📊</span> Overview</a></li>
+                <li><a href="upload.html"><span class="icon">📤</span> Upload & Simulate</a></li>
+                <li class="active"><a href="student-explorer.html"><span class="icon">👥</span> Student Explorer</a></li>
+                <li><a href="allocation.html"><span class="icon">🎯</span> Group Allocation</a></li>
+                <li><a href="classroom.html"><span class="icon">🏫</span> Classroom View</a></li>
+                <li><a href="model-comparison.html"><span class="icon">📈</span> Model Comparison</a></li>
+                <li><a href="overrides.html"><span class="icon">⚙️</span> Manual Overrides</a></li>
+                <li><a href="visualizations.html"><span class="icon">📊</span> Visualizations</a></li>
+                <li><a href="settings.html"><span class="icon">⚙️</span> Settings</a></li>
+                <li><a href="reports.html"><span class="icon">📑</span> Reports & Exports</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar fade-in">
+                <div class="header-content">
+                    <h2>Student Explorer</h2>
+                    <p class="subtitle">Browse and analyze individual student records</p>
+                </div>
+                <div class="user-info">
+                    <span class="user-name">Admin User</span>
+                    <span class="user-avatar">👤</span>
+                </div>
+            </header>
+
+            <div class="explorer-container slide-up">
+                <!-- Main Data Table Section -->
+                <div class="table-section">
+                    <!-- Filters Bar -->
+                    <div class="filters-bar">
+                        <div class="search-box">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" id="searchInput" placeholder="Search by Student ID..." class="search-input">
+                        </div>
+                        <div class="filter-group">
+                            <label>Filter by:</label>
+                            <select id="bullyingFilter" class="filter-select">
+                                <option value="">Bullying Score</option>
+                                <option value="high">High Risk (≥6)</option>
+                                <option value="medium">Medium Risk (3-5)</option>
+                                <option value="low">Low Risk (0-2)</option>
+                            </select>
+                            <select id="wellbeingFilter" class="filter-select">
+                                <option value="">Wellbeing Score</option>
+                                <option value="low">Low (<3)</option>
+                                <option value="medium">Medium (3-7)</option>
+                                <option value="high">High (>7)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Data Table -->
+                    <div class="data-table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th data-sort="id" class="sortable">Student ID <span class="sort-icon">↕️</span></th>
+                                    <th data-sort="academic" class="sortable">Academic Performance <span class="sort-icon">↕️</span></th>
+                                    <th data-sort="wellbeing" class="sortable">Wellbeing Score <span class="sort-icon">↕️</span></th>
+                                    <th data-sort="bullying" class="sortable">Bullying Score <span class="sort-icon">↕️</span></th>
+                                    <th>Language</th>
+                                    <th>Friends</th>
+                                    <th>Advice</th>
+                                    <th>Disrespect</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentTableBody">
+                                <!-- Will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+
+                        <!-- Pagination -->
+                        <div class="pagination">
+                            <div class="pagination-info">
+                                Showing <span id="startRow">1</span> to <span id="endRow">25</span> of <span id="totalRows">0</span> entries
+                            </div>
+                            <div class="pagination-controls">
+                                <button class="pagination-button" id="prevPage">
+                                    <span class="icon">←</span> Previous
+                                </button>
+                                <span id="currentPage" class="current-page">Page 1</span>
+                                <button class="pagination-button" id="nextPage">
+                                    Next <span class="icon">→</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Student Profile Panel -->
+                <div class="profile-panel" id="profilePanel">
+                    <div class="profile-header">
+                        <h3>Student Profile</h3>
+                        <button class="close-profile" onclick="closeProfile()">×</button>
+                    </div>
+                    <div class="profile-content">
+                        <div class="profile-stats">
+                            <div class="stat-card">
+                                <h4>Academic Performance</h4>
+                                <div class="value" id="profileAcademic">-</div>
+                            </div>
+                            <div class="stat-card">
+                                <h4>Wellbeing Score</h4>
+                                <div class="value" id="profileWellbeing">-</div>
+                            </div>
+                            <div class="stat-card">
+                                <h4>Bullying Score</h4>
+                                <div class="value" id="profileBullying">-</div>
+                            </div>
+                            <div class="stat-card">
+                                <h4>Risk Level</h4>
+                                <div class="value" id="profileRisk">-</div>
+                            </div>
+                        </div>
+                        <div class="radar-chart-container">
+                            <canvas id="profileRadarChart"></canvas>
+                        </div>
+                        <div class="profile-actions">
+                            <button class="flag-button" id="flagButton" onclick="toggleFlag()">
+                                Flag for Review
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Actions -->
+            <div class="action-buttons fade-in">
+                <button class="action-btn export-btn" onclick="exportFilteredData()">
+                    <span class="icon">📤</span> Export Filtered Data (CSV)
+                </button>
+                <button class="action-btn" onclick="window.location.href='index.html'">
+                    <span class="icon">↩</span> Back to Overview
+                </button>
+                <button class="action-btn primary" onclick="window.location.href='allocation.html'">
+                    <span class="icon">⚙️</span> Run Group Allocation
+                </button>
+            </div>
+        </main>
+    </div>
+    <script src="student-explorer.js"></script>
+</body>
+</html> 

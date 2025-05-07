@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClassForge - Settings</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="settings.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="logo">
+                <h1>ClassForge</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html"><span class="icon">📊</span> Overview</a></li>
+                <li><a href="upload.html"><span class="icon">📤</span> Upload & Simulate</a></li>
+                <li><a href="student-explorer.html"><span class="icon">👥</span> Student Explorer</a></li>
+                <li><a href="allocation.html"><span class="icon">🎯</span> Group Allocation</a></li>
+                <li><a href="classroom.html"><span class="icon">🏫</span> Classroom View</a></li>
+                <li><a href="model-comparison.html"><span class="icon">📈</span> Model Comparison</a></li>
+                <li><a href="overrides.html"><span class="icon">⚙️</span> Manual Overrides</a></li>
+                <li><a href="visualizations.html"><span class="icon">📊</span> Visualizations</a></li>
+                <li class="active"><a href="settings.html"><span class="icon">⚙️</span> Settings</a></li>
+                <li><a href="reports.html"><span class="icon">📑</span> Reports & Exports</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="top-bar fade-in">
+                <div class="header-content">
+                    <h2>Settings</h2>
+                    <p class="subtitle">Configure allocation parameters and system preferences</p>
+                </div>
+                <div class="user-info">
+                    <span class="user-name">Admin User</span>
+                    <span class="user-avatar">👤</span>
+                </div>
+            </header>
+
+            <!-- Class Configuration Section -->
+            <section class="settings-section slide-up">
+                <div class="section-header">
+                    <h3>⚙️ Class Configuration</h3>
+                </div>
+                <div class="settings-grid">
+                    <div class="setting-item">
+                        <label for="maxClassSize">Maximum Class Size</label>
+                        <input type="number" id="maxClassSize" min="15" max="40" value="25">
+                        <span class="setting-hint">Recommended: 20-30 students</span>
+                    </div>
+                    <div class="setting-item">
+                        <label for="totalClasses">Total Number of Classes</label>
+                        <select id="totalClasses">
+                            <option value="auto">Auto (Based on total students)</option>
+                            <option value="manual">Manual</option>
+                        </select>
+                        <input type="number" id="manualClassCount" min="1" max="20" disabled>
+                    </div>
+                    <div class="setting-item checkbox">
+                        <label>
+                            <input type="checkbox" id="allowUneven">
+                            Allow slightly uneven class sizes (±2)
+                        </label>
+                        <span class="setting-hint">Enables more flexible allocation</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Constraint Parameters Section -->
+            <section class="settings-section slide-up">
+                <div class="section-header">
+                    <h3>📏 Constraint Parameters</h3>
+                </div>
+                <div class="settings-grid">
+                    <div class="setting-item">
+                        <label for="academicThreshold">Academic Balance Threshold</label>
+                        <input type="range" id="academicThreshold" min="0" max="2" step="0.1" value="1">
+                        <span class="value-display">1.0 σ</span>
+                        <span class="setting-hint">Maximum allowed standard deviation between classes</span>
+                    </div>
+                    <div class="setting-item">
+                        <label for="wellbeingThreshold">Wellbeing Score Threshold</label>
+                        <input type="range" id="wellbeingThreshold" min="0" max="2" step="0.1" value="1">
+                        <span class="value-display">1.0 σ</span>
+                        <span class="setting-hint">Maximum allowed wellbeing spread</span>
+                    </div>
+                    <div class="setting-item">
+                        <label for="maxBullies">Maximum Bullies Per Class</label>
+                        <input type="number" id="maxBullies" min="0" max="5" value="2">
+                        <span class="setting-hint">Students with bullying score > 7</span>
+                    </div>
+                    <div class="setting-item">
+                        <label for="maxFriendsSplit">Maximum Friends Split</label>
+                        <input type="number" id="maxFriendsSplit" min="0" max="5" value="2">
+                        <span class="setting-hint">Maximum friend pairs split between classes</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Visualization Defaults Section -->
+            <section class="settings-section slide-up">
+                <div class="section-header">
+                    <h3>📊 Visualization Defaults</h3>
+                </div>
+                <div class="settings-grid">
+                    <div class="setting-item checkbox">
+                        <label>
+                            <input type="checkbox" id="showAcademic" checked>
+                            Show Academic Distribution
+                        </label>
+                    </div>
+                    <div class="setting-item checkbox">
+                        <label>
+                            <input type="checkbox" id="showNetwork" checked>
+                            Show Network Graphs
+                        </label>
+                    </div>
+                    <div class="setting-item checkbox">
+                        <label>
+                            <input type="checkbox" id="showBullying" checked>
+                            Show Bullying Spread
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Experimental Features Section -->
+            <section class="settings-section slide-up">
+                <div class="section-header">
+                    <h3>🧠 Experimental Features</h3>
+                    <span class="beta-tag">BETA</span>
+                </div>
+                <div class="settings-grid">
+                    <div class="setting-item checkbox">
+                        <label>
+                            <input type="checkbox" id="enableRL">
+                            Enable Reinforcement Learning
+                        </label>
+                        <span class="setting-hint">Uses RL for dynamic optimization (alpha)</span>
+                    </div>
+                    <div class="setting-item checkbox">
+                        <label>
+                            <input type="checkbox" id="enableGNN">
+                            Enable GNN-based Clustering
+                        </label>
+                        <span class="setting-hint">Graph Neural Networks for social clustering (alpha)</span>
+                    </div>
+                    <div class="setting-item checkbox">
+                        <label>
+                            <input type="checkbox" id="enableLiveReopt">
+                            Enable Live Re-optimization
+                        </label>
+                        <span class="setting-hint">Auto-adjusts after manual changes (alpha)</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Save & Reset Section -->
+            <section class="settings-section slide-up">
+                <div class="section-header">
+                    <h3>💾 Save & Reset</h3>
+                </div>
+                <div class="action-controls">
+                    <button class="save-btn" id="saveSettingsBtn">
+                        <span class="icon">💾</span> Save Settings
+                    </button>
+                    <button class="reset-btn" id="resetSettingsBtn">
+                        <span class="icon">♻️</span> Reset to Defaults
+                    </button>
+                </div>
+            </section>
+
+            <!-- Footer Navigation -->
+            <div class="action-buttons fade-in">
+                <button class="action-btn" onclick="window.location.href='visualizations.html'">
+                    <span class="icon">📈</span> Go to Visualizations
+                </button>
+                <button class="action-btn" onclick="window.location.href='reports.html'">
+                    <span class="icon">🧾</span> Go to Report Generator
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <script src="settings.js"></script>
+</body>
+</html> 

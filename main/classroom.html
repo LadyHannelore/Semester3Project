@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClassForge - Classroom View</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="classroom.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="logo">
+                <h1>ClassForge</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html"><span class="icon">📊</span> Overview</a></li>
+                <li><a href="upload.html"><span class="icon">📤</span> Upload & Simulate</a></li>
+                <li><a href="student-explorer.html"><span class="icon">👥</span> Student Explorer</a></li>
+                <li><a href="allocation.html"><span class="icon">🎯</span> Group Allocation</a></li>
+                <li class="active"><a href="classroom.html"><span class="icon">🏫</span> Classroom View</a></li>
+                <li><a href="model-comparison.html"><span class="icon">📈</span> Model Comparison</a></li>
+                <li><a href="overrides.html"><span class="icon">⚙️</span> Manual Overrides</a></li>
+                <li><a href="visualizations.html"><span class="icon">📊</span> Visualizations</a></li>
+                <li><a href="settings.html"><span class="icon">⚙️</span> Settings</a></li>
+                <li><a href="reports.html"><span class="icon">📑</span> Reports & Exports</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="top-bar fade-in">
+                <div class="header-content">
+                    <h2>Classroom View</h2>
+                    <p class="subtitle">View and manage classroom assignments</p>
+                </div>
+                <div class="user-info">
+                    <span class="user-name">Admin User</span>
+                    <span class="user-avatar">👤</span>
+                </div>
+            </header>
+
+            <div class="classroom-container">
+                <!-- Section 1: Class Selection -->
+                <aside class="class-selector slide-up">
+                    <div class="selector-header">
+                        <h3>🏫 Classes</h3>
+                        <div class="search-box">
+                            <input type="text" id="classSearch" placeholder="Search class...">
+                        </div>
+                    </div>
+                    <div class="class-list" id="classList">
+                        <!-- Classes will be populated by JavaScript -->
+                    </div>
+                </aside>
+
+                <!-- Section 2 & 3: Class Details -->
+                <div class="class-details slide-up">
+                    <!-- Class Summary & Metrics -->
+                    <section class="class-summary">
+                        <div class="summary-header">
+                            <h3>Classroom #<span id="currentClassId">-</span></h3>
+                            <div class="violation-flags" id="violationFlags">
+                                <!-- Violation flags will be added here -->
+                            </div>
+                        </div>
+                        <div class="metrics-grid">
+                            <div class="metric-card">
+                                <h5>Total Students</h5>
+                                <div class="metric-value" id="totalStudents">-</div>
+                            </div>
+                            <div class="metric-card">
+                                <h5>Avg Academic Performance</h5>
+                                <div class="metric-value" id="avgAcademic">-</div>
+                            </div>
+                            <div class="metric-card">
+                                <h5>Avg Wellbeing Score</h5>
+                                <div class="metric-value" id="avgWellbeing">-</div>
+                            </div>
+                            <div class="metric-card">
+                                <h5>Bullying Count</h5>
+                                <div class="metric-value" id="bullyingCount">-</div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Students Table -->
+                    <section class="students-table">
+                        <div class="table-header">
+                            <h3>👨‍🎓 Students in Class</h3>
+                            <div class="table-controls">
+                                <div class="search-box">
+                                    <input type="text" id="studentSearch" placeholder="Search students...">
+                                </div>
+                                <button class="filter-btn" id="filterBtn">
+                                    <span class="icon">🔍</span> Filter
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th data-sort="id">Student ID <span class="sort-icon">↕️</span></th>
+                                        <th data-sort="academic">Academic Score <span class="sort-icon">↕️</span></th>
+                                        <th data-sort="wellbeing">Wellbeing Score <span class="sort-icon">↕️</span></th>
+                                        <th data-sort="bullying">Bullying Score <span class="sort-icon">↕️</span></th>
+                                        <th>Flags</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="studentsTableBody">
+                                    <!-- Students will be populated by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <!-- Quick Reassign Modal -->
+                    <div class="modal" id="reassignModal">
+                        <div class="modal-content">
+                            <h4>Move Student to Another Class</h4>
+                            <p>Select destination class for Student <span id="moveStudentId"></span>:</p>
+                            <select id="destinationClass">
+                                <!-- Classes will be populated by JavaScript -->
+                            </select>
+                            <div class="warning-message" id="moveWarning" style="display: none;">
+                                ⚠️ This move will cause constraint violations
+                            </div>
+                            <div class="modal-actions">
+                                <button class="cancel-btn" onclick="closeReassignModal()">Cancel</button>
+                                <button class="confirm-btn" onclick="confirmMove()">Confirm Move</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filter Modal -->
+                    <div class="modal" id="filterModal">
+                        <div class="modal-content">
+                            <h4>Filter Students</h4>
+                            <div class="filter-group">
+                                <label>Academic Score Range:</label>
+                                <div class="range-inputs">
+                                    <input type="number" id="academicMin" placeholder="Min">
+                                    <span>to</span>
+                                    <input type="number" id="academicMax" placeholder="Max">
+                                </div>
+                            </div>
+                            <div class="filter-group">
+                                <label>Wellbeing Score Range:</label>
+                                <div class="range-inputs">
+                                    <input type="number" id="wellbeingMin" placeholder="Min">
+                                    <span>to</span>
+                                    <input type="number" id="wellbeingMax" placeholder="Max">
+                                </div>
+                            </div>
+                            <div class="filter-group">
+                                <label>Show only:</label>
+                                <div class="checkbox-group">
+                                    <label><input type="checkbox" id="filterHighRisk"> High Risk Students</label>
+                                    <label><input type="checkbox" id="filterNeedsAttention"> Needs Attention</label>
+                                    <label><input type="checkbox" id="filterBullying"> Bullying Issues</label>
+                                </div>
+                            </div>
+                            <div class="modal-actions">
+                                <button class="cancel-btn" onclick="closeFilterModal()">Cancel</button>
+                                <button class="confirm-btn" onclick="applyFilters()">Apply Filters</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Navigation -->
+            <div class="action-buttons fade-in">
+                <button class="action-btn" onclick="window.location.href='allocation.html'">
+                    <span class="icon">↩</span> Back to Group Allocation
+                </button>
+                <button class="action-btn" onclick="window.location.href='model-comparison.html'">
+                    <span class="icon">📈</span> Compare Model Results
+                </button>
+                <button class="action-btn" onclick="window.location.href='overrides.html'">
+                    <span class="icon">⚙️</span> Edit Assignments Manually
+                </button>
+            </div>
+        </main>
+    </div>
+    <script src="classroom.js"></script>
+</body>
+</html> 

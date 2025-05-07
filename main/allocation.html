@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClassForge - Group Allocation</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="allocation.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="logo">
+                <h1>ClassForge</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html"><span class="icon">📊</span> Overview</a></li>
+                <li><a href="upload.html"><span class="icon">📤</span> Upload & Simulate</a></li>
+                <li><a href="student-explorer.html"><span class="icon">👥</span> Student Explorer</a></li>
+                <li class="active"><a href="allocation.html"><span class="icon">🎯</span> Group Allocation</a></li>
+                <li><a href="classroom.html"><span class="icon">🏫</span> Classroom View</a></li>
+                <li><a href="model-comparison.html"><span class="icon">📈</span> Model Comparison</a></li>
+                <li><a href="overrides.html"><span class="icon">⚙️</span> Manual Overrides</a></li>
+                <li><a href="visualizations.html"><span class="icon">📊</span> Visualizations</a></li>
+                <li><a href="settings.html"><span class="icon">⚙️</span> Settings</a></li>
+                <li><a href="reports.html"><span class="icon">📑</span> Reports & Exports</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar fade-in">
+                <div class="header-content">
+                    <h2>Group Allocation</h2>
+                    <p class="subtitle">Configure and run classroom optimization algorithms</p>
+                </div>
+                <div class="user-info">
+                    <span class="user-name">Admin User</span>
+                    <span class="user-avatar">👤</span>
+                </div>
+            </header>
+
+            <div class="allocation-container slide-up">
+                <!-- Strategy Selector Section -->
+                <section class="strategy-section">
+                    <h3>🎯 Allocation Strategy</h3>
+                    <div class="strategy-options">
+                        <div class="strategy-card" data-strategy="kmeans">
+                            <input type="radio" name="strategy" id="kmeans" value="kmeans">
+                            <label for="kmeans">
+                                <h4>KMeans Clustering</h4>
+                                <p>Groups students based on similarity in academic performance, wellbeing, and bullying scores</p>
+                            </label>
+                        </div>
+                        <div class="strategy-card" data-strategy="cpsat">
+                            <input type="radio" name="strategy" id="cpsat" value="cpsat">
+                            <label for="cpsat">
+                                <h4>CP-SAT Only</h4>
+                                <p>Uses constraint programming to optimize classroom assignments with strict rules</p>
+                            </label>
+                        </div>
+                        <div class="strategy-card" data-strategy="hybrid">
+                            <input type="radio" name="strategy" id="hybrid" value="hybrid">
+                            <label for="hybrid">
+                                <h4>KMeans + CP-SAT (Hybrid)</h4>
+                                <p>Combines clustering with constraint satisfaction for balanced results</p>
+                            </label>
+                        </div>
+                        <div class="strategy-card" data-strategy="genetic">
+                            <input type="radio" name="strategy" id="genetic" value="genetic">
+                            <label for="genetic">
+                                <h4>Genetic Algorithm</h4>
+                                <p>Advanced optimization using evolutionary algorithms (experimental)</p>
+                            </label>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Model Parameters Section -->
+                <section class="parameters-section">
+                    <h3>⚙️ Model Parameters</h3>
+                    
+                    <!-- KMeans Parameters -->
+                    <div class="parameter-group" id="kmeans-params">
+                        <div class="parameter-card">
+                            <label for="numClusters">Number of Clusters</label>
+                            <input type="number" id="numClusters" min="2" value="4">
+                            <p class="help-text">Based on total students ÷ class size</p>
+                        </div>
+                        <div class="parameter-card">
+                            <label>Feature Weights</label>
+                            <div class="slider-group">
+                                <div class="slider-item">
+                                    <label for="academicWeight">Academic Performance</label>
+                                    <input type="range" id="academicWeight" min="0" max="100" value="40">
+                                    <span class="slider-value">40%</span>
+                                </div>
+                                <div class="slider-item">
+                                    <label for="wellbeingWeight">Wellbeing</label>
+                                    <input type="range" id="wellbeingWeight" min="0" max="100" value="30">
+                                    <span class="slider-value">30%</span>
+                                </div>
+                                <div class="slider-item">
+                                    <label for="bullyingWeight">Bullying</label>
+                                    <input type="range" id="bullyingWeight" min="0" max="100" value="30">
+                                    <span class="slider-value">30%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CP-SAT Parameters -->
+                    <div class="parameter-group" id="cpsat-params" style="display: none;">
+                        <div class="parameter-card">
+                            <label for="maxClassSize">Maximum Class Size</label>
+                            <input type="number" id="maxClassSize" min="15" max="30" value="25">
+                        </div>
+                        <div class="parameter-card">
+                            <label for="maxAcademicDev">Maximum Academic Deviation</label>
+                            <input type="number" id="maxAcademicDev" min="5" max="20" value="10">
+                            <p class="help-text">Maximum difference in average academic performance between classes</p>
+                        </div>
+                        <div class="parameter-card">
+                            <label for="maxBullyingCount">Maximum Bullying Count per Class</label>
+                            <input type="number" id="maxBullyingCount" min="0" max="5" value="2">
+                        </div>
+                    </div>
+
+                    <!-- Hybrid Parameters -->
+                    <div class="parameter-group" id="hybrid-params" style="display: none;">
+                        <div class="tabs">
+                            <button class="tab-btn active" data-tab="kmeans-tab">KMeans Settings</button>
+                            <button class="tab-btn" data-tab="cpsat-tab">CP-SAT Settings</button>
+                        </div>
+                        <div class="tab-content">
+                            <div id="kmeans-tab" class="tab-pane active">
+                                <!-- KMeans parameters (same as above) -->
+                            </div>
+                            <div id="cpsat-tab" class="tab-pane">
+                                <!-- CP-SAT parameters (same as above) -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Genetic Algorithm Parameters -->
+                    <div class="parameter-group" id="genetic-params" style="display: none;">
+                        <div class="parameter-card">
+                            <label for="populationSize">Population Size</label>
+                            <input type="number" id="populationSize" min="50" max="200" value="100">
+                        </div>
+                        <div class="parameter-card">
+                            <label for="generations">Number of Generations</label>
+                            <input type="number" id="generations" min="50" max="500" value="200">
+                        </div>
+                        <div class="parameter-card">
+                            <label for="mutationRate">Mutation Rate</label>
+                            <input type="range" id="mutationRate" min="1" max="20" value="5">
+                            <span class="slider-value">5%</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Run Allocation Section -->
+                <section class="run-section">
+                    <h3>▶️ Run Allocation</h3>
+                    <div class="run-container">
+                        <button id="runAllocation" class="run-button">
+                            <span class="icon">▶️</span>
+                            Run Allocation
+                        </button>
+                        
+                        <!-- Progress Indicator -->
+                        <div id="progressIndicator" class="progress-indicator" style="display: none;">
+                            <div class="progress-bar">
+                                <div class="progress-fill"></div>
+                            </div>
+                            <p class="progress-text">Optimizing classroom assignments...</p>
+                        </div>
+
+                        <!-- Results Summary -->
+                        <div id="resultsSummary" class="results-summary" style="display: none;">
+                            <div class="success-message">
+                                <span class="icon">✅</span>
+                                <h4>Allocation Complete</h4>
+                            </div>
+                            <div class="metrics-grid">
+                                <div class="metric-card">
+                                    <h5>Total Students</h5>
+                                    <div class="metric-value" id="totalStudents">-</div>
+                                </div>
+                                <div class="metric-card">
+                                    <h5>Classes Created</h5>
+                                    <div class="metric-value" id="numClasses">-</div>
+                                </div>
+                                <div class="metric-card">
+                                    <h5>Avg Academic Score</h5>
+                                    <div class="metric-value" id="avgAcademic">-</div>
+                                </div>
+                                <div class="metric-card">
+                                    <h5>Avg Wellbeing</h5>
+                                    <div class="metric-value" id="avgWellbeing">-</div>
+                                </div>
+                            </div>
+                            <div class="constraint-violations" id="constraintViolations">
+                                <h5>Constraint Violations</h5>
+                                <ul id="violationsList"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Footer Navigation -->
+            <div class="action-buttons fade-in">
+                <button class="action-btn" onclick="window.location.href='index.html'">
+                    <span class="icon">↩</span> Back to Overview
+                </button>
+                <button class="action-btn" onclick="window.location.href='classroom.html'" id="viewClassroomBtn" disabled>
+                    <span class="icon">🏫</span> View Classroom Assignments
+                </button>
+                <button class="action-btn" onclick="window.location.href='model-comparison.html'" id="compareModelsBtn" disabled>
+                    <span class="icon">📈</span> Compare With Other Models
+                </button>
+            </div>
+        </main>
+    </div>
+    <script src="allocation.js"></script>
+</body>
+</html> 

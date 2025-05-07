@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClassForge - Manual Overrides</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="overrides.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="logo">
+                <h1>ClassForge</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html"><span class="icon">📊</span> Overview</a></li>
+                <li><a href="upload.html"><span class="icon">📤</span> Upload & Simulate</a></li>
+                <li><a href="student-explorer.html"><span class="icon">👥</span> Student Explorer</a></li>
+                <li><a href="allocation.html"><span class="icon">🎯</span> Group Allocation</a></li>
+                <li><a href="classroom.html"><span class="icon">🏫</span> Classroom View</a></li>
+                <li><a href="model-comparison.html"><span class="icon">📈</span> Model Comparison</a></li>
+                <li class="active"><a href="overrides.html"><span class="icon">⚙️</span> Manual Overrides</a></li>
+                <li><a href="visualizations.html"><span class="icon">📊</span> Visualizations</a></li>
+                <li><a href="settings.html"><span class="icon">⚙️</span> Settings</a></li>
+                <li><a href="reports.html"><span class="icon">📑</span> Reports & Exports</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="top-bar fade-in">
+                <div class="header-content">
+                    <h2>Manual Overrides</h2>
+                    <p class="subtitle">Manually adjust student-class assignments</p>
+                </div>
+                <div class="user-info">
+                    <span class="user-name">Admin User</span>
+                    <span class="user-avatar">👤</span>
+                </div>
+            </header>
+
+            <!-- Class Grid Section -->
+            <section class="class-grid-section slide-up">
+                <div class="section-header">
+                    <h3>🧭 Class Assignments</h3>
+                    <div class="grid-controls">
+                        <button class="view-toggle-btn" id="viewToggleBtn">
+                            <span class="icon">📋</span> Toggle View
+                        </button>
+                    </div>
+                </div>
+                <div class="class-grid" id="classGrid">
+                    <!-- Class columns will be populated by JavaScript -->
+                </div>
+            </section>
+
+            <!-- Validation Feedback Section -->
+            <section class="validation-section slide-up">
+                <div class="section-header">
+                    <h3>⚠️ Live Validation</h3>
+                </div>
+                <div class="validation-grid">
+                    <div class="validation-card">
+                        <h4>Class Size</h4>
+                        <div class="validation-content" id="classSizeValidation">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                    </div>
+                    <div class="validation-card">
+                        <h4>Bullying Distribution</h4>
+                        <div class="validation-content" id="bullyingValidation">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                    </div>
+                    <div class="validation-card">
+                        <h4>Academic Balance</h4>
+                        <div class="validation-content" id="academicValidation">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                    </div>
+                    <div class="validation-card">
+                        <h4>Wellbeing Balance</h4>
+                        <div class="validation-content" id="wellbeingValidation">
+                            <!-- Populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Action Section -->
+            <section class="action-section slide-up">
+                <div class="section-header">
+                    <h3>📤 Commit Changes</h3>
+                </div>
+                <div class="action-controls">
+                    <button class="save-btn" id="saveBtn">
+                        <span class="icon">✅</span> Save and Lock Final Allocation
+                    </button>
+                    <button class="undo-btn" id="undoBtn">
+                        <span class="icon">🔁</span> Undo Last Move
+                    </button>
+                    <button class="reset-btn" id="resetBtn">
+                        <span class="icon">🔄</span> Reset to Last Auto Allocation
+                    </button>
+                </div>
+            </section>
+
+            <!-- Footer Navigation -->
+            <div class="action-buttons fade-in">
+                <button class="action-btn" onclick="window.location.href='model-comparison.html'">
+                    <span class="icon">📊</span> Back to Model Comparison
+                </button>
+                <button class="action-btn" onclick="window.location.href='visualizations.html'">
+                    <span class="icon">📈</span> Go to Visualization Page
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Student Card Template -->
+    <template id="studentCardTemplate">
+        <div class="student-card" draggable="true">
+            <div class="student-header">
+                <span class="student-id"></span>
+                <div class="status-indicators"></div>
+            </div>
+            <div class="student-scores">
+                <div class="score academic"></div>
+                <div class="score wellbeing"></div>
+                <div class="score bullying"></div>
+            </div>
+        </div>
+    </template>
+
+    <script src="overrides.js"></script>
+</body>
+</html> 

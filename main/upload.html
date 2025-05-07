@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClassForge - Upload & Simulate Data</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Additional styles specific to upload page */
+        .upload-section {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .upload-section h2 {
+            margin-bottom: 1.5rem;
+            color: #2d3748;
+        }
+
+        .file-upload {
+            border: 2px dashed #cbd5e0;
+            padding: 2rem;
+            text-align: center;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload:hover {
+            border-color: #4299e1;
+        }
+
+        .file-upload input[type="file"] {
+            display: none;
+        }
+
+        .preview-table {
+            width: 100%;
+            margin-top: 1.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .preview-table th {
+            background-color: #f7fafc;
+        }
+
+        .validation-result {
+            margin: 1rem 0;
+            padding: 1rem;
+            border-radius: 0.5rem;
+        }
+
+        .validation-success {
+            background-color: #c6f6d5;
+            color: #2f855a;
+        }
+
+        .validation-error {
+            background-color: #fed7d7;
+            color: #c53030;
+        }
+
+        .synthetic-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .option-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .option-group input[type="checkbox"] {
+            width: 1.2rem;
+            height: 1.2rem;
+        }
+
+        .dataset-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .summary-card {
+            background-color: #f7fafc;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            text-align: center;
+        }
+
+        .summary-card h4 {
+            color: #4a5568;
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-card .value {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .placeholder {
+            text-align: center;
+            padding: 2rem;
+            color: #718096;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="logo">
+                <h1>ClassForge</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html"><span class="icon">📊</span> Overview</a></li>
+                <li class="active"><a href="upload.html"><span class="icon">📤</span> Upload & Simulate</a></li>
+                <li><a href="student-explorer.html"><span class="icon">👥</span> Student Explorer</a></li>
+                <li><a href="allocation.html"><span class="icon">🎯</span> Group Allocation</a></li>
+                <li><a href="classroom.html"><span class="icon">🏫</span> Classroom View</a></li>
+                <li><a href="model-comparison.html"><span class="icon">📈</span> Model Comparison</a></li>
+                <li><a href="overrides.html"><span class="icon">⚙️</span> Manual Overrides</a></li>
+                <li><a href="visualizations.html"><span class="icon">📊</span> Visualizations</a></li>
+                <li><a href="settings.html"><span class="icon">⚙️</span> Settings</a></li>
+                <li><a href="reports.html"><span class="icon">📑</span> Reports & Exports</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <h2>Upload & Simulate Data</h2>
+                <div class="user-info">
+                    <span class="user-name">Admin User</span>
+                    <span class="user-avatar">👤</span>
+                </div>
+            </header>
+
+            <!-- Section 1: Upload Real Data -->
+            <section class="upload-section">
+                <h2>🗂 Upload Real Data</h2>
+                <div class="file-upload" id="dropZone">
+                    <input type="file" id="fileInput" accept=".csv">
+                    <p>Drag and drop your CSV file here or click to browse</p>
+                </div>
+                <button class="action-btn" onclick="validateDataset()">Validate Dataset</button>
+                <div id="validationResult"></div>
+                <div id="previewTable"></div>
+                <button class="action-btn" onclick="useUploadedData()" style="margin-top: 1rem;">Use This Data</button>
+            </section>
+
+            <!-- Section 2: Generate Synthetic Data -->
+            <section class="upload-section">
+                <h2>🛠 Generate Synthetic Data</h2>
+                <div class="synthetic-options">
+                    <div class="option-group">
+                        <label for="studentCount">Number of students:</label>
+                        <input type="number" id="studentCount" min="100" max="10000" value="1000" step="100">
+                    </div>
+                    <div class="option-group">
+                        <input type="checkbox" id="includeSocial" checked>
+                        <label for="includeSocial">Include Social Columns</label>
+                    </div>
+                    <div class="option-group">
+                        <input type="checkbox" id="includeMentalHealth" checked>
+                        <label for="includeMentalHealth">Add Mental Health Scores</label>
+                    </div>
+                </div>
+                <button class="action-btn" onclick="generateSyntheticData()">Generate Dataset</button>
+                <div id="syntheticPreview"></div>
+                <button class="action-btn" onclick="useSyntheticData()" style="margin-top: 1rem;">Use This Synthetic Data</button>
+            </section>
+
+            <!-- Section 3: Dataset Summary -->
+            <section class="upload-section">
+                <h2>📊 Dataset Summary</h2>
+                <div id="datasetSummary">
+                    <div class="placeholder">No dataset loaded yet</div>
+                </div>
+            </section>
+
+            <!-- Footer Actions -->
+            <div class="action-buttons">
+                <button class="action-btn" onclick="window.location.href='student-explorer.html'">
+                    <span class="icon">🔎</span> Explore Students
+                </button>
+                <button class="action-btn" onclick="window.location.href='allocation.html'">
+                    <span class="icon">⚙️</span> Run Group Allocation
+                </button>
+            </div>
+        </main>
+    </div>
+    <script src="upload.js"></script>
+</body>
+</html> 

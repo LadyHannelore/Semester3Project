@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClassForge - Model Comparison</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="model-comparison.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="logo">
+                <h1>ClassForge</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html"><span class="icon">📊</span> Overview</a></li>
+                <li><a href="upload.html"><span class="icon">📤</span> Upload & Simulate</a></li>
+                <li><a href="student-explorer.html"><span class="icon">👥</span> Student Explorer</a></li>
+                <li><a href="allocation.html"><span class="icon">🎯</span> Group Allocation</a></li>
+                <li><a href="classroom.html"><span class="icon">🏫</span> Classroom View</a></li>
+                <li class="active"><a href="model-comparison.html"><span class="icon">📈</span> Model Comparison</a></li>
+                <li><a href="overrides.html"><span class="icon">⚙️</span> Manual Overrides</a></li>
+                <li><a href="visualizations.html"><span class="icon">📊</span> Visualizations</a></li>
+                <li><a href="settings.html"><span class="icon">⚙️</span> Settings</a></li>
+                <li><a href="reports.html"><span class="icon">📑</span> Reports & Exports</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="top-bar fade-in">
+                <div class="header-content">
+                    <h2>Model Comparison</h2>
+                    <p class="subtitle">Compare and analyze different allocation model results</p>
+                </div>
+                <div class="user-info">
+                    <span class="user-name">Admin User</span>
+                    <span class="user-avatar">👤</span>
+                </div>
+            </header>
+
+            <!-- Results Table Section -->
+            <section class="results-table-section slide-up">
+                <div class="section-header">
+                    <h3>📋 Model Results Comparison</h3>
+                    <div class="table-controls">
+                        <button class="refresh-btn">
+                            <span class="icon">🔄</span> Refresh Data
+                        </button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table id="modelComparisonTable">
+                        <thead>
+                            <tr>
+                                <th>Model Name</th>
+                                <th>Academic StdDev ↓</th>
+                                <th>Wellbeing StdDev</th>
+                                <th>Bully Spread Violations</th>
+                                <th>Class Size Deviation</th>
+                                <th>Runtime (sec)</th>
+                                <th>Total Violations</th>
+                                <th>Preferred</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modelComparisonBody">
+                            <!-- Populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Visual Comparison Section -->
+            <section class="visual-comparison-section slide-up">
+                <div class="section-header">
+                    <h3>📈 Visual Comparison</h3>
+                    <div class="chart-controls">
+                        <select id="chartTypeSelect">
+                            <option value="balance">Academic & Wellbeing Balance</option>
+                            <option value="violations">Violation Distribution</option>
+                            <option value="radar">Fairness Radar</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="charts-container">
+                    <canvas id="comparisonChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Selection & Action Section -->
+            <section class="action-section slide-up">
+                <div class="section-header">
+                    <h3>🎯 Selection & Action</h3>
+                </div>
+                <div class="action-controls">
+                    <div class="model-selection">
+                        <select id="modelSelect" class="model-dropdown">
+                            <option value="">Select a model result to use...</option>
+                            <!-- Options populated by JavaScript -->
+                        </select>
+                        <button class="apply-btn" id="applyModelBtn">
+                            <span class="icon">✅</span> Use Selected Result
+                        </button>
+                    </div>
+                    <div class="model-actions">
+                        <button class="rerun-btn" id="rerunModelBtn">
+                            <span class="icon">🔄</span> Re-run Selected Model
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Footer Navigation -->
+            <div class="action-buttons fade-in">
+                <button class="action-btn" onclick="window.location.href='classroom.html'">
+                    <span class="icon">🔙</span> Back to Classroom View
+                </button>
+                <button class="action-btn" onclick="window.location.href='overrides.html'">
+                    <span class="icon">✏️</span> Proceed to Manual Override
+                </button>
+            </div>
+        </main>
+    </div>
+    <script src="model-comparison.js"></script>
+</body>
+</html> 

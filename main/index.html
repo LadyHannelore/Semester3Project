@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClassForge - Admin Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="logo">
+                <h1>ClassForge</h1>
+            </div>
+            <ul class="nav-links">
+                <li class="active"><a href="index.html"><span class="icon">📊</span> Overview</a></li>
+                <li><a href="upload.html"><span class="icon">📤</span> Upload & Simulate</a></li>
+                <li><a href="student-explorer.html"><span class="icon">👥</span> Student Explorer</a></li>
+                <li><a href="allocation.html"><span class="icon">🎯</span> Group Allocation</a></li>
+                <li><a href="classroom.html"><span class="icon">🏫</span> Classroom View</a></li>
+                <li><a href="model-comparison.html"><span class="icon">📈</span> Model Comparison</a></li>
+                <li><a href="overrides.html"><span class="icon">⚙️</span> Manual Overrides</a></li>
+                <li><a href="visualizations.html"><span class="icon">📊</span> Visualizations</a></li>
+                <li><a href="settings.html"><span class="icon">⚙️</span> Settings</a></li>
+                <li><a href="reports.html"><span class="icon">📑</span> Reports & Exports</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <header class="top-bar">
+                <h2>Admin Dashboard</h2>
+                <div class="user-info">
+                    <span class="user-name">Admin User</span>
+                    <span class="user-avatar">👤</span>
+                </div>
+            </header>
+
+            <!-- Summary Cards -->
+            <div class="summary-cards">
+                <div class="card">
+                    <h3>Total Students</h3>
+                    <p class="number">10,000</p>
+                </div>
+                <div class="card">
+                    <h3>Total Classes</h3>
+                    <p class="number">400</p>
+                </div>
+                <div class="card">
+                    <h3>Avg Academic Score</h3>
+                    <p class="number">70.2</p>
+                </div>
+                <div class="card">
+                    <h3>Avg Wellbeing Score</h3>
+                    <p class="number">75.8</p>
+                </div>
+                <div class="card">
+                    <h3>High-Risk Bullies</h3>
+                    <p class="number">28.97%</p>
+                </div>
+                <div class="card">
+                    <h3>Unassigned Students</h3>
+                    <p class="number">45</p>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="charts-section">
+                <div class="chart-container">
+                    <canvas id="academicScoreChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="wellbeingScoreChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="bullyingRiskChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="recent-activity">
+                <h3>Recent Activity</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date/Time</th>
+                            <th>Model Name</th>
+                            <th>Result Summary</th>
+                        </tr>
+                    </thead>
+                    <tbody id="activityLog">
+                        <!-- Will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button class="action-btn" onclick="window.location.href='upload.html'">
+                    <span class="icon">📤</span> Upload / Simulate Data
+                </button>
+                <button class="action-btn" onclick="window.location.href='allocation.html'">
+                    <span class="icon">⚙️</span> Run Group Allocation
+                </button>
+                <button class="action-btn" onclick="window.location.href='student-explorer.html'">
+                    <span class="icon">🔎</span> Explore Students
+                </button>
+            </div>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html> 
