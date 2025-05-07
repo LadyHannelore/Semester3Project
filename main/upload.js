@@ -170,44 +170,97 @@ function showPreview(dataset) {
 }
 
 // Generate synthetic data
-async function generateSyntheticData() {
+function generateSyntheticData() {
     const studentCount = parseInt(document.getElementById('studentCount').value);
     const includeSocial = document.getElementById('includeSocial').checked;
     const includeMentalHealth = document.getElementById('includeMentalHealth').checked;
 
-    try {
-        const response = await fetch('http://127.0.0.1:5001/generate', { // Ensure the URL matches the Flask server
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                studentCount,
-                includeSocial,
-                includeMentalHealth
-            })
-        });
+    const LIKERT_SCALE_1_7 = Array.from({ length: 7 }, (_, i) => i + 1);
+    const K6_SCALE_1_5 = Array.from({ length: 5 }, (_, i) => i + 1);
+    const LANGUAGE_SCALE = [0, 1];
+    const PWI_SCALE = Array.from({ length: 11 }, (_, i) => i);
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Backend error: ${errorText}`);
+    const studentIds = Array.from({ length: studentCount }, (_, i) => `S${(i + 1).toString().padStart(4, '0')}`);
+    const data = [];
+
+    // Assign exactly 2 bullies per 40 students
+    const bullyIndices = new Set();
+    const groupSize = 40;
+    const numGroups = Math.ceil(studentCount / groupSize);
+    for (let group = 0; group < numGroups; group++) {
+        const start = group * groupSize;
+        const end = Math.min((group + 1) * groupSize, studentCount);
+        const groupIndices = Array.from({ length: end - start }, (_, i) => start + i);
+        if (groupIndices.length >= 2) {
+            const selected = groupIndices.sort(() => 0.5 - Math.random()).slice(0, 2);
+            selected.forEach(index => bullyIndices.add(index));
+        } else if (groupIndices.length === 1) {
+            bullyIndices.add(groupIndices[0]);
         }
+    }
 
-        const result = await response.json();
-        if (!result.success) {
-            throw new Error(result.error || "Synthetic data generation failed.");
-        }
+    for (let idx = 0; idx < studentCount; idx++) {
+        const studentId = studentIds[idx];
 
-        // Update the current dataset with the generated data
-        currentDataset = {
-            headers: result.headers,
-            rows: result.rows,
-            source: 'synthetic'
+        // Academic performance
+        const academicPerformance = Math.random() < 0.1
+            ? Math.random() < 0.5 ? Math.floor(Math.random() * 41) : Math.floor(Math.random() * 11) + 90
+            : Math.max(0, Math.min(100, Math.round(70 + 20 * (Math.random() - 0.5))));
+
+        // Wellbeing (k6 scores)
+        const k6Scores = Array.from({ length: 6 }, () => Math.random() < 0.05 ? (Math.random() < 0.5 ? 1 : 5) : K6_SCALE_1_5[Math.floor(Math.random() * K6_SCALE_1_5.length)]);
+        const wellbeingScore = k6Scores.reduce((sum, score) => sum + score, 0);
+
+        // Bullying score
+        const bullying = bullyIndices.has(idx) ? 7 : Math.floor(Math.random() * 5) + 1;
+
+        // Social columns
+        const numFriends = Math.random() < 0.1 ? Math.floor(Math.random() * 11) + 10 : Math.random() < 0.1 ? 0 : Math.floor(Math.random() * 7) + 4;
+        const friends = Array.from({ length: numFriends }, () => studentIds[Math.floor(Math.random() * studentIds.length)]).join(', ');
+
+        // Other scores
+        const manbox5Scores = Array.from({ length: 5 }, () => LIKERT_SCALE_1_7[Math.floor(Math.random() * LIKERT_SCALE_1_7.length)]);
+
+        const studentData = {
+            Student_ID: studentId,
+            Academic_Performance: academicPerformance,
+            Wellbeing_Score: wellbeingScore,
+            Bullying_Score: bullying,
+            isolated: LIKERT_SCALE_1_7[Math.floor(Math.random() * LIKERT_SCALE_1_7.length)], 
+            WomenDifferent: LIKERT_SCALE_1_7[Math.floor(Math.random() * LIKERT_SCALE_1_7.length)], 
+            language: LANGUAGE_SCALE[Math.floor(Math.random() * LANGUAGE_SCALE.length)], 
+            COVID: LIKERT_SCALE_1_7[Math.floor(Math.random() * LIKERT_SCALE_1_7.length)], 
+            criticises: LIKERT_SCALE_1_7[Math.floor(Math.random() * LIKERT_SCALE_1_7.length)], 
+            MenBetterSTEM: LIKERT_SCALE_1_7[Math.floor(Math.random() * LIKERT_SCALE_1_7.length)], 
+            pwi_wellbeing: PWI_SCALE[Math.floor(Math.random() * PWI_SCALE.length)], 
+            Intelligence1: LIKERT_SCALE_1_7[Math.floor(Math.random() * LIKERT_SCALE_1_7.length)], 
+            Intelligence2: LIKERT_SCALE_1_7[Math.floor(Math.random() * LIKERT_SCALE_1_7.length)], 
+            Soft: LIKERT_SCALE_1_7[Math.floor(Math.random() * LIKERT_SCALE_1_7.length)], 
+            opinion: LIKERT_SCALE_1_7[Math.floor(Math.random() * LIKERT_SCALE_1_7.length)], 
+            Nerds: LIKERT_SCALE_1_7[Math.floor(Math.random() * LIKERT_SCALE_1_7.length)], 
+            comfortable: LIKERT_SCALE_1_7[Math.floor(Math.random() * LIKERT_SCALE_1_7.length)], 
+            future: LIKERT_SCALE_1_7[Math.floor(Math.random() * LIKERT_SCALE_1_7.length)], 
+            ...(includeSocial ? { Friends: friends } : {}),
+            ...(includeMentalHealth ? {
+                Disrespect: Math.floor(Math.random() * 11),
+                K6_Score: wellbeingScore,
+                Anxiety_Level: Math.floor(Math.random() * 11),
+                Depression_Level: Math.floor(Math.random() * 11)
+            } : {})
         };
 
-        showPreview(currentDataset);
-        updateDatasetSummary(currentDataset);
-    } catch (error) {
-        showValidationResult(error.message, false);
+        data.push(studentData);
     }
+
+    // Convert to dataset format
+    currentDataset = {
+        headers: Object.keys(data[0]),
+        rows: data.map(Object.values),
+        source: 'synthetic'
+    };
+
+    showPreview(currentDataset);
+    updateDatasetSummary(currentDataset);
 }
 
 // Update dataset summary

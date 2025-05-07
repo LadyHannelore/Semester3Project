@@ -1,29 +1,3 @@
-/* Animations */
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes slideUp {
-    from { transform: translateY(20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
-}
-
-/* Animation classes */
-.fade-in {
-    animation: fadeIn 0.5s ease-out;
-}
-
-.slide-up {
-    animation: slideUp 0.5s ease-out;
-}
-
 /* Main layout */
 .main-content {
     display: flex;
@@ -311,7 +285,6 @@ section h3 {
     background-color: #4299e1;
     width: 0%;
     transition: width 0.3s ease-out;
-    animation: pulse 2s infinite;
 }
 
 .progress-text {
@@ -425,6 +398,44 @@ section h3 {
 .action-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+}
+
+/* Table styles */
+table {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    border-collapse: collapse;
+    border-spacing: 0;
+    background-color: white;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+table th, table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+    color: #4a5568;
+}
+
+table th {
+    background-color: #f7fafc;
+    font-weight: 600;
+    color: #2d3748;
+}
+
+table tr:last-child td {
+    border-bottom: none;
+}
+
+table tr:hover {
+    background-color: #edf2f7;
+}
+
+table td {
+    font-size: 0.875rem;
 }
 
 /* Responsive design */

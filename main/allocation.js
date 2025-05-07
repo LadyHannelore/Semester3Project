@@ -223,7 +223,7 @@ function showResults() {
     document.getElementById('resultsNumClasses').textContent = metrics.numClasses;
     document.getElementById('resultsAvgAcademic').textContent = metrics.avgAcademic.toFixed(1);
     document.getElementById('resultsAvgWellbeing').textContent = metrics.avgWellbeing.toFixed(1);
-    
+
     document.getElementById('balance-score').textContent = (metrics.balanceScore * 100).toFixed(1) + '%';
     document.getElementById('diversity-score').textContent = (metrics.diversityScore * 100).toFixed(1) + '%';
     document.getElementById('constraint-satisfaction').textContent = (metrics.constraintSatisfaction * 100).toFixed(1) + '%';
@@ -236,6 +236,20 @@ function showResults() {
         const li = document.createElement('li');
         li.textContent = violation;
         violationsList.appendChild(li);
+    });
+
+    // Populate results table
+    const resultsTableBody = document.getElementById('resultsTableBody');
+    resultsTableBody.innerHTML = '';
+    allocationResults.classes.forEach((classData, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>Class ${index + 1}</td>
+            <td>${classData.students.length}</td>
+            <td>${classData.avgAcademic.toFixed(1)}</td>
+            <td>${classData.avgWellbeing.toFixed(1)}</td>
+        `;
+        resultsTableBody.appendChild(row);
     });
 
     // Show success message

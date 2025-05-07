@@ -21,8 +21,7 @@
                 <li><a href="student-explorer.html"><span class="icon">👥</span> Student Explorer</a></li>
                 <li class="active"><a href="allocation.html"><span class="icon">🎯</span> Group Allocation</a></li>
                 <li><a href="classroom.html"><span class="icon">🏫</span> Classroom View</a></li>
-                <li><a href="model-comparison.html"><span class="icon">📈</span> Model Comparison</a></li>
-                <li><a href="overrides.html"><span class="icon">⚙️</span> Manual Overrides</a></li>
+                 <li><a href="overrides.html"><span class="icon">⚙️</span> Manual Overrides</a></li>
                 <li><a href="visualizations.html"><span class="icon">📊</span> Visualizations</a></li>
                 <li><a href="settings.html"><span class="icon">⚙️</span> Settings</a></li>
                 <li><a href="reports.html"><span class="icon">📑</span> Reports & Exports</a></li>
@@ -161,6 +160,22 @@
                             <div class="constraint-violations" id="constraintViolations">
                                 <h5>Constraint Violations</h5>
                                 <ul id="violationsList"></ul>
+                            </div>
+                            <!-- Add table for detailed results -->
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Class</th>
+                                            <th>Students</th>
+                                            <th>Avg Academic</th>
+                                            <th>Avg Wellbeing</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="resultsTableBody">
+                                        <!-- Rows will be dynamically populated -->
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
