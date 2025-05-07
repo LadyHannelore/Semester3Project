@@ -139,32 +139,18 @@ function getStoredDataset() {
 async function simulateGeneticAlgorithmAllocation(params) {
     const progressFill = document.querySelector('.progress-fill');
     const progressText = document.querySelector('.progress-text');
-    const steps = [
-        { progress: 20, text: 'Loading student data...' },
-        { progress: 40, text: 'Simulating student distribution...' },
-        { progress: 60, text: 'Evaluating class assignments...' },
-        { progress: 80, text: 'Finalizing results...' },
-        { progress: 100, text: 'Allocation complete.' }
-    ];
-
-    for (const step of steps) {
-        await new Promise(resolve => setTimeout(resolve, 700)); // Adjusted timing
-        progressFill.style.width = `${step.progress}%`;
-        progressText.textContent = step.text;
-    }
+    progressFill.style.width = `10%`;
+    progressText.textContent = 'Preparing data...';
 
     const dataset = getStoredDataset();
     if (!dataset || !dataset.rows || dataset.rows.length === 0) {
         throw new Error("No student data found. Please upload or generate data first.");
     }
 
+    // Prepare students array (map to Python expected fields)
     const students = dataset.rows.map(row => {
         const studentIdStr = row[dataset.headers.indexOf('Student_ID')];
-        let studentId = parseInt(studentIdStr);
-        if (isNaN(studentId)) {
-            studentId = studentIdStr; 
-        }
-
+        let studentId = studentIdStr;
         return {
             id: studentId,
             academicScore: parseFloat(row[dataset.headers.indexOf('Academic_Performance')]),
@@ -173,105 +159,55 @@ async function simulateGeneticAlgorithmAllocation(params) {
         };
     });
 
-    const numStudents = students.length;
-    const maxClassSize = params.maxClassSize;
-    const numClasses = Math.ceil(numStudents / maxClassSize);
-    const maxBulliesPerClass = params.maxBulliesPerClass;
+    progressFill.style.width = `30%`;
+    progressText.textContent = 'Sending data to optimizer...';
 
-    const generatedClasses = Array.from({ length: numClasses }, () => ({ students: [], bullyCount: 0 }));
-
-    // Separate high-risk bullies from other students
-    const highRiskBullies = students.filter(s => s.bullyingScore > 7);
-    const otherStudents = students.filter(s => s.bullyingScore <= 7);
-
-    // Distribute high-risk bullies first
-    for (const bully of highRiskBullies) {
-        let placed = false;
-        for (let i = 0; i < numClasses; i++) {
-            const classIndex = i % numClasses;
-            if (generatedClasses[classIndex].students.length < maxClassSize && generatedClasses[classIndex].bullyCount < maxBulliesPerClass) {
-                generatedClasses[classIndex].students.push(bully);
-                generatedClasses[classIndex].bullyCount++;
-                placed = true;
-                break;
-            }
-        }
-        if (!placed) {
-            for (let i = 0; i < numClasses; i++) {
-                const classIndex = i % numClasses;
-                if (generatedClasses[classIndex].students.length < maxClassSize) {
-                    generatedClasses[classIndex].students.push(bully);
-                    if (bully.bullyingScore > 7) generatedClasses[classIndex].bullyCount++;
-                    placed = true;
-                    break;
+    // Call Python backend
+    let response;
+    try {
+        response = await fetch('http://127.0.0.1:5001/allocate', { // Ensure the URL matches the Flask server
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                students,
+                params: {
+                    maxClassSize: params.maxClassSize,
+                    maxBulliesPerClass: params.maxBulliesPerClass,
+                    generations: params.generations,
+                    populationSize: params.populationSize
                 }
-            }
-        }
-        if (!placed) {
-            generatedClasses.sort((a, b) => a.students.length - b.students.length)[0].students.push(bully);
-            if (bully.bullyingScore > 7) generatedClasses[0].bullyCount++;
-        }
-    }
-
-    // Distribute other students
-    let shuffledOtherStudents = [...otherStudents].sort(() => 0.5 - Math.random());
-    for (const student of shuffledOtherStudents) {
-        let placed = false;
-        for (let i = 0; i < numClasses; i++) {
-            const classIndex = i % numClasses;
-            if (generatedClasses[classIndex].students.length < maxClassSize) {
-                generatedClasses[classIndex].students.push(student);
-                placed = true;
-                break;
-            }
-        }
-        if (!placed) {
-            generatedClasses.sort((a, b) => a.students.length - b.students.length)[0].students.push(student);
-        }
-    }
-    
-    let totalAcademicScore = 0;
-    let totalWellbeingScore = 0;
-    let constraintViolations = [];
-
-    generatedClasses.forEach((cls, idx) => {
-        if (cls.students.length > maxClassSize) {
-            constraintViolations.push(`Class ${idx} (size ${cls.students.length}) exceeds max size of ${maxClassSize}.`);
-        }
-        let actualClassBullyingCount = 0;
-        cls.students.forEach(s => {
-            totalAcademicScore += s.academicScore;
-            totalWellbeingScore += s.wellbeingScore;
-            if (s.bullyingScore > 7) {
-                actualClassBullyingCount++;
-            }
+            })
         });
-        if (actualClassBullyingCount > params.maxBulliesPerClass) {
-            constraintViolations.push(`Class ${idx} has ${actualClassBullyingCount} high-risk bullying students (max ${params.maxBulliesPerClass}).`);
-        }
-    });
-    
-    const avgAcademicOverall = numStudents > 0 ? (totalAcademicScore / numStudents) : 0;
-    const avgWellbeingOverall = numStudents > 0 ? (totalWellbeingScore / numStudents) : 0;
+    } catch (err) {
+        throw new Error("Could not connect to backend optimizer. Is the Python server running?");
+    }
 
+    progressFill.style.width = `60%`;
+    progressText.textContent = 'Processing results...';
+
+    if (!response.ok) {
+        const errText = await response.text();
+        throw new Error("Backend error: " + errText);
+    }
+    const result = await response.json();
+
+    if (!result.success) {
+        throw new Error(result.error || "Allocation failed.");
+    }
+
+    // Save results in the same format as before
     allocationResults = {
         success: true,
-        metrics: {
-            balanceScore: Math.random() * 0.15 + 0.8,
-            diversityScore: Math.random() * 0.15 + 0.78,
-            constraintSatisfaction: constraintViolations.length > 0 ? (Math.max(0, 1 - (constraintViolations.length / numClasses) * 0.5 - 0.1)) : (Math.random() * 0.05 + 0.95),
-            processingTime: `${(Math.random() * 1.5 + 0.5).toFixed(1)}s`,
-            totalStudents: numStudents,
-            numClasses: numClasses,
-            avgAcademic: avgAcademicOverall,
-            avgWellbeing: avgWellbeingOverall
-        },
-        violations: constraintViolations,
-        classes: generatedClasses.map(c => ({ students: c.students }))
+        metrics: result.metrics,
+        violations: result.violations,
+        classes: result.classes
     };
-    
+
     localStorage.setItem('allocationResults', JSON.stringify(allocationResults));
     localStorage.setItem('autoAllocationResults', JSON.stringify(allocationResults));
+
+    progressFill.style.width = `100%`;
+    progressText.textContent = 'Allocation complete.';
 }
 
 function showResults() {

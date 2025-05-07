@@ -170,52 +170,44 @@ function showPreview(dataset) {
 }
 
 // Generate synthetic data
-function generateSyntheticData() {
+async function generateSyntheticData() {
     const studentCount = parseInt(document.getElementById('studentCount').value);
     const includeSocial = document.getElementById('includeSocial').checked;
     const includeMentalHealth = document.getElementById('includeMentalHealth').checked;
 
-    // Generate headers
-    const headers = [...requiredColumns];
-    if (includeSocial) headers.push(...optionalColumns.social);
-    if (includeMentalHealth) headers.push(...optionalColumns.mentalHealth);
+    try {
+        const response = await fetch('http://127.0.0.1:5001/generate', { // Ensure the URL matches the Flask server
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                studentCount,
+                includeSocial,
+                includeMentalHealth
+            })
+        });
 
-    // Generate rows
-    const rows = [];
-    for (let i = 0; i < studentCount; i++) {
-        const row = [
-            `STU${String(i + 1).padStart(4, '0')}`, // Student ID
-            Math.floor(Math.random() * 40 + 60), // Academic Performance (60-100)
-            Math.floor(Math.random() * 40 + 60), // Wellbeing Score (60-100)
-            Math.floor(Math.random() * 10) // Bullying Score (0-9)
-        ];
-
-        if (includeSocial) {
-            row.push(
-                Math.floor(Math.random() * 10), // Friends count
-                Math.floor(Math.random() * 10) // Disrespect score
-            );
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Backend error: ${errorText}`);
         }
 
-        if (includeMentalHealth) {
-            row.push(
-                Math.floor(Math.random() * 24), // K6 Score (0-24)
-                Math.floor(Math.random() * 10), // Anxiety Level
-                Math.floor(Math.random() * 10) // Depression Level
-            );
+        const result = await response.json();
+        if (!result.success) {
+            throw new Error(result.error || "Synthetic data generation failed.");
         }
 
-        rows.push(row);
+        // Update the current dataset with the generated data
+        currentDataset = {
+            headers: result.headers,
+            rows: result.rows,
+            source: 'synthetic'
+        };
+
+        showPreview(currentDataset);
+        updateDatasetSummary(currentDataset);
+    } catch (error) {
+        showValidationResult(error.message, false);
     }
-
-    currentDataset = {
-        headers: headers,
-        rows: rows,
-        source: 'synthetic'
-    };
-
-    showPreview(currentDataset);
-    updateDatasetSummary(currentDataset);
 }
 
 // Update dataset summary
@@ -324,4 +316,4 @@ function navigateTo(page) {
         return;
     }
     window.location.href = `${page}.html`;
-} 
+}

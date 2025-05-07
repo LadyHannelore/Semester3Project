@@ -307,19 +307,29 @@ function updateTable() {
 // Update pagination
 function updatePagination() {
     const totalRows = filteredData.length;
-    const totalPages = Math.ceil(totalRows / rowsPerPage);
+    const totalPages = Math.max(1, Math.ceil(totalRows / rowsPerPage));
     
-    document.getElementById('startRow').textContent = (currentPage - 1) * rowsPerPage + 1;
-    document.getElementById('endRow').textContent = Math.min(currentPage * rowsPerPage, totalRows);
+    // Clamp currentPage to valid range
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startRow = totalRows === 0 ? 0 : (currentPage - 1) * rowsPerPage + 1;
+    const endRow = Math.min(currentPage * rowsPerPage, totalRows);
+
+    document.getElementById('startRow').textContent = startRow;
+    document.getElementById('endRow').textContent = endRow;
     document.getElementById('totalRows').textContent = totalRows;
     document.getElementById('currentPage').textContent = `Page ${currentPage}`;
     
     document.getElementById('prevPage').disabled = currentPage === 1;
-    document.getElementById('nextPage').disabled = currentPage === totalPages;
+    document.getElementById('nextPage').disabled = currentPage === totalPages || totalRows === 0;
 }
 
 // Change page
 function changePage(newPage) {
+    const totalRows = filteredData.length;
+    const totalPages = Math.max(1, Math.ceil(totalRows / rowsPerPage));
+    if (newPage < 1 || newPage > totalPages) return;
     currentPage = newPage;
     updateTable();
 }
