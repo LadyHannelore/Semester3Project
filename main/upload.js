@@ -73,13 +73,24 @@ function handleFileUpload(file) {
     const reader = new FileReader();
     reader.onload = function(e) {
         const csvData = e.target.result;
-        const rows = csvData.split('\n');
-        const headers = rows[0].split(',').map(header => header.trim());
-        
+        const rows = csvData.split('\n').map(row => row.split(',').map(cell => cell.trim()));
+        const maxColumns = Math.max(...rows.map(row => row.length));
+
+        // Ensure all rows have the same number of columns
+        const paddedRows = rows.map(row => {
+            while (row.length < maxColumns) {
+                row.push('');
+            }
+            return row;
+        });
+
+        const headers = paddedRows[0];
+        const dataRows = paddedRows.slice(1);
+
         // Store the data
         currentDataset = {
             headers: headers,
-            rows: rows.slice(1).map(row => row.split(',').map(cell => cell.trim())),
+            rows: dataRows,
             source: 'upload'
         };
 
@@ -132,6 +143,7 @@ function showValidationResult(message, isSuccess) {
 
 // Show preview table
 function showPreview(dataset) {
+    const previewWrapper = document.getElementById('previewTableWrapper');
     const previewDiv = document.getElementById('previewTable');
     if (!dataset || !dataset.rows.length) {
         previewDiv.innerHTML = '';
@@ -167,6 +179,20 @@ function showPreview(dataset) {
 
     previewDiv.innerHTML = '';
     previewDiv.appendChild(table);
+    previewWrapper.style.overflowX = 'auto'; // Ensure horizontal scrolling
+}
+
+// Toggle preview table visibility
+function togglePreviewTable() {
+    const previewWrapper = document.getElementById('previewTableWrapper');
+    const toggleButton = document.querySelector('button[onclick="togglePreviewTable()"]');
+    if (previewWrapper.style.display === 'none') {
+        previewWrapper.style.display = 'block';
+        toggleButton.textContent = 'Hide Table';
+    } else {
+        previewWrapper.style.display = 'none';
+        toggleButton.textContent = 'Show Table';
+    }
 }
 
 // Generate synthetic data
@@ -212,20 +238,19 @@ function generateSyntheticData() {
         const wellbeingScore = k6Scores.reduce((sum, score) => sum + score, 0);
 
         // Bullying score
-        const bullying = bullyIndices.has(idx) ? 7 : Math.floor(Math.random() * 5) + 1;
+        const bullyingScore = bullyIndices.has(idx) ? Math.floor(Math.random() * 4) + 7 : Math.floor(Math.random() * 5) + 1;
 
         // Social columns
         const numFriends = Math.random() < 0.1 ? Math.floor(Math.random() * 11) + 10 : Math.random() < 0.1 ? 0 : Math.floor(Math.random() * 7) + 4;
         const friends = Array.from({ length: numFriends }, () => studentIds[Math.floor(Math.random() * studentIds.length)]).join(', ');
 
-        // Other scores
         const manbox5Scores = Array.from({ length: 5 }, () => LIKERT_SCALE_1_7[Math.floor(Math.random() * LIKERT_SCALE_1_7.length)]);
 
         const studentData = {
             Student_ID: studentId,
             Academic_Performance: academicPerformance,
             Wellbeing_Score: wellbeingScore,
-            Bullying_Score: bullying,
+            Bullying_Score: bullyingScore,
             isolated: LIKERT_SCALE_1_7[Math.floor(Math.random() * LIKERT_SCALE_1_7.length)], 
             WomenDifferent: LIKERT_SCALE_1_7[Math.floor(Math.random() * LIKERT_SCALE_1_7.length)], 
             language: LANGUAGE_SCALE[Math.floor(Math.random() * LANGUAGE_SCALE.length)], 

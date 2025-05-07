@@ -22,12 +22,12 @@
 .main-content {
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    min-height: 100vh; /* Ensure it takes full viewport height */
     background-color: #f8fafc;
     padding: 2rem;
     gap: 2rem;
-    max-width: 900px;
     margin: 0 auto; /* Center horizontally */
+    overflow-y: auto; /* Enable vertical scrolling */
 }
 
 /* Header styles */
@@ -58,6 +58,7 @@
     gap: 2rem;
     flex: 1;
     min-height: 0;
+    overflow-y: auto; /* Allow scrolling within the container */
 }
 
 /* Class selector */
@@ -156,6 +157,8 @@
     flex-direction: column;
     gap: 2rem;
     min-width: 0;
+    max-width: 1200px; /* Increased max width for better visibility */
+    margin: 0 auto; /* Center the content */
 }
 
 /* Class summary */
@@ -198,8 +201,8 @@
 }
 
 .metrics-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    display: flex;
+    flex-direction: column;
     gap: 1.5rem;
 }
 
@@ -232,6 +235,8 @@
     min-height: 0;
     display: flex;
     flex-direction: column;
+    max-width: 1200px; /* Increased max width for better visibility */
+    margin: 0 auto; /* Center the content */
 }
 
 .table-header {
@@ -277,6 +282,7 @@
     overflow-y: auto;
     border: 1px solid #e2e8f0;
     border-radius: 0.5rem;
+    max-height: 600px; /* Increased height for better scrolling */
 }
 
 table {

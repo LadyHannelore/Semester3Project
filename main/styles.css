@@ -15,6 +15,7 @@ body {
 .container {
     display: flex;
     min-height: 100vh;
+    position: relative;
 }
 /* Sidebar Styles */
 .sidebar {
@@ -25,6 +26,17 @@ body {
     position: fixed;
     height: 100vh;
     overflow-y: auto;
+    transform: translateX(-250px); /* Hide sidebar by default */
+    transition: transform 0.3s ease;
+    z-index: 1000; /* Ensure it appears above other content */
+}
+
+.sidebar:hover {
+    transform: translateX(0); /* Show sidebar on hover */
+}
+
+.container:hover .sidebar {
+    transform: translateX(0); /* Show sidebar when hovering over the container */
 }
 
 .logo h1 {
@@ -68,10 +80,10 @@ body {
 /* Main Content Styles */
 .main-content {
     flex: 1;
-    margin-left: 250px;
+    margin-left: 250px; /* Ensure content starts 250px from the left */
     padding: 2rem;
-    max-width: 900px;
-    margin: 0 auto; /* Center horizontally */
+    overflow-y: auto; /* Enable vertical scrolling */
+    transition: margin-left 0.3s ease; /* Smooth transition for content shift */
 }
 
 /* Top Bar Styles */

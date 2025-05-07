@@ -157,7 +157,10 @@
                 </div>
                 <button class="action-btn" type="button" onclick="validateDataset()">Validate Dataset</button>
                 <div id="validationResult" aria-live="polite"></div>
-                <div id="previewTable"></div>
+                <button class="action-btn" type="button" onclick="togglePreviewTable()">Show Table</button>
+                <div id="previewTableWrapper" style="overflow-x: auto; display: none;">
+                    <div id="previewTable"></div>
+                </div>
                 <button class="action-btn" type="button" onclick="useUploadedData()" style="margin-top: 1rem;">Use This Data</button>
             </section>
 

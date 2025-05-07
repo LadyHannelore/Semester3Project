@@ -6,8 +6,8 @@
     background-color: #f8fafc;
     padding: 2rem;
     gap: 2rem;
-    max-width: 900px;
     margin: 0 auto; /* Center horizontally */
+    overflow-y: auto; /* Enable vertical scrolling */
 }
 
 /* Header styles */
@@ -39,7 +39,7 @@
     gap: 2rem;
     flex: 1;
     min-height: 0;
-    overflow-y: auto;
+    overflow-y: auto; /* Allow scrolling within the container */
     padding-right: 1rem;
 }
 

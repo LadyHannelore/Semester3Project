@@ -103,72 +103,72 @@
                             <table>
                                 <thead>
                                     <tr>
-                                        <th data-sort="id">Student ID <span class="sort-icon">↕️</span></th>
-                                        <th data-sort="academic">Academic Score <span class="sort-icon">↕️</span></th>
-                                        <th data-sort="wellbeing">Wellbeing Score <span class="sort-icon">↕️</span></th>
-                                        <th data-sort="bullying">Bullying Score <span class="sort-icon">↕️</span></th>
+                                        <th>Student ID</th>
+                                        <th>Academic Score</th>
+                                        <th>Wellbeing Score</th>
+                                        <th>Bullying Score</th>
                                         <th>Flags</th>
                                         <th>Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody id="studentsTableBody" aria-live="polite">
+                                <tbody id="studentsTableBody">
                                     <!-- Students will be populated by JavaScript -->
                                 </tbody>
                             </table>
                         </div>
                     </section>
+                </div>
+            </div>
 
-                    <!-- Quick Reassign Modal -->
-                    <div class="modal" id="reassignModal" role="dialog" aria-modal="true" aria-label="Reassign Student Modal">
-                        <div class="modal-content">
-                            <h4>Move Student to Another Class</h4>
-                            <p>Select destination class for Student <span id="moveStudentId"></span>:</p>
-                            <select id="destinationClass" aria-label="Destination Class">
-                                <!-- Classes will be populated by JavaScript -->
-                            </select>
-                            <div class="warning-message" id="moveWarning" style="display: none;">
-                                ⚠️ This move will cause constraint violations
-                            </div>
-                            <div class="modal-actions">
-                                <button class="cancel-btn" type="button" onclick="closeReassignModal()">Cancel</button>
-                                <button class="confirm-btn" type="button" onclick="confirmMove()">Confirm Move</button>
-                            </div>
+            <!-- Quick Reassign Modal -->
+            <div class="modal" id="reassignModal" role="dialog" aria-modal="true" aria-label="Reassign Student Modal">
+                <div class="modal-content">
+                    <h4>Move Student to Another Class</h4>
+                    <p>Select destination class for Student <span id="moveStudentId"></span>:</p>
+                    <select id="destinationClass" aria-label="Destination Class">
+                        <!-- Classes will be populated by JavaScript -->
+                    </select>
+                    <div class="warning-message" id="moveWarning" style="display: none;">
+                        ⚠️ This move will cause constraint violations
+                    </div>
+                    <div class="modal-actions">
+                        <button class="cancel-btn" type="button" onclick="closeReassignModal()">Cancel</button>
+                        <button class="confirm-btn" type="button" onclick="confirmMove()">Confirm Move</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filter Modal -->
+            <div class="modal" id="filterModal" role="dialog" aria-modal="true" aria-label="Filter Students Modal">
+                <div class="modal-content">
+                    <h4>Filter Students</h4>
+                    <div class="filter-group">
+                        <label>Academic Score Range:</label>
+                        <div class="range-inputs">
+                            <input type="number" id="academicMin" placeholder="Min">
+                            <span>to</span>
+                            <input type="number" id="academicMax" placeholder="Max">
                         </div>
                     </div>
-
-                    <!-- Filter Modal -->
-                    <div class="modal" id="filterModal" role="dialog" aria-modal="true" aria-label="Filter Students Modal">
-                        <div class="modal-content">
-                            <h4>Filter Students</h4>
-                            <div class="filter-group">
-                                <label>Academic Score Range:</label>
-                                <div class="range-inputs">
-                                    <input type="number" id="academicMin" placeholder="Min">
-                                    <span>to</span>
-                                    <input type="number" id="academicMax" placeholder="Max">
-                                </div>
-                            </div>
-                            <div class="filter-group">
-                                <label>Wellbeing Score Range:</label>
-                                <div class="range-inputs">
-                                    <input type="number" id="wellbeingMin" placeholder="Min">
-                                    <span>to</span>
-                                    <input type="number" id="wellbeingMax" placeholder="Max">
-                                </div>
-                            </div>
-                            <div class="filter-group">
-                                <label>Show only:</label>
-                                <div class="checkbox-group">
-                                    <label><input type="checkbox" id="filterHighRisk"> High Risk Students</label>
-                                    <label><input type="checkbox" id="filterNeedsAttention"> Needs Attention</label>
-                                    <label><input type="checkbox" id="filterBullying"> Bullying Issues</label>
-                                </div>
-                            </div>
-                            <div class="modal-actions">
-                                <button class="cancel-btn" type="button" onclick="closeFilterModal()">Cancel</button>
-                                <button class="confirm-btn" type="button" onclick="applyFilters()">Apply Filters</button>
-                            </div>
+                    <div class="filter-group">
+                        <label>Wellbeing Score Range:</label>
+                        <div class="range-inputs">
+                            <input type="number" id="wellbeingMin" placeholder="Min">
+                            <span>to</span>
+                            <input type="number" id="wellbeingMax" placeholder="Max">
                         </div>
+                    </div>
+                    <div class="filter-group">
+                        <label>Show only:</label>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" id="filterHighRisk"> High Risk Students</label>
+                            <label><input type="checkbox" id="filterNeedsAttention"> Needs Attention</label>
+                            <label><input type="checkbox" id="filterBullying"> Bullying Issues</label>
+                        </div>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="cancel-btn" type="button" onclick="closeFilterModal()">Cancel</button>
+                        <button class="confirm-btn" type="button" onclick="applyFilters()">Apply Filters</button>
                     </div>
                 </div>
             </div>

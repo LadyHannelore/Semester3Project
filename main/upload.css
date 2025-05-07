@@ -1,0 +1,114 @@
+/* Additional styles specific to upload page */
+.upload-section {
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.upload-section h2 {
+    margin-bottom: 1.5rem;
+    color: #2d3748;
+}
+
+.file-upload {
+    border: 2px dashed #cbd5e0;
+    padding: 2rem;
+    text-align: center;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.file-upload:hover {
+    border-color: #4299e1;
+}
+
+.file-upload input[type="file"] {
+    display: none;
+}
+
+.preview-table {
+    width: 100%;
+    margin-top: 1.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.preview-table th {
+    background-color: #f7fafc;
+}
+
+.validation-result {
+    margin: 1rem 0;
+    padding: 1rem;
+    border-radius: 0.5rem;
+}
+
+.validation-success {
+    background-color: #c6f6d5;
+    color: #2f855a;
+}
+
+.validation-error {
+    background-color: #fed7d7;
+    color: #c53030;
+}
+
+.synthetic-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+.option-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.option-group input[type="checkbox"] {
+    width: 1.2rem;
+    height: 1.2rem;
+}
+
+.dataset-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.summary-card {
+    background-color: #f7fafc;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    text-align: center;
+}
+
+.summary-card h4 {
+    color: #4a5568;
+    margin-bottom: 0.5rem;
+}
+
+.summary-card .value {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.placeholder {
+    text-align: center;
+    padding: 2rem;
+    color: #718096;
+    font-style: italic;
+}
+
+/* Main content scrolling */
+.main-content {
+    overflow-y: auto; /* Enable vertical scrolling */
+}

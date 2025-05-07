@@ -44,6 +44,7 @@
     background-color: var(--gray-bg);
     padding: 2rem;
     gap: 2rem;
+    overflow-y: auto; /* Enable vertical scrolling */
 }
 
 /* Header styles */
@@ -162,15 +163,18 @@
     background-color: white;
     border-radius: 1rem;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    display: flex;
+    overflow: auto; /* Enable both vertical and horizontal scrolling */
+    overflow-y: auto; /* Allow scrolling within the table container */
+    display: block; /* Ensure proper scrolling behavior */
     flex-direction: column;
     flex: 1;
     min-height: 0;
 }
 
 .data-table {
-    width: 100%;
+    table-layout: auto; /* Allow columns to adjust naturally */
+    width: 100%; /* Ensure the table takes full width */
+    white-space: nowrap; /* Prevent text wrapping in cells */
     border-collapse: separate;
     border-spacing: 0;
 }
@@ -185,6 +189,8 @@
     position: sticky;
     top: 0;
     z-index: 10;
+    height: auto; /* Ensure normal row heights */
+    width: auto; /* Ensure normal column widths */
 }
 
 .sortable {
@@ -206,6 +212,8 @@
     padding: 1rem 1.5rem;
     border-bottom: 1px solid var(--gray-border);
     color: var(--gray-text);
+    height: auto; /* Ensure normal row heights */
+    width: auto; /* Ensure normal column widths */
 }
 
 .data-table tbody tr {
@@ -252,12 +260,6 @@
 }
 
 .pagination-controls {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-}
-
-.pagination-button {
     padding: 0.75rem 1.5rem;
     border: 2px solid var(--gray-border);
     border-radius: 0.75rem;

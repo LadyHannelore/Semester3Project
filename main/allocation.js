@@ -219,15 +219,15 @@ function showResults() {
 
     // Update metrics
     const metrics = allocationResults.metrics;
-    document.getElementById('resultsTotalStudents').textContent = metrics.totalStudents;
-    document.getElementById('resultsNumClasses').textContent = metrics.numClasses;
-    document.getElementById('resultsAvgAcademic').textContent = metrics.avgAcademic.toFixed(1);
-    document.getElementById('resultsAvgWellbeing').textContent = metrics.avgWellbeing.toFixed(1);
+    document.getElementById('resultsTotalStudents').textContent = metrics.totalStudents || '-';
+    document.getElementById('resultsNumClasses').textContent = metrics.numClasses || '-';
+    document.getElementById('resultsAvgAcademic').textContent = metrics.avgAcademic ? metrics.avgAcademic.toFixed(1) : '-';
+    document.getElementById('resultsAvgWellbeing').textContent = metrics.avgWellbeing ? metrics.avgWellbeing.toFixed(1) : '-';
 
-    document.getElementById('balance-score').textContent = (metrics.balanceScore * 100).toFixed(1) + '%';
-    document.getElementById('diversity-score').textContent = (metrics.diversityScore * 100).toFixed(1) + '%';
-    document.getElementById('constraint-satisfaction').textContent = (metrics.constraintSatisfaction * 100).toFixed(1) + '%';
-    document.getElementById('processing-time').textContent = metrics.processingTime;
+    document.getElementById('balance-score').textContent = metrics.balanceScore ? (metrics.balanceScore * 100).toFixed(1) + '%' : '-';
+    document.getElementById('diversity-score').textContent = metrics.diversityScore ? (metrics.diversityScore * 100).toFixed(1) + '%' : '-';
+    document.getElementById('constraint-satisfaction').textContent = metrics.constraintSatisfaction ? (metrics.constraintSatisfaction * 100).toFixed(1) + '%' : '-';
+    document.getElementById('processing-time').textContent = metrics.processingTime || '-';
 
     // Update violations
     const violationsList = document.querySelector('.constraint-violations ul');
@@ -246,8 +246,8 @@ function showResults() {
         row.innerHTML = `
             <td>Class ${index + 1}</td>
             <td>${classData.students.length}</td>
-            <td>${classData.avgAcademic.toFixed(1)}</td>
-            <td>${classData.avgWellbeing.toFixed(1)}</td>
+            <td>${classData.avgAcademic ? classData.avgAcademic.toFixed(1) : '-'}</td>
+            <td>${classData.avgWellbeing ? classData.avgWellbeing.toFixed(1) : '-'}</td>
         `;
         resultsTableBody.appendChild(row);
     });
