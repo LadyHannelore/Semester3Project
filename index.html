@@ -1,10 +1,127 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>My GitHub Pages Site</title>
-  <meta http-equiv="refresh" content="0;url=/index.html" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClassForge - Admin Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
-  <h1>Hello World!</h1>
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="logo">
+                <h1>ClassForge</h1>
+            </div>
+            <ul class="nav-links">
+                <li class="active"><a href="index.html"><span class="icon">📊</span> Overview</a></li>
+                <li><a href="upload.html"><span class="icon">📤</span> Upload & Simulate</a></li>
+                <li><a href="student-explorer.html"><span class="icon">👥</span> Student Explorer</a></li>
+                <li><a href="allocation.html"><span class="icon">🎯</span> Group Allocation</a></li>
+                <li><a href="classroom.html"><span class="icon">🏫</span> Classroom View</a></li>
+                <li><a href="overrides.html"><span class="icon">⚙️</span> Manual Overrides</a></li>
+                <li><a href="settings.html"><span class="icon">⚙️</span> Settings</a></li>
+                <li><a href="reports.html"><span class="icon">📑</span> Reports & Exports</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content dashboard-main" role="main">
+            <!-- Professional Top Bar -->
+            <header class="top-bar" aria-label="Dashboard Header">
+                <div class="top-bar-left">
+                    <h2>Admin Dashboard</h2>
+                </div>
+                <div class="top-bar-right user-info" aria-label="User Info">
+                    <span class="user-name" id="userName">Admin User</span>
+                    <span class="user-avatar" aria-label="User Avatar">👤</span>
+                </div>
+            </header>
+
+            <!-- Summary Cards (Dynamic) -->
+            <section class="summary-cards" aria-label="Summary Statistics">
+                <div class="card" id="cardTotalStudents">
+                    <h3>Total Students</h3>
+                    <p class="number" id="totalStudents"><span class="loading-placeholder">--</span></p>
+                </div>
+                <div class="card" id="cardTotalClasses">
+                    <h3>Total Classes</h3>
+                    <p class="number" id="totalClasses"><span class="loading-placeholder">--</span></p>
+                </div>
+                <div class="card" id="cardAvgAcademicScore">
+                    <h3>Avg Academic Score</h3>
+                    <p class="number" id="avgAcademicScore"><span class="loading-placeholder">--</span></p>
+                </div>
+                <div class="card" id="cardAvgWellbeingScore">
+                    <h3>Avg Wellbeing Score</h3>
+                    <p class="number" id="avgWellbeingScore"><span class="loading-placeholder">--</span></p>
+                </div>
+                <div class="card" id="cardHighRiskBullies">
+                    <h3>High-Risk Bullies</h3>
+                    <p class="number" id="highRiskBullies"><span class="loading-placeholder">--</span></p>
+                </div>
+                <div class="card" id="cardUnassignedStudents">
+                    <h3>Unassigned Students</h3>
+                    <p class="number" id="unassignedStudents"><span class="loading-placeholder">--</span></p>
+                </div>
+            </section>
+
+            <!-- Charts Section (Dynamic) -->
+            <section class="charts-section" aria-label="Data Visualizations">
+                <div class="chart-container" id="academicScoreChartContainer">
+                    <h4>Academic Score Distribution <span style="font-weight:normal;font-size:0.9em;">(Pie Chart)</span></h4>
+                    <canvas id="academicScoreChart" aria-label="Academic Score Chart" width="500" height="500" style="width:500px;height:500px;max-width:500px;max-height:500px;display:block;"></canvas>
+                    <div class="chart-loading" id="academicScoreChartLoading">Loading...</div>
+                </div>
+                <div class="chart-container" id="wellbeingScoreChartContainer">
+                    <h4>Wellbeing Score Distribution <span style="font-weight:normal;font-size:0.9em;">(Pie Chart)</span></h4>
+                    <canvas id="wellbeingScoreChart" aria-label="Wellbeing Score Chart" width="500" height="500" style="width:500px;height:500px;max-width:500px;max-height:500px;display:block;"></canvas>
+                    <div class="chart-loading" id="wellbeingScoreChartLoading">Loading...</div>
+                </div>
+                <div class="chart-container" id="bullyingRiskChartContainer">
+                    <h4>Bullying Risk Levels <span style="font-weight:normal;font-size:0.9em;">(Line Chart)</span></h4>
+                    <canvas id="bullyingRiskChart" aria-label="Bullying Risk Chart" width="500" height="500" style="width:500px;height:500px;max-width:500px;max-height:500px;display:block;"></canvas>
+                    <div class="chart-loading" id="bullyingRiskChartLoading">Loading...</div>
+                </div>
+            </section>
+
+            <!-- Recent Activity (Dynamic) -->
+            <section class="recent-activity" aria-label="Recent Activity Log">
+                <h3>Recent Activity</h3>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date/Time</th>
+                                <th>Activity</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody id="activityLog" aria-live="polite">
+                            <tr>
+                                <td colspan="3" class="loading-placeholder">Loading activity...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Action Buttons -->
+            <footer class="action-buttons-footer" aria-label="Quick Actions">
+                <button class="action-btn" type="button" onclick="window.location.href='upload.html'">
+                    <span class="icon">📤</span> Upload / Simulate Data
+                </button>
+                <button class="action-btn primary" type="button" onclick="window.location.href='allocation.html'">
+                    <span class="icon">⚙️</span> Run Group Allocation
+                </button>
+                <button class="action-btn" type="button" onclick="window.location.href='student-explorer.html'">
+                    <span class="icon">🔎</span> Explore Students
+                </button>
+            </footer>
+        </main>
+    </div>
+    <script src="script.js"></script>
 </body>
 </html>
