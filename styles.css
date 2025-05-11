@@ -14,19 +14,21 @@ body {
 
 .container {
     display: flex;
+    flex-direction: row;
     min-height: 100vh;
     position: relative;
 }
 /* Sidebar Styles */
 .sidebar {
-    width: 250px;
+    width: 240px;
+    flex-shrink: 0;
     background-color: #1a202c;
     color: #fff;
     padding: 1.5rem;
     position: fixed;
     height: 100vh;
     overflow-y: auto;
-    transform: translateX(-250px); /* Hide sidebar by default */
+    transform: translateX(-240px); /* Hide sidebar by default */
     transition: transform 0.3s ease;
     z-index: 1000; /* Ensure it appears above other content */
 }
@@ -80,7 +82,7 @@ body {
 /* Main Content Styles */
 .main-content {
     flex: 1;
-    margin-left: 250px; /* Ensure content starts 250px from the left */
+    margin-left: 0;
     padding: 2rem;
     overflow-y: auto; /* Enable vertical scrolling */
     transition: margin-left 0.3s ease; /* Smooth transition for content shift */

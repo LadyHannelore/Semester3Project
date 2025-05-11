@@ -2,7 +2,7 @@
 .main-content {
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    /* height: 100vh; */
     background-color: #f8fafc;
     padding: 2rem;
     gap: 2rem;
