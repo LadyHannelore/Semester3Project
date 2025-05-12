@@ -3,120 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ClassForge - Upload & Simulate Data</title>
+    <title>ClassForge - Upload & Simulate</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="upload.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        /* Additional styles specific to upload page */
-        .upload-section {
-            background-color: #fff;
-            padding: 2rem;
-            border-radius: 0.75rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            margin-bottom: 2rem;
-        }
-
-        .upload-section h2 {
-            margin-bottom: 1.5rem;
-            color: #2d3748;
-        }
-
-        .file-upload {
-            border: 2px dashed #cbd5e0;
-            padding: 2rem;
-            text-align: center;
-            border-radius: 0.5rem;
-            margin-bottom: 1.5rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .file-upload:hover {
-            border-color: #4299e1;
-        }
-
-        .file-upload input[type="file"] {
-            display: none;
-        }
-
-        .preview-table {
-            width: 100%;
-            margin-top: 1.5rem;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.5rem;
-            overflow: hidden;
-        }
-
-        .preview-table th {
-            background-color: #f7fafc;
-        }
-
-        .validation-result {
-            margin: 1rem 0;
-            padding: 1rem;
-            border-radius: 0.5rem;
-        }
-
-        .validation-success {
-            background-color: #c6f6d5;
-            color: #2f855a;
-        }
-
-        .validation-error {
-            background-color: #fed7d7;
-            color: #c53030;
-        }
-
-        .synthetic-options {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin: 1.5rem 0;
-        }
-
-        .option-group {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .option-group input[type="checkbox"] {
-            width: 1.2rem;
-            height: 1.2rem;
-        }
-
-        .dataset-summary {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-
-        .summary-card {
-            background-color: #f7fafc;
-            padding: 1rem;
-            border-radius: 0.5rem;
-            text-align: center;
-        }
-
-        .summary-card h4 {
-            color: #4a5568;
-            margin-bottom: 0.5rem;
-        }
-
-        .summary-card .value {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #2d3748;
-        }
-
-        .placeholder {
-            text-align: center;
-            padding: 2rem;
-            color: #718096;
-            font-style: italic;
-        }
-    </style>
 </head>
 <body>
     <div class="container">
@@ -131,75 +21,102 @@
                 <li><a href="student-explorer.html"><span class="icon">👥</span> Student Explorer</a></li>
                 <li><a href="allocation.html"><span class="icon">🎯</span> Group Allocation</a></li>
                 <li><a href="classroom.html"><span class="icon">🏫</span> Classroom View</a></li>
-                 <li><a href="overrides.html"><span class="icon">⚙️</span> Manual Overrides</a></li>
+                <li><a href="overrides.html"><span class="icon">⚙️</span> Manual Overrides</a></li>
                 <li><a href="settings.html"><span class="icon">⚙️</span> Settings</a></li>
-                <li><a href="reports.html"><span class="icon">📑</span> Reports & Exports</a></li>
             </ul>
         </nav>
 
         <!-- Main Content -->
-        <main class="main-content" role="main" aria-label="Upload & Simulate">
-            <header class="top-bar">
-                <h2>Upload & Simulate Data</h2>
+        <main class="main-content">
+            <header class="top-bar fade-in">
+                <div class="header-content">
+                    <h2>Upload & Simulate</h2>
+                    <p class="subtitle">Upload student data or generate synthetic data</p>
+                </div>
                 <div class="user-info">
                     <span class="user-name">Admin User</span>
                     <span class="user-avatar">👤</span>
                 </div>
             </header>
 
-            <!-- Section 1: Upload Real Data -->
-            <section class="upload-section">
-                <h2>🗂 Upload Real Data</h2>
-                <div class="file-upload" id="dropZone">
-                    <input type="file" id="fileInput" accept=".csv">
-                    <p>Drag and drop your CSV file here or click to browse</p>
+            <div class="data-options-container slide-up">
+                <!-- Upload Data Section -->
+                <section class="upload-section">
+                    <h3>📤 Upload Data</h3>
+                    <form id="upload-form" class="upload-form">
+                        <div class="file-upload-container">
+                            <label for="file-upload" class="file-upload-label">
+                                <span class="icon">📁</span> Choose CSV File
+                            </label>
+                            <input type="file" id="file-upload" accept=".csv" hidden>
+                            <span id="file-details" class="file-details" style="display: none;"></span>
+                        </div>
+                        <button type="submit" class="upload-btn">
+                            <span class="icon">📤</span> Upload & Process
+                        </button>
+                    </form>
+                </section>
+
+                <!-- Generate Data Section -->
+                <section class="generate-section">
+                    <h3>🧪 Generate Synthetic Data</h3>
+                    <div class="generation-controls">
+                        <div class="control-group">
+                            <label for="studentCount">Number of Students</label>
+                            <input type="number" id="studentCount" min="10" max="1000" value="100">
+                        </div>
+                        <div class="control-group">
+                            <label for="meanAcademic">Mean Academic Score</label>
+                            <input type="number" id="meanAcademic" min="0" max="100" value="70">
+                        </div>
+                        <div class="control-group">
+                            <label for="stdAcademic">Academic Score Std Dev</label>
+                            <input type="number" id="stdAcademic" min="1" max="30" value="15">
+                        </div>
+                        <div class="control-group">
+                            <label for="meanWellbeing">Mean Wellbeing Score</label>
+                            <input type="number" id="meanWellbeing" min="0" max="10" value="6.5" step="0.1">
+                        </div>
+                        <div class="control-group">
+                            <label for="stdWellbeing">Wellbeing Score Std Dev</label>
+                            <input type="number" id="stdWellbeing" min="0.1" max="3" value="1.5" step="0.1">
+                        </div>
+                        <div class="control-group">
+                            <label for="bullyingPercent">Bullying Percentage</label>
+                            <input type="number" id="bullyingPercent" min="0" max="50" value="10">
+                        </div>
+                    </div>
+                    <button id="generateBtn" class="generate-btn">
+                        <span class="icon">🔄</span> Generate Data
+                    </button>
+                </section>
+            </div>
+
+            <!-- Data Preview Section -->
+            <section class="data-preview-section slide-up" style="display: none;">
+                <h3>👁️ Data Preview</h3>
+                <div class="table-container">
+                    <table id="data-preview-table">
+                        <thead>
+                            <tr id="preview-headers"></tr>
+                        </thead>
+                        <tbody id="preview-body"></tbody>
+                    </table>
                 </div>
-                <button class="action-btn" type="button" onclick="validateDataset()">Validate Dataset</button>
-                <div id="validationResult" aria-live="polite"></div>
-                <button class="action-btn" type="button" onclick="togglePreviewTable()">Show Table</button>
-                <div id="previewTableWrapper" style="overflow-x: auto; display: none;">
-                    <div id="previewTable"></div>
+                <div class="preview-actions">
+                    <button id="useDataBtn" class="use-data-btn">
+                        <span class="icon">✅</span> Use This Data
+                    </button>
                 </div>
-                <button class="action-btn" type="button" onclick="useUploadedData()" style="margin-top: 1rem;">Use This Data</button>
             </section>
 
-            <!-- Section 2: Generate Synthetic Data -->
-            <section class="upload-section">
-                <h2>🛠 Generate Synthetic Data</h2>
-                <div class="synthetic-options">
-                    <div class="option-group">
-                        <label for="studentCount">Number of students:</label>
-                        <input type="number" id="studentCount" min="100" max="10000" value="1000" step="100">
-                    </div>
-                    <div class="option-group">
-                        <input type="checkbox" id="includeSocial" checked>
-                        <label for="includeSocial">Include Social Columns</label>
-                    </div>
-                    <div class="option-group">
-                        <input type="checkbox" id="includeMentalHealth" checked>
-                        <label for="includeMentalHealth">Add Mental Health Scores</label>
-                    </div>
-                </div>
-                <button class="action-btn" type="button" onclick="generateSyntheticData()">Generate Dataset</button>
-                <div id="syntheticPreview" aria-live="polite"></div>
-                <button class="action-btn" type="button" onclick="useSyntheticData()" style="margin-top: 1rem;">Use This Synthetic Data</button>
-            </section>
-
-            <!-- Section 3: Dataset Summary -->
-            <section class="upload-section">
-                <h2>📊 Dataset Summary</h2>
-                <div id="datasetSummary" aria-live="polite">
-                    <div class="placeholder">No dataset loaded yet</div>
-                </div>
-            </section>
-
-            <!-- Footer Actions -->
-            <div class="action-buttons">
-                <button class="action-btn" type="button" onclick="window.location.href='student-explorer.html'">
-                    <span class="icon">🔎</span> Explore Students
+            <!-- Footer Navigation -->
+            <div class="action-buttons fade-in">
+                <button class="action-btn" onclick="window.location.href='index.html'">
+                    <span class="icon">↩</span> Back to Overview
                 </button>
-                <button class="action-btn" type="button" onclick="window.location.href='allocation.html'">
-                    <span class="icon">⚙️</span> Run Group Allocation
+                <button class="action-btn primary" onclick="window.location.href='student-explorer.html'">
+                    <span class="icon">👥</span> Explore Student Data
                 </button>
             </div>
         </main>

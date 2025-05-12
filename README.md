@@ -21,51 +21,78 @@ ClassForge is an educational toolkit designed to automate and optimize classroom
 - The backend (Flask server) processes optimization requests.  
 - A separate script runs advanced ML or GA approaches.  
 
+## Project Structure
+The project is organized as follows:
+
+```
+ClassForge/
+├── backend/              # Server-side Python code
+│   ├── app.py            # Main Flask application
+│   ├── models/           # Data models
+│   ├── services/         # Business logic including GA
+│   │   └── ga.py         # Genetic Algorithm implementation
+│   └── utils/            # Helper functions
+├── frontend/             # Client-side code
+│   ├── assets/
+│   │   ├── css/          # Stylesheets
+│   │   ├── js/           # JavaScript files
+│   │   └── images/       # Image resources
+│   ├── pages/            # HTML templates
+│   │   ├── allocation.html
+│   │   ├── classroom.html
+│   │   └── ... 
+│   └── index.html        # Main entry point
+├── data/                 # Data files
+│   ├── synthetic_student_data.csv
+│   └── synthetic_student_data_1000.csv
+├── docs/                 # Additional documentation
+├── requirements.txt      # Python dependencies
+└── README.md             # This file
+```
+
 ## File Descriptions
 
-### Python Files
-- **ga.py**: Implements the Genetic Algorithm (GA) for classroom allocation. The file includes the following functionalities:
-  1. **Configuration & Setup**: Defines constants like the number of students, class size targets, and constraints for wellbeing and bullying.
-  2. **Predictive Analytics**: Uses machine learning models (XGBoost and Random Forest) to predict academic success, wellbeing decline, and peer collaboration based on student data.
-  3. **Genetic Algorithm**: Optimizes classroom assignments by minimizing violations of constraints such as class size, academic balance, and bullying distribution. The algorithm uses evolutionary techniques like mutation and crossover to find the best solution.
-  4. **Flask API**: Provides endpoints for running the allocation algorithm and generating synthetic data. The `/allocate` endpoint accepts student data and parameters, runs the GA, and returns the optimized classroom assignments.
-  5. **Metrics & Violations**: Calculates metrics like average academic performance, wellbeing, and constraint satisfaction. It also identifies violations such as exceeding class size limits or having too many bullies in a class.
+### Backend Components
+- **services/ga.py**: Implements the Genetic Algorithm (GA) for classroom allocation with the following functionalities:
+  1. **Configuration & Setup**: Defines constants like the number of students, class size targets, and constraints.
+  2. **Predictive Analytics**: Uses machine learning models to predict academic success, wellbeing decline, and peer collaboration.
+  3. **Genetic Algorithm**: Optimizes classroom assignments by minimizing violations of constraints.
+  4. **Flask API**: Provides endpoints for running the allocation algorithm and generating synthetic data.
+  5. **Metrics & Violations**: Calculates metrics and identifies constraint violations.
 
-This file is the core backend logic for optimizing classroom assignments using advanced algorithms.
+### Frontend Components
+- **assets/js/pages/upload.js**: Handles file uploads and data preprocessing for simulation.
+- **assets/js/pages/student-explorer.js**: Manages the student explorer interface.
+- **assets/js/pages/settings.js**: Handles application settings and configurations.
+- **assets/js/script.js**: Initializes the dashboard and manages navigation.
+- **assets/js/pages/reports.js**: Generates and exports reports in CSV and PDF formats.
+- **assets/js/pages/overrides.js**: Enables manual overrides for student-class assignments.
+- **assets/js/pages/classroom.js**: Displays detailed classroom assignments and metrics.
+- **assets/js/pages/allocation.js**: Manages the allocation process and algorithm configuration.
 
-### JavaScript Files
-- **upload.js**: Handles file uploads and data preprocessing for simulation.
-- **student-explorer.js**: Manages the student explorer interface, allowing users to view and search student details.
-- **settings.js**: Handles application settings and configurations.
-- **script.js**: Initializes the dashboard and manages navigation.
-- **reports.js**: Generates and exports reports in CSV and PDF formats.
-- **overrides.js**: Enables manual overrides for student-class assignments.
-- **classroom.js**: Displays detailed classroom assignments and metrics.
-- **allocation.js**: Manages the allocation process, including parameter configuration and running the Genetic Algorithm.
+### HTML Pages
+- **frontend/pages/upload.html**: Interface for uploading student data and running simulations.
+- **frontend/pages/student-explorer.html**: Displays student details and allows searching/filtering.
+- **frontend/pages/settings.html**: Interface for managing application settings.
+- **frontend/pages/reports.html**: Provides options to generate and export reports.
+- **frontend/pages/overrides.html**: Interface for manually adjusting student-class assignments.
+- **frontend/pages/classroom.html**: Displays classroom assignments and metrics.
+- **frontend/pages/allocation.html**: Interface for configuring and running the allocation algorithm.
+- **frontend/index.html**: Main dashboard for navigating the application.
 
-### HTML Files
-- **upload.html**: Interface for uploading student data and running simulations.
-- **student-explorer.html**: Displays student details and allows searching/filtering.
-- **settings.html**: Interface for managing application settings.
-- **reports.html**: Provides options to generate and export reports.
-- **overrides.html**: Interface for manually adjusting student-class assignments.
-- **classroom.html**: Displays classroom assignments and metrics.
-- **allocation.html**: Interface for configuring and running the allocation algorithm.
-- **index.html**: Main dashboard for navigating the application.
-
-### CSS Files
-- **styles.css**: Global styles for the application.
-- **upload.css**: Styles specific to the upload page.
-- **student-explorer.css**: Styles for the student explorer interface.
-- **settings.css**: Styles for the settings page.
-- **reports.css**: Styles for the reports and exports page.
-- **overrides.css**: Styles for the manual overrides interface.
-- **classroom.css**: Styles for the classroom view.
-- **allocation.css**: Styles for the allocation configuration page.
+### CSS Stylesheets
+- **assets/css/styles.css**: Global styles for the application.
+- **assets/css/pages/upload.css**: Styles specific to the upload page.
+- **assets/css/pages/student-explorer.css**: Styles for the student explorer interface.
+- **assets/css/pages/settings.css**: Styles for the settings page.
+- **assets/css/pages/reports.css**: Styles for the reports and exports page.
+- **assets/css/pages/overrides.css**: Styles for the manual overrides interface.
+- **assets/css/pages/classroom.css**: Styles for the classroom view.
+- **assets/css/pages/allocation.css**: Styles for the allocation configuration page.
 
 ### Data Files
-- **synthetic_student_data.csv**: Sample dataset for testing the application.
-- **synthetic_student_data_1000.csv**: Larger sample dataset for scalability testing.
+- **data/synthetic_student_data.csv**: Sample dataset for testing the application.
+- **data/synthetic_student_data_1000.csv**: Larger sample dataset for scalability testing.
 
 ## Theoretical Explanation of the Code
 
@@ -88,9 +115,9 @@ From a scalability perspective, the system is designed to handle large datasets 
 In summary, the ClassForge project represents a comprehensive solution to the complex problem of classroom assignment. By combining advanced algorithms, predictive analytics, and user-centric design, it provides a powerful tool for educators and administrators. The system's theoretical foundation ensures that it is both scientifically rigorous and practically effective, making it a valuable asset for modern educational institutions.
 
 ## Getting Started
-1. Ensure you have a Python environment and install dependencies (e.g., Flask).  
-2. Run the backend server.  
-3. Open index.html to begin using ClassForge.  
+1. Ensure you have a Python environment and install dependencies using `pip install -r requirements.txt`
+2. Run the backend server with `python backend/app.py`
+3. Open `frontend/index.html` in your browser to begin using ClassForge
 
 ## License & Contribution
 Open for educational discussions and improvements. Feel free to send pull requests or suggestions.

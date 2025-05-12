@@ -8,11 +8,18 @@ let sortDirection = 'asc';
 let flaggedStudents = new Set();
 let currentProfileStudentId = null; // Added for reliable flagging
 
-// Initialize the page
+// Add initialization function to maintain proper structure
 document.addEventListener('DOMContentLoaded', function() {
-    loadDataset();
+    // Initialize student explorer functionality
+    loadData();
     initializeEventListeners();
 });
+
+// Load data from localStorage or API
+function loadData() {
+    // Implementation will be added later
+    console.log('Loading student data...');
+}
 
 // Load dataset from localStorage
 function loadDataset() {
