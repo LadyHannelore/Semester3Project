@@ -242,12 +242,21 @@ function showResults() {
     const resultsTableBody = document.getElementById('resultsTableBody');
     resultsTableBody.innerHTML = '';
     allocationResults.classes.forEach((classData, index) => {
+        // Compute avgAcademic and avgWellbeing for this class
+        let avgAcademic = '-';
+        let avgWellbeing = '-';
+        if (classData.students && classData.students.length > 0) {
+            const academicSum = classData.students.reduce((sum, s) => sum + (typeof s.academicScore === 'number' ? s.academicScore : parseFloat(s.academicScore) || 0), 0);
+            const wellbeingSum = classData.students.reduce((sum, s) => sum + (typeof s.wellbeingScore === 'number' ? s.wellbeingScore : parseFloat(s.wellbeingScore) || 0), 0);
+            avgAcademic = (academicSum / classData.students.length).toFixed(1);
+            avgWellbeing = (wellbeingSum / classData.students.length).toFixed(1);
+        }
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>Class ${index + 1}</td>
             <td>${classData.students.length}</td>
-            <td>${classData.avgAcademic ? classData.avgAcademic.toFixed(1) : '-'}</td>
-            <td>${classData.avgWellbeing ? classData.avgWellbeing.toFixed(1) : '-'}</td>
+            <td>${avgAcademic}</td>
+            <td>${avgWellbeing}</td>
         `;
         resultsTableBody.appendChild(row);
     });

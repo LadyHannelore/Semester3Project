@@ -27,6 +27,7 @@
     padding: 2rem;
     gap: 2rem;
     margin: 0 auto; /* Center horizontally */
+    margin-left: 350px;
     overflow-y: auto; /* Enable vertical scrolling */
 }
 
@@ -488,6 +489,40 @@ th:hover .sort-icon {
     display: flex;
     align-items: center;
     gap: 0.5rem;
+}
+
+/* Classroom charts */
+.classroom-charts {
+    display: flex;
+    gap: 3rem;
+    margin-top: 3rem;
+    margin-bottom: 3rem;
+    justify-content: flex-start;
+    align-items: flex-end;
+    background: #fff !important;
+    border-radius: 2rem;
+    box-shadow: 0 8px 32px -4px rgba(0,0,0,0.13), 0 2px 8px rgba(0,0,0,0.06);
+    padding: 4rem 3rem;
+    border: 2px solid #e2e8f0;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+}
+
+.classroom-charts canvas {
+    background: #fff;
+    border-radius: 1.5rem;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+    padding: 2rem;
+    width: 1218px !important;   /* 840px * 1.45 = 1218px (45% wider) */
+    height: 640px !important;  /* 2x previous height */
+    max-width: 100%;
+    max-height: 680px;
+    margin-right: 2.5rem;
+    margin-left: 0;
+    margin-bottom: 0;
+    margin-top: 0;
+    display: block;
 }
 
 /* Responsive design */

@@ -86,6 +86,7 @@ body {
     padding: 2rem;
     overflow-y: auto; /* Enable vertical scrolling */
     transition: margin-left 0.3s ease; /* Smooth transition for content shift */
+    margin-left: 350px;
 }
 
 /* Top Bar Styles */

@@ -99,6 +99,9 @@ function loadClassDetails(classId) {
 
     // Update student table
     updateStudentTable(classData.students);
+
+    // Render classroom-specific charts
+    renderClassroomCharts(classData);
 }
 
 // Update class metrics
@@ -393,4 +396,141 @@ function showError(message) {
             </button>
         </div>
     `;
+}
+
+// --- Classroom-specific charts ---
+let classAcademicChart = null;
+let classWellbeingChart = null;
+let classBullyingChart = null;
+
+function renderClassroomCharts(classData) {
+    // Prepare data
+    const students = classData.students;
+
+    // Academic Score Distribution (histogram)
+    const academicScores = students.map(s => s.academicScore);
+    const academicBins = [0, 50, 60, 70, 80, 90, 100];
+    const academicCounts = Array(academicBins.length - 1).fill(0);
+    academicScores.forEach(score => {
+        for (let i = 0; i < academicBins.length - 1; i++) {
+            if (score >= academicBins[i] && score < academicBins[i + 1]) {
+                academicCounts[i]++;
+                break;
+            }
+            if (score === 100 && i === academicBins.length - 2) {
+                academicCounts[i]++;
+            }
+        }
+    });
+
+    // Wellbeing Score Distribution (histogram)
+    const wellbeingScores = students.map(s => s.wellbeingScore);
+    const wellbeingBins = [0, 2, 4, 6, 8, 10];
+    const wellbeingCounts = Array(wellbeingBins.length - 1).fill(0);
+    wellbeingScores.forEach(score => {
+        for (let i = 0; i < wellbeingBins.length - 1; i++) {
+            if (score >= wellbeingBins[i] && score < wellbeingBins[i + 1]) {
+                wellbeingCounts[i]++;
+                break;
+            }
+            if (score === 10 && i === wellbeingBins.length - 2) {
+                wellbeingCounts[i]++;
+            }
+        }
+    });
+
+    // Bullying Score Distribution (histogram)
+    const bullyingScores = students.map(s => s.bullyingScore);
+    const bullyingBins = [0, 3, 6, 8, 11];
+    const bullyingLabels = ['Low (0-2)', 'Medium (3-5)', 'High (6-7)', 'Very High (8-10)'];
+    const bullyingCounts = [0, 0, 0, 0];
+    bullyingScores.forEach(score => {
+        if (score < 3) bullyingCounts[0]++;
+        else if (score < 6) bullyingCounts[1]++;
+        else if (score < 8) bullyingCounts[2]++;
+        else bullyingCounts[3]++;
+    });
+
+    // Render or update Academic Score Chart
+    const academicCtx = getOrCreateChartCanvas('classAcademicChartContainer', 'classAcademicChart');
+    if (classAcademicChart) classAcademicChart.destroy();
+    classAcademicChart = new Chart(academicCtx, {
+        type: 'bar',
+        data: {
+            labels: ['0-49', '50-59', '60-69', '70-79', '80-89', '90-100'],
+            datasets: [{
+                label: 'Academic Scores',
+                data: academicCounts,
+                backgroundColor: '#4299e1'
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: { x: { title: { display: true, text: 'Score Range' } }, y: { beginAtZero: true, title: { display: true, text: 'Students' } } }
+        }
+    });
+
+    // Render or update Wellbeing Score Chart
+    const wellbeingCtx = getOrCreateChartCanvas('classWellbeingChartContainer', 'classWellbeingChart');
+    if (classWellbeingChart) classWellbeingChart.destroy();
+    classWellbeingChart = new Chart(wellbeingCtx, {
+        type: 'bar',
+        data: {
+            labels: ['0-1', '2-3', '4-5', '6-7', '8-10'],
+            datasets: [{
+                label: 'Wellbeing Scores',
+                data: wellbeingCounts,
+                backgroundColor: '#48bb78'
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: { x: { title: { display: true, text: 'Score Range' } }, y: { beginAtZero: true, title: { display: true, text: 'Students' } } }
+        }
+    });
+
+    // Render or update Bullying Score Chart
+    const bullyingCtx = getOrCreateChartCanvas('classBullyingChartContainer', 'classBullyingChart');
+    if (classBullyingChart) classBullyingChart.destroy();
+    classBullyingChart = new Chart(bullyingCtx, {
+        type: 'bar',
+        data: {
+            labels: bullyingLabels,
+            datasets: [{
+                label: 'Bullying Scores',
+                data: bullyingCounts,
+                backgroundColor: '#f56565'
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: { x: { title: { display: true, text: 'Risk Level' } }, y: { beginAtZero: true, title: { display: true, text: 'Students' } } }
+        }
+    });
+}
+
+// Helper to create or get chart canvas in a container
+function getOrCreateChartCanvas(containerId, canvasId) {
+    let container = document.getElementById(containerId);
+    if (!container) {
+        // Create container if it doesn't exist
+        container = document.createElement('div');
+        container.id = containerId;
+        container.className = 'classroom-charts';
+        // Insert after metrics grid if possible
+        const metricsGrid = document.querySelector('.metrics-grid');
+        if (metricsGrid && metricsGrid.parentElement) {
+            metricsGrid.parentElement.appendChild(container);
+        } else {
+            document.body.appendChild(container);
+        }
+    }
+    let canvas = document.getElementById(canvasId);
+    if (!canvas) {
+        canvas = document.createElement('canvas');
+        canvas.id = canvasId;
+        container.innerHTML = ''; // Clear previous
+        container.appendChild(canvas);
+    }
+    return canvas.getContext('2d');
 }

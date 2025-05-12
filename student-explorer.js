@@ -17,8 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Load data from localStorage or API
 function loadData() {
-    // Implementation will be added later
-    console.log('Loading student data...');
+    loadDataset(); // <-- Actually load the dataset from localStorage
 }
 
 // Load dataset from localStorage

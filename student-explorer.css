@@ -45,6 +45,7 @@
     padding: 2rem;
     gap: 2rem;
     overflow-y: auto; /* Enable vertical scrolling */
+    margin-left: 350px; /* Ensure content starts after sidebar */
 }
 
 /* Header styles */

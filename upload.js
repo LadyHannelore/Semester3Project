@@ -14,6 +14,14 @@ let generationParameters = {
 document.addEventListener('DOMContentLoaded', function() {
     initializeUploadListeners();
     initializeGenerationControls();
+    // Add event listener for generate button
+    const generateBtn = document.getElementById('generateBtn');
+    if (generateBtn) {
+        generateBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            generateSyntheticData();
+        });
+    }
 });
 
 // Set up event listeners for file upload
@@ -34,7 +42,19 @@ function initializeUploadListeners() {
 
 // Initialize generation controls
 function initializeGenerationControls() {
-    // Implementation will be added later
+    // Optionally, update generationParameters when inputs change
+    const paramIds = [
+        'studentCount', 'meanAcademic', 'stdAcademic',
+        'meanWellbeing', 'stdWellbeing', 'bullyingPercent'
+    ];
+    paramIds.forEach(id => {
+        const input = document.getElementById(id);
+        if (input) {
+            input.addEventListener('input', function() {
+                generationParameters[id] = parseFloat(input.value);
+            });
+        }
+    });
     console.log('Generation controls initialized');
 }
 
@@ -60,18 +80,96 @@ function formatFileSize(bytes) {
 
 // Process the uploaded file
 function processUploadedFile() {
-    // Implementation will be added later
     console.log('Processing uploaded file...');
 }
 
 // Generate synthetic data
 function generateSyntheticData() {
-    // Implementation will be added later
-    console.log('Generating synthetic data...');
+    // Read parameters from input fields
+    const params = {
+        studentCount: parseInt(document.getElementById('studentCount').value, 10),
+        meanAcademic: parseFloat(document.getElementById('meanAcademic').value),
+        stdAcademic: parseFloat(document.getElementById('stdAcademic').value),
+        meanWellbeing: parseFloat(document.getElementById('meanWellbeing').value),
+        stdWellbeing: parseFloat(document.getElementById('stdWellbeing').value),
+        bullyingPercent: parseFloat(document.getElementById('bullyingPercent').value)
+    };
+
+    // Generate synthetic data
+    const students = [];
+    for (let i = 0; i < params.studentCount; i++) {
+        const academicScore = Math.max(0, Math.min(100, Math.round(randomNormal(params.meanAcademic, params.stdAcademic))));
+        const wellbeingScore = Math.max(0, Math.min(10, +(randomNormal(params.meanWellbeing, params.stdWellbeing)).toFixed(2)));
+        const bullyingScore = (Math.random() < params.bullyingPercent / 100)
+            ? Math.floor(Math.random() * 4) + 7 // 7-10 for bullies
+            : Math.floor(Math.random() * 7);    // 0-6 for non-bullies
+        students.push({
+            StudentID: i + 1,
+            Academic_Performance: academicScore,
+            Wellbeing_Score: wellbeingScore,
+            Bullying_Score: bullyingScore
+        });
+    }
+    uploadedData = students;
+    previewData(students);
+}
+
+// Helper: random normal distribution
+function randomNormal(mean, std) {
+    // Box-Muller transform
+    let u = 0, v = 0;
+    while(u === 0) u = Math.random();
+    while(v === 0) v = Math.random();
+    return mean + std * Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+}
+
+// Preview data in the table
+function previewData(data) {
+    if (!data || data.length === 0) return;
+    // Show preview section
+    const previewSection = document.querySelector('.data-preview-section');
+    if (previewSection) previewSection.style.display = 'block';
+
+    // Set headers
+    const headers = Object.keys(data[0]);
+    const headerRow = document.getElementById('preview-headers');
+    headerRow.innerHTML = '';
+    headers.forEach(h => {
+        const th = document.createElement('th');
+        th.textContent = h;
+        headerRow.appendChild(th);
+    });
+
+    // Set body
+    const body = document.getElementById('preview-body');
+    body.innerHTML = '';
+    data.slice(0, 20).forEach(row => {
+        const tr = document.createElement('tr');
+        headers.forEach(h => {
+            const td = document.createElement('td');
+            td.textContent = row[h];
+            tr.appendChild(td);
+        });
+        body.appendChild(tr);
+    });
+
+    // Wire up "Use This Data" button
+    const useDataBtn = document.getElementById('useDataBtn');
+    if (useDataBtn) {
+        useDataBtn.onclick = function() {
+            saveData(data);
+            alert('Synthetic data saved! You can now proceed.');
+        };
+    }
 }
 
 // Save data to localStorage
 function saveData(data) {
-    localStorage.setItem('classforgeDataset', JSON.stringify(data));
+    // Convert array of objects to { headers: [...], rows: [...] }
+    if (!Array.isArray(data) || data.length === 0) return;
+    const headers = Object.keys(data[0]);
+    const rows = data.map(row => headers.map(h => row[h]));
+    const dataset = { headers, rows };
+    localStorage.setItem('classforgeDataset', JSON.stringify(dataset));
     console.log('Data saved to localStorage');
 }

@@ -111,6 +111,7 @@
 /* Main content scrolling */
 .main-content {
     overflow-y: auto; /* Enable vertical scrolling */
+    margin-left: 350px; /* Ensure content starts after sidebar */
 }
 
 /* Animations */
@@ -138,11 +139,12 @@
     display: flex;
     flex-direction: column;
     height: 100vh;
-    background-color: #f8fafc;
+    background-color: #fff !important; /* Force white background for the whole main area */
     padding: 2rem;
     gap: 2rem;
     margin: 0 auto;
     overflow-y: auto;
+    margin-left: 200px; /* Ensure content starts after sidebar */
 }
 
 /* Data options container */
@@ -403,6 +405,12 @@ table th {
 @media (max-width: 1024px) {
     .data-options-container {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 900px) {
+    .main-content {
+        margin-left: 0; /* Remove left margin on small screens */
     }
 }
 

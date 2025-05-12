@@ -222,6 +222,19 @@ def solve_with_genetic_algorithm(df, class_size_limit=25, max_bullies_per_class=
 app = Flask(__name__)
 CORS(app)  # Enable CORS to allow requests from the frontend
 
+@app.route("/", methods=["GET"])
+def index():
+    """Root endpoint providing API documentation."""
+    return jsonify({
+        "service": "Classroom Allocation API",
+        "version": "1.0",
+        "endpoints": {
+            "/allocate": "POST - Submit students data and parameters to generate classroom allocations",
+            "/generate": "POST - (Deprecated) Synthetic data generation moved to frontend"
+        },
+        "status": "running"
+    })
+
 @app.route("/allocate", methods=["POST"])
 def allocate():
     try:
