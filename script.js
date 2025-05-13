@@ -1,280 +1,330 @@
-// Initialize dashboard when the DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    loadDashboardData();
-    initializeNavigation();
+    loadDataAndRenderCharts();
 });
 
-// Initialize navigation links and prevent default behavior for empty links
-function initializeNavigation() {
-    const navLinks = document.querySelectorAll('.nav-links a');
-    navLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            const href = this.getAttribute('href');
-            if (href && href !== '#') {
-                // Allow default navigation for actual links
-            } else {
-                e.preventDefault();
-            }
-        });
-    });
-}
-
-// Load dashboard data from localStorage and update UI components
-function loadDashboardData() {
-    const studentData = JSON.parse(localStorage.getItem('classforgeDataset'));
-    const allocationData = JSON.parse(localStorage.getItem('allocationResults'));
-    const modelComparisonData = JSON.parse(localStorage.getItem('modelResults'));
-
-    updateSummaryCards(studentData, allocationData);
-    initializeCharts(studentData);
-    updateRecentActivity(modelComparisonData, studentData);
-}
-
-// Update summary cards with student and allocation data
-function updateSummaryCards(studentData, allocationData) {
-    let totalStudents = 0;
-    let avgAcademicScore = 0;
-    let avgWellbeingScore = 0;
-    let highRiskBulliesCount = 0;
-    let academicScores = [];
-    let wellbeingScores = [];
-
-    if (studentData && studentData.rows && studentData.rows.length > 0) {
-        totalStudents = studentData.rows.length;
-        const academicIndex = studentData.headers.indexOf('Academic_Performance');
-        const wellbeingIndex = studentData.headers.indexOf('Wellbeing_Score');
-        const bullyingIndex = studentData.headers.indexOf('Bullying_Score');
-
-        studentData.rows.forEach(row => {
-            if (academicIndex !== -1) {
-                const score = parseFloat(row[academicIndex]);
-                if (!isNaN(score)) academicScores.push(score);
-            }
-            if (wellbeingIndex !== -1) {
-                const score = parseFloat(row[wellbeingIndex]);
-                if (!isNaN(score)) wellbeingScores.push(score);
-            }
-            if (bullyingIndex !== -1) {
-                const score = parseFloat(row[bullyingIndex]);
-                if (!isNaN(score) && score >= 6) highRiskBulliesCount++;
-            }
-        });
-
-        if (academicScores.length > 0) {
-            avgAcademicScore = academicScores.reduce((sum, score) => sum + score, 0) / academicScores.length;
+// Function to load data and render all charts on the dashboard
+function loadDataAndRenderCharts() {
+    const storedDataJSON = localStorage.getItem('classforgeDataset');
+    if (!storedDataJSON) {
+        console.warn("No data found in localStorage for index charts (classforgeDataset).");
+        const chartGrid = document.querySelector('.charts-grid');
+        if (chartGrid) {
+            chartGrid.innerHTML = '<p style="text-align:center; grid-column: 1 / -1; padding: 2rem; font-size: 1.1rem; color: #718096;">No student data available to display overview charts. Please go to "Upload & Simulate" to load or generate data.</p>';
         }
-        if (wellbeingScores.length > 0) {
-            avgWellbeingScore = wellbeingScores.reduce((sum, score) => sum + score, 0) / wellbeingScores.length;
-        }
-    }
-
-    document.getElementById('totalStudents').textContent = totalStudents;
-    document.getElementById('avgAcademicScore').textContent = avgAcademicScore.toFixed(1);
-    document.getElementById('avgWellbeingScore').textContent = avgWellbeingScore.toFixed(1);
-    document.getElementById('highRiskBullies').textContent = totalStudents > 0 ? ((highRiskBulliesCount / totalStudents) * 100).toFixed(1) + '%' : '0%';
-
-    let totalClasses = 0;
-    let unassignedStudents = 0;
-    if (allocationData && allocationData.classes) {
-        totalClasses = allocationData.classes.length;
-        const assignedStudentIds = new Set();
-        allocationData.classes.forEach(cls => {
-            cls.students.forEach(s => assignedStudentIds.add(String(s.id)));
+        ['schoolAcademicChartContainer', 'schoolWellbeingChartContainer', 'schoolBullyingChartContainer', 'schoolFriendsChartContainer'].forEach(id => {
+            const container = document.getElementById(id);
+            if (container) container.style.display = 'none';
         });
-        if (studentData && studentData.rows) {
-            unassignedStudents = studentData.rows.filter(row => {
-                const studentIdIndex = studentData.headers.indexOf('Student_ID');
-                return studentIdIndex !== -1 && !assignedStudentIds.has(String(row[studentIdIndex]));
-            }).length;
-        }
-    } else if (studentData && studentData.rows) {
-        unassignedStudents = totalStudents;
-    }
-
-    document.getElementById('totalClasses').textContent = totalClasses;
-    document.getElementById('unassignedStudents').textContent = unassignedStudents;
-}
-
-// Initialize charts with student data
-function initializeCharts(studentData) {
-    // Remove loading indicators
-    ['academicScoreChartLoading', 'wellbeingScoreChartLoading', 'bullyingRiskChartLoading'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.display = 'none';
-    });
-
-    const defaultChartOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: { display: false },
-        },
-        scales: {
-            y: { beginAtZero: true, ticks: { precision: 0 } },
-            x: { grid: { display: false } }
-        }
-    };
-
-    // Academic Score Chart (Histogram)
-    if (document.getElementById('academicScoreChart')) {
-        const academicScores = studentData && studentData.rows ? studentData.rows.map(row => parseFloat(row[studentData.headers.indexOf('Academic_Performance')])).filter(s => !isNaN(s)) : [];
-        const academicBins = createHistogramBins(academicScores, 0, 100, 10);
-        new Chart(document.getElementById('academicScoreChart'), {
-            type: 'bar',
-            data: {
-                labels: academicBins.map(b => `${b.min}-${b.max}`),
-                datasets: [{
-                    label: 'Academic Score',
-                    data: academicBins.map(b => b.count),
-                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {...defaultChartOptions, plugins: {...defaultChartOptions.plugins, title: { display: false }}}
-        });
-    }
-
-    // Wellbeing Score Chart (Histogram)
-    if (document.getElementById('wellbeingScoreChart')) {
-        const wellbeingScores = studentData && studentData.rows ? studentData.rows.map(row => parseFloat(row[studentData.headers.indexOf('Wellbeing_Score')])).filter(s => !isNaN(s)) : [];
-        const wellbeingBins = createHistogramBins(wellbeingScores, 0, 10, 5);
-        new Chart(document.getElementById('wellbeingScoreChart'), {
-            type: 'bar',
-            data: {
-                labels: wellbeingBins.map(b => `${b.min}-${b.max}`),
-                datasets: [{
-                    label: 'Wellbeing Score',
-                    data: wellbeingBins.map(b => b.count),
-                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {...defaultChartOptions, plugins: {...defaultChartOptions.plugins, title: { display: false }}}
-        });
-    }
-
-    // Bullying Risk Chart (Pie)
-    if (document.getElementById('bullyingRiskChart')) {
-        const bullyingScores = studentData && studentData.rows ? studentData.rows.map(row => parseFloat(row[studentData.headers.indexOf('Bullying_Score')])).filter(s => !isNaN(s)) : [];
-        const riskLevels = { 'Low (0-2)': 0, 'Medium (3-5)': 0, 'High (6-10)': 0 };
-        bullyingScores.forEach(score => {
-            if (score <= 2) riskLevels['Low (0-2)']++;
-            else if (score <= 5) riskLevels['Medium (3-5)']++;
-            else riskLevels['High (6-10)']++;
-        });
-        new Chart(document.getElementById('bullyingRiskChart'), {
-            type: 'pie',
-            data: {
-                labels: Object.keys(riskLevels),
-                datasets: [{
-                    label: 'Bullying Risk',
-                    data: Object.values(riskLevels),
-                    backgroundColor: [
-                        'rgba(72, 187, 120, 0.8)',
-                        'rgba(246, 173, 85, 0.8)',
-                        'rgba(245, 101, 101, 0.8)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'top' },
-                    title: { display: false }
-                }
-            }
-        });
-    }
-
-    // Limit class-based charts to first 10 classes if such charts exist
-    // Example: If you have a chart showing per-class data, slice to 10 classes:
-    // const classLabels = allClassLabels.slice(0, 10);
-    // const classData = allClassData.slice(0, 10);
-    // ... use classLabels and classData in your chart config ...
-}
-
-// Helper: Histogram binning
-function createHistogramBins(data, min, max, bins) {
-    if (!data || data.length === 0) {
-        return Array.from({length: bins}, (_, i) => ({
-            min: min + i * ((max - min) / bins),
-            max: min + (i + 1) * ((max - min) / bins),
-            count: 0
-        }));
-    }
-    const binSize = (max - min) / bins;
-    const result = Array.from({length: bins}, (_, i) => ({
-        min: min + i * binSize,
-        max: min + (i + 1) * binSize,
-        count: 0
-    }));
-    data.forEach(val => {
-        let idx = Math.floor((val - min) / binSize);
-        if (idx < 0) idx = 0;
-        if (idx >= bins) idx = bins - 1;
-        result[idx].count++;
-    });
-    return result;
-}
-
-// Update recent activity log with model comparison and allocation data
-function updateRecentActivity(modelComparisonData, studentData) {
-    const activityLog = document.getElementById('activityLog');
-    activityLog.innerHTML = '';
-
-    // Example: Compose recent activity from localStorage events
-    const activities = [];
-
-    // Model comparison activity
-    if (modelComparisonData && Array.isArray(modelComparisonData) && modelComparisonData.length > 0) {
-        const preferred = modelComparisonData.find(m => m.preferred);
-        if (preferred) {
-            activities.push({
-                time: new Date().toLocaleString(),
-                activity: 'Model Selected',
-                details: `Preferred model: ${preferred.modelName}`
-            });
-        }
-    }
-
-    // Student data upload/generation
-    if (studentData && studentData.source) {
-        activities.push({
-            time: new Date().toLocaleString(),
-            activity: studentData.source === 'upload' ? 'Data Uploaded' : 'Synthetic Data Generated',
-            details: `Rows: ${studentData.rows.length}`
-        });
-    }
-
-    // Allocation run
-    const allocationData = JSON.parse(localStorage.getItem('allocationResults'));
-    if (allocationData && allocationData.metrics) {
-        activities.push({
-            time: new Date().toLocaleString(),
-            activity: 'Group Allocation',
-            details: `Classes: ${allocationData.metrics.numClasses}, Students: ${allocationData.metrics.totalStudents}`
-        });
-    }
-
-    // Fallback if no activity
-    if (activities.length === 0) {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td colspan="3" style="text-align:center;color:#a0aec0;">No recent activity found.</td>`;
-        activityLog.appendChild(tr);
         return;
     }
 
-    // Show up to 10 recent activities
-    activities.slice(0, 10).forEach(act => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${act.time}</td>
-            <td>${act.activity}</td>
-            <td>${act.details}</td>
-        `;
-        activityLog.appendChild(tr);
+    try {
+        const dataset = JSON.parse(storedDataJSON);
+        console.log("Dataset loaded for index.html charts:", dataset);
+
+        if (!dataset || !dataset.headers || !dataset.rows || !Array.isArray(dataset.headers) || !Array.isArray(dataset.rows)) {
+            console.error("Stored dataset (classforgeDataset) is not in the expected format {headers: [], rows: []}.", dataset);
+            const chartGrid = document.querySelector('.charts-grid');
+            if (chartGrid) {
+                chartGrid.innerHTML = '<p style="text-align:center; grid-column: 1 / -1; padding: 2rem; font-size: 1.1rem; color: #c53030;">Error: Invalid data format in localStorage.</p>';
+            }
+            return;
+        }
+
+        const { headers, rows: studentRows } = dataset;
+
+        if (studentRows.length === 0) {
+            console.warn("No student rows in the dataset for index.html charts.");
+            const chartGrid = document.querySelector('.charts-grid');
+            if (chartGrid) {
+                chartGrid.innerHTML = '<p style="text-align:center; grid-column: 1 / -1; padding: 2rem; font-size: 1.1rem; color: #718096;">Dataset is empty. No charts to display.</p>';
+            }
+            return;
+        }
+
+        const academicCanvas = document.getElementById('schoolAcademicChart');
+        const academicColName = 'Academic_Performance';
+        const academicColIndex = headers.indexOf(academicColName);
+        if (academicCanvas && academicColIndex !== -1) {
+            const academicData = studentRows.map(row => parseFloat(row[academicColIndex])).filter(val => !isNaN(val));
+            console.log("Academic Data for Histogram:", academicData);
+            if (academicData.length > 0) {
+                renderHistogram(academicCanvas, academicData, 'Academic Performance', 'rgba(54, 162, 235, 0.5)', 0, 100, 10);
+            } else {
+                console.warn("No valid academic data to render histogram.");
+                academicCanvas.parentElement.innerHTML += '<p class="chart-empty-message">No academic data.</p>';
+            }
+        } else {
+            console.warn(`Academic Performance column ('${academicColName}') not found or canvas missing.`);
+            if (academicCanvas) academicCanvas.parentElement.innerHTML += `<p class="chart-empty-message">Academic Performance data column not found.</p>`;
+        }
+
+        const wellbeingCanvas = document.getElementById('schoolWellbeingChart');
+        const wellbeingColName = 'Wellbeing_Score';
+        const wellbeingColIndex = headers.indexOf(wellbeingColName);
+        if (wellbeingCanvas && wellbeingColIndex !== -1) {
+            const wellbeingData = studentRows.map(row => parseFloat(row[wellbeingColIndex])).filter(val => !isNaN(val));
+            console.log("Wellbeing Data for Histogram:", wellbeingData);
+            if (wellbeingData.length > 0) {
+                renderHistogram(wellbeingCanvas, wellbeingData, 'Wellbeing Score', 'rgba(75, 192, 192, 0.5)', 0, 10, 1);
+            } else {
+                console.warn("No valid wellbeing data to render histogram.");
+                wellbeingCanvas.parentElement.innerHTML += '<p class="chart-empty-message">No wellbeing data.</p>';
+            }
+        } else {
+            console.warn(`Wellbeing Score column ('${wellbeingColName}') not found or canvas missing.`);
+            if (wellbeingCanvas) wellbeingCanvas.parentElement.innerHTML += `<p class="chart-empty-message">Wellbeing Score data column not found.</p>`;
+        }
+
+        const bullyingCanvas = document.getElementById('schoolBullyingChart');
+        const bullyingColName = 'Bullying_Score';
+        const bullyingColIndex = headers.indexOf(bullyingColName);
+        if (bullyingCanvas && bullyingColIndex !== -1) {
+            const bullyingData = studentRows.map(row => parseFloat(row[bullyingColIndex])).filter(val => !isNaN(val));
+            console.log("Bullying Data for Histogram:", bullyingData);
+            if (bullyingData.length > 0) {
+                renderHistogram(bullyingCanvas, bullyingData, 'Bullying Score', 'rgba(255, 99, 132, 0.5)', 0, 10, 1);
+            } else {
+                console.warn("No valid bullying data to render histogram.");
+                bullyingCanvas.parentElement.innerHTML += '<p class="chart-empty-message">No bullying data.</p>';
+            }
+        } else {
+            console.warn(`Bullying Score column ('${bullyingColName}') not found or canvas missing.`);
+            if (bullyingCanvas) bullyingCanvas.parentElement.innerHTML += `<p class="chart-empty-message">Bullying Score data column not found.</p>`;
+        }
+
+        const friendsGraphCanvas = document.getElementById('schoolFriendsGraph');
+        const studentIdColName = 'StudentID';
+        const friendsColName = 'Friends';
+        const studentIdColIdx = headers.indexOf(studentIdColName);
+        const friendsColIdx = headers.indexOf(friendsColName);
+
+        if (friendsGraphCanvas && studentIdColIdx !== -1 && friendsColIdx !== -1) {
+            console.log("Data for Friends Graph:", studentRows.slice(0, 5));
+            renderSchoolFriendsGraph(friendsGraphCanvas, studentRows, studentIdColIdx, friendsColIdx, 'Schoolwide Friends Network');
+        } else {
+            console.warn(`Required columns for Friends Graph ('${studentIdColName}', '${friendsColName}') not found or canvas missing.`);
+            if (friendsGraphCanvas) friendsGraphCanvas.parentElement.innerHTML += `<p class="chart-empty-message">Friends data columns not found.</p>`;
+        }
+
+    } catch (error) {
+        console.error("Error parsing or processing stored dataset for index charts:", error);
+        const chartGrid = document.querySelector('.charts-grid');
+        if (chartGrid) {
+            chartGrid.innerHTML = `<p style="text-align:center; grid-column: 1 / -1; padding: 2rem; font-size: 1.1rem; color: #c53030;">Error loading chart data: ${error.message}</p>`;
+        }
+    }
+}
+
+function calculateDistribution(data, min, max, step) {
+    const distribution = {};
+    for (let i = min; i < max; i += step) {
+        const rangeLabel = `${i}-${i + step - 1}`;
+        distribution[rangeLabel] = 0;
+    }
+
+    let validScoresCount = 0;
+    data.forEach(value => {
+        const val = parseFloat(value);
+        if (isNaN(val)) {
+            return;
+        }
+        validScoresCount++;
+
+        let foundBin = false;
+        for (let i = min; i < max; i += step) {
+            if (val >= i && val < (i + step)) {
+                const rangeLabel = `${i}-${i + step - 1}`;
+                distribution[rangeLabel]++;
+                foundBin = true;
+                break;
+            }
+        }
+        if (!foundBin && val === max) {
+            const lastBinStart = max - step;
+            const rangeLabel = `${lastBinStart}-${lastBinStart + step - 1}`;
+            if (distribution[rangeLabel] !== undefined) {
+                distribution[rangeLabel]++;
+            }
+        }
     });
+    return distribution;
+}
+
+function renderHistogram(canvas, data, label, color, min, max, step) {
+    if (!canvas || !data || data.length === 0) {
+        if (canvas && canvas.parentElement) {
+            const existingMsg = canvas.parentElement.querySelector('.chart-empty-message');
+            if (existingMsg) existingMsg.remove();
+            canvas.parentElement.innerHTML += `<p class="chart-empty-message">No data available for ${label}.</p>`;
+        }
+        return;
+    }
+    const ctx = canvas.getContext('2d');
+
+    const bins = calculateDistribution(data, min, max, step);
+
+    const chartDataValues = Object.values(bins);
+    if (chartDataValues.every(v => v === 0)) {
+        console.warn(`All bins are zero for histogram "${label}". Chart will appear empty.`);
+        if (canvas.parentElement) {
+            const existingMsg = canvas.parentElement.querySelector('.chart-empty-message');
+            if (existingMsg) existingMsg.remove();
+            canvas.parentElement.innerHTML += `<p class="chart-empty-message">Data available, but all distribution bins are zero for ${label}.</p>`;
+        }
+    }
+
+    if (ctx._chartInstance) {
+        ctx._chartInstance.destroy();
+    }
+    ctx._chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(bins),
+            datasets: [{
+                label: label,
+                data: Object.values(bins),
+                backgroundColor: color,
+                borderColor: color.replace('0.2', '1').replace('0.5', '1'),
+                borderWidth: 1.5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'Number of Students', font: { size: 18 } },
+                    ticks: { font: { size: 14 } }
+                },
+                x: {
+                    title: { display: true, text: label, font: { size: 18 } },
+                    ticks: { font: { size: 14 } }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    labels: { font: { size: 16 } }
+                },
+                title: {
+                    display: true,
+                    text: label,
+                    font: { size: 20, weight: 'bold' },
+                    padding: { top: 10, bottom: 20 }
+                }
+            }
+        }
+    });
+}
+
+function renderSchoolFriendsGraph(canvas, studentRows, studentIdColIndex, friendsColIndex, graphLabel) {
+    if (!canvas) {
+        console.warn("Canvas not found for school friends graph.");
+        return;
+    }
+    const ctx = canvas.getContext('2d');
+
+    if (ctx._chartInstance) {
+        ctx._chartInstance.destroy();
+        ctx._chartInstance = null;
+    }
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (!studentRows || studentRows.length === 0) {
+        console.warn("No student data for school friends graph.");
+        ctx.font = "16px Inter, sans-serif"; ctx.fillStyle = "#718096"; ctx.textAlign = "center";
+        ctx.fillText("No student data for friends graph.", canvas.width / 2, canvas.height / 2);
+        return;
+    }
+    console.log(`[script.js] Rendering school friends graph with ${studentRows.length} students.`);
+
+    const students = studentRows.map(row => ({
+        id: String(row[studentIdColIndex]),
+        friends: row[friendsColIndex] || ""
+    })).filter(s => s.id && s.id !== "undefined" && s.id !== "null");
+
+    if (students.length === 0) {
+        console.warn("No valid students after filtering for school friends graph.");
+        ctx.font = "16px Inter, sans-serif"; ctx.fillStyle = "#718096"; ctx.textAlign = "center";
+        ctx.fillText("No valid student data for graph.", canvas.width / 2, canvas.height / 2);
+        return;
+    }
+
+    const ids = students.map(s => s.id);
+    const idToIdx = Object.fromEntries(ids.map((id, i) => [id, i]));
+
+    const numNodes = students.length;
+    const maxNodesToDisplay = 100;
+    const displayNodes = numNodes > maxNodesToDisplay ? students.slice(0, maxNodesToDisplay) : students;
+    const displayIds = displayNodes.map(s => s.id);
+    const displayIdToIdx = Object.fromEntries(displayIds.map((id, i) => [id, i]));
+    const numDisplayNodes = displayNodes.length;
+
+    const radius = Math.min(ctx.canvas.width, ctx.canvas.height) / 2 - (numDisplayNodes > 50 ? 40 : 60);
+    const centerX = ctx.canvas.width / 2;
+    const centerY = ctx.canvas.height / 2;
+    const nodeRadius = numDisplayNodes > 50 ? 10 : 15;
+
+    const nodePositions = [];
+    for (let i = 0; i < numDisplayNodes; i++) {
+        const angle = (i / numDisplayNodes) * 2 * Math.PI;
+        nodePositions.push({
+            x: centerX + radius * Math.cos(angle),
+            y: centerY + radius * Math.sin(angle),
+            id: displayIds[i]
+        });
+    }
+
+    ctx.strokeStyle = "#b8c2cc";
+    ctx.lineWidth = 1;
+    displayNodes.forEach((student, i) => {
+        let friendsArray = [];
+        const rawFriendsData = student.friends;
+
+        if (typeof rawFriendsData === 'string' && rawFriendsData.trim() !== '') {
+            friendsArray = rawFriendsData.split(',')
+                                .map(idStr => String(idStr.trim()))
+                                .filter(idStr => idStr !== '');
+        } else if (Array.isArray(rawFriendsData)) {
+            friendsArray = rawFriendsData.map(id => String(id).trim()).filter(idStr => idStr !== '');
+        }
+
+        const p1 = nodePositions[i];
+        friendsArray.forEach(friendId => {
+            if (friendId in displayIdToIdx) {
+                const friendIndex = displayIdToIdx[friendId];
+                const p2 = nodePositions[friendIndex];
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.stroke();
+            }
+        });
+    });
+
+    ctx.font = (numDisplayNodes > 50 ? "12px" : "14px") + " Inter, sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    nodePositions.forEach(pos => {
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, nodeRadius, 0, 2 * Math.PI);
+        ctx.fillStyle = "#fbbf24";
+        ctx.fill();
+        ctx.strokeStyle = "#d69e2e";
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        ctx.fillStyle = "#1a202c";
+        if (numDisplayNodes <= 50) {
+            ctx.fillText(pos.id, pos.x, pos.y);
+        }
+    });
+
+    ctx.font = "bold 20px Inter, sans-serif";
+    ctx.fillStyle = "#1a202c";
+    ctx.textAlign = "center";
+    ctx.fillText(graphLabel + (numNodes > maxNodesToDisplay ? ` (showing ${maxNodesToDisplay} of ${numNodes} students)` : ""), centerX, 40);
 }

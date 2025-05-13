@@ -85,9 +85,22 @@
                             </div>
                         </div>
                         <!-- Classroom-specific charts -->
-                        <div class="classroom-charts" id="classAcademicChartContainer"></div>
-                        <div class="classroom-charts" id="classWellbeingChartContainer"></div>
-                        <div class="classroom-charts" id="classBullyingChartContainer"></div>
+                        <div class="classroom-charts" id="classAcademicChartContainer">
+                            <canvas id="academicChart" width="600" height="600"></canvas>
+                        </div>
+                        <div class="classroom-charts" id="classWellbeingChartContainer">
+                            <canvas id="wellbeingChart" width="600" height="600"></canvas>
+                        </div>
+                        <div class="classroom-charts" id="classBullyingChartContainer">
+                            <canvas id="bullyingChart" width="600" height="600"></canvas>
+                        </div>
+                        <!-- Social network charts -->
+                        <div class="classroom-social-charts" id="classSocialCharts">
+                            <div class="social-chart-container">
+                                <h4>Friends Network</h4>
+                                <canvas id="classFriendsGraph" width="600" height="600"></canvas>
+                            </div>
+                        </div>
                     </section>
 
                     <!-- Students Table -->
@@ -107,10 +120,10 @@
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>Student ID</th>
-                                        <th>Academic Score</th>
-                                        <th>Wellbeing Score</th>
-                                        <th>Bullying Score</th>
+                                        <th data-sort="id">Student ID <span class="sort-icon">↕️</span></th>
+                                        <th data-sort="academic">Academic Score <span class="sort-icon">↕️</span></th>
+                                        <th data-sort="wellbeing">Wellbeing Score <span class="sort-icon">↕️</span></th>
+                                        <th data-sort="bullying">Bullying Score <span class="sort-icon">↕️</span></th>
                                         <th>Flags</th>
                                         <th>Actions</th>
                                     </tr>

@@ -157,9 +157,8 @@
     display: flex;
     flex-direction: column;
     gap: 2rem;
-    min-width: 0;
-    max-width: 1200px; /* Increased max width for better visibility */
-    margin: 0 auto; /* Center the content */
+    min-width: 0; /* Allows shrinking if necessary */
+    max-width: 100%; /* Allow class-details to use full width of its parent */
 }
 
 /* Class summary */
@@ -232,12 +231,12 @@
     border-radius: 1rem;
     padding: 2rem;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    flex: 1;
-    min-height: 0;
+    flex: 1; /* Allows vertical growth */
+    min-height: 0; /* Important for flex children */
     display: flex;
     flex-direction: column;
-    max-width: 1200px; /* Increased max width for better visibility */
-    margin: 0 auto; /* Center the content */
+    max-width: 100%; /* Allow students-table to use full width of class-details */
+    width: 100%; /* Explicitly set width to 100% */
 }
 
 .table-header {
@@ -279,15 +278,17 @@
 }
 
 .table-container {
-    flex: 1;
-    overflow-y: auto;
+    flex: 1; /* Allows vertical growth */
+    overflow-y: auto; /* Enable vertical scrolling */
+    overflow-x: auto; /* Enable horizontal scrolling */
     border: 1px solid #e2e8f0;
     border-radius: 0.5rem;
-    max-height: 600px; /* Increased height for better scrolling */
+    max-height: 600px; 
+    width: 100%; /* Ensure container takes full width of .students-table */
 }
 
 table {
-    width: 100%;
+    width: 100%; /* Table tries to fill container */
     border-collapse: collapse;
 }
 
@@ -302,6 +303,7 @@ th {
     top: 0;
     z-index: 10;
     cursor: pointer;
+    white-space: nowrap; /* Prevent header text from wrapping */
 }
 
 th:hover {
@@ -311,6 +313,7 @@ th:hover {
 td {
     padding: 1rem;
     border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap; /* Prevent cell text from wrapping */
 }
 
 tr:last-child td {
@@ -494,35 +497,94 @@ th:hover .sort-icon {
 /* Classroom charts */
 .classroom-charts {
     display: flex;
-    gap: 3rem;
-    margin-top: 3rem;
-    margin-bottom: 3rem;
-    justify-content: flex-start;
-    align-items: flex-end;
+    gap: 2rem; /* Adjusted gap */
+    margin-top: 2rem; /* Adjusted margin */
+    margin-bottom: 2rem; /* Adjusted margin */
+    justify-content: space-around; /* Better distribution for larger charts */
+    align-items: flex-start; 
     background: #fff !important;
-    border-radius: 2rem;
-    box-shadow: 0 8px 32px -4px rgba(0,0,0,0.13), 0 2px 8px rgba(0,0,0,0.06);
-    padding: 4rem 3rem;
-    border: 2px solid #e2e8f0;
+    border-radius: 1.5rem; /* Adjusted */
+    box-shadow: 0 6px 24px -6px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.05); /* Adjusted shadow */
+    padding: 2.5rem; /* Increased padding */
+    border: 1px solid #dde4ed; /* Softer border */
     width: 100%;
-    min-width: 0;
-    min-height: 0;
+    flex-wrap: wrap; 
 }
 
-.classroom-charts canvas {
+.classroom-charts .chart-container { /* Style for dynamically added chart containers */
+    background-color: #f9fafb; /* Light background for individual chart cards */
+    padding: 1.5rem;
+    border-radius: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    width: calc(50% - 1rem); /* Adjust if you have more than 2 charts or want different sizing */
+    min-width: 550px; /* Ensure it's wide enough for a 600px canvas + padding */
+    height: 600px; /* Match canvas height */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.classroom-charts .chart-container h4 { /* Title for dynamic charts if you add them */
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 1rem;
+}
+
+
+.classroom-charts canvas { /* Applies to dynamically created canvases */
     background: #fff;
-    border-radius: 1.5rem;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.10);
-    padding: 2rem;
-    width: 1218px !important;   /* 840px * 1.45 = 1218px (45% wider) */
-    height: 640px !important;  /* 2x previous height */
-    max-width: 100%;
-    max-height: 680px;
-    margin-right: 2.5rem;
-    margin-left: 0;
-    margin-bottom: 0;
-    margin-top: 0;
+    border-radius: 1rem; /* Softer radius */
+    box-shadow: 0 3px 12px rgba(0,0,0,0.08); /* Softer shadow */
+    padding: 0.5rem; /* Reduced padding as canvas itself is larger */
+    width: 600px !important;
+    height: 600px !important;
+    max-width: 100%; 
     display: block;
+    margin: 0 auto; /* Center canvas if container is wider */
+}
+
+/* Social network chart area */
+.classroom-social-charts {
+    display: flex;
+    gap: 2.5rem; /* Adjusted gap */
+    margin-top: 2.5rem; /* Adjusted */
+    margin-bottom: 2.5rem; /* Adjusted */
+    justify-content: center; /* Center the single social graph */
+    align-items: flex-start; 
+    background: #fff;
+    border-radius: 1.5rem; /* Adjusted */
+    box-shadow: 0 6px 24px -6px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.05); /* Adjusted shadow */
+    padding: 2.5rem; /* Increased padding */
+    border: 1px solid #dde4ed; /* Softer border */
+    width: 100%;
+    flex-wrap: wrap; 
+}
+
+.social-chart-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #f9fafb; /* Light background for chart card */
+    border-radius: 1rem; /* Adjusted */
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    padding: 2rem; /* Increased padding */
+    width: auto; 
+}
+
+.social-chart-container h4 {
+    margin-bottom: 1.5rem; /* Increased */
+    color: #2d3748;
+    font-size: 1.4rem; /* Increased */
+    font-weight: 600;
+}
+
+.social-chart-container canvas {
+    width: 600px !important;
+    height: 600px !important;
+    background: #fff;
+    border-radius: 1rem; /* Softer radius */
+    box-shadow: 0 3px 12px rgba(0,0,0,0.08); /* Softer shadow */
+    max-width: 100%; 
 }
 
 /* Responsive design */

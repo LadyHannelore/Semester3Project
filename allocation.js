@@ -149,15 +149,28 @@ async function simulateGeneticAlgorithmAllocation(params) {
 
     // Prepare students array (map to Python expected fields)
     const students = dataset.rows.map(row => {
-        const studentIdStr = row[dataset.headers.indexOf('Student_ID')];
-        let studentId = studentIdStr;
+        const studentIdHeader = 'StudentID'; // Changed from 'Student_ID'
+        const studentIdIndex = dataset.headers.indexOf(studentIdHeader);
+        const studentIdStr = studentIdIndex !== -1 ? String(row[studentIdIndex]) : null; // Ensure string, handle missing
+
+        const friendsHeader = 'Friends';
+        const friendsIndex = dataset.headers.indexOf(friendsHeader);
+        const friendsStr = friendsIndex !== -1 ? row[friendsIndex] : "";
+
         return {
-            id: studentId,
+            id: studentIdStr, // Ensure this is a string and not null
             academicScore: parseFloat(row[dataset.headers.indexOf('Academic_Performance')]),
             wellbeingScore: parseFloat(row[dataset.headers.indexOf('Wellbeing_Score')]),
-            bullyingScore: parseFloat(row[dataset.headers.indexOf('Bullying_Score')])
+            bullyingScore: parseFloat(row[dataset.headers.indexOf('Bullying_Score')]),
+            friends: friendsStr || ""
         };
     });
+    
+    // Filter out students with null IDs before sending to backend
+    const validStudents = students.filter(s => s.id !== null);
+    if (validStudents.length !== students.length) {
+        console.warn("Some students had null IDs and were filtered out before sending to backend.");
+    }
 
     progressFill.style.width = `30%`;
     progressText.textContent = 'Sending data to optimizer...';
@@ -169,7 +182,7 @@ async function simulateGeneticAlgorithmAllocation(params) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                students,
+                students: validStudents, // Send only students with valid IDs
                 params: {
                     maxClassSize: params.maxClassSize,
                     maxBulliesPerClass: params.maxBulliesPerClass,

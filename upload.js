@@ -7,7 +7,8 @@ let generationParameters = {
     stdAcademic: 15,
     meanWellbeing: 6.5,
     stdWellbeing: 1.5,
-    bullyingPercent: 10
+    bullyingPercent: 10,
+    friendsPerStudent: 3
 };
 
 // Initialize on DOM load
@@ -45,7 +46,7 @@ function initializeGenerationControls() {
     // Optionally, update generationParameters when inputs change
     const paramIds = [
         'studentCount', 'meanAcademic', 'stdAcademic',
-        'meanWellbeing', 'stdWellbeing', 'bullyingPercent'
+        'meanWellbeing', 'stdWellbeing', 'bullyingPercent', 'friendsPerStudent'
     ];
     paramIds.forEach(id => {
         const input = document.getElementById(id);
@@ -92,7 +93,8 @@ function generateSyntheticData() {
         stdAcademic: parseFloat(document.getElementById('stdAcademic').value),
         meanWellbeing: parseFloat(document.getElementById('meanWellbeing').value),
         stdWellbeing: parseFloat(document.getElementById('stdWellbeing').value),
-        bullyingPercent: parseFloat(document.getElementById('bullyingPercent').value)
+        bullyingPercent: parseFloat(document.getElementById('bullyingPercent').value),
+        friendsPerStudent: parseInt(document.getElementById('friendsPerStudent')?.value, 10) || 3
     };
 
     // Generate synthetic data
@@ -110,6 +112,18 @@ function generateSyntheticData() {
             Bullying_Score: bullyingScore
         });
     }
+    // Assign friends (as comma-separated StudentIDs)
+    students.forEach((student, idx) => {
+        const possibleFriends = students.map(s => s.StudentID).filter(id => id !== student.StudentID);
+        const numFriends = Math.min(params.friendsPerStudent, possibleFriends.length);
+        const friends = [];
+        while (friends.length < numFriends) {
+            const pick = possibleFriends[Math.floor(Math.random() * possibleFriends.length)];
+            if (!friends.includes(pick)) friends.push(pick);
+        }
+        student.Friends = friends.join(',');
+    });
+
     uploadedData = students;
     previewData(students);
 }
@@ -168,8 +182,17 @@ function saveData(data) {
     // Convert array of objects to { headers: [...], rows: [...] }
     if (!Array.isArray(data) || data.length === 0) return;
     const headers = Object.keys(data[0]);
-    const rows = data.map(row => headers.map(h => row[h]));
+    const rows = data.map(row => {
+        return headers.map(h => {
+            // Ensure StudentID is always a string
+            if (h === 'StudentID' || h === 'Student_ID') {
+                return String(row[h]);
+            }
+            // Friends should already be a string "id1,id2,id3"
+            return row[h];
+        });
+    });
     const dataset = { headers, rows };
     localStorage.setItem('classforgeDataset', JSON.stringify(dataset));
-    console.log('Data saved to localStorage');
+    console.log('Data saved to localStorage. Student_ID forced to string.');
 }

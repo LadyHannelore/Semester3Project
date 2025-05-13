@@ -102,6 +102,23 @@ class ClassroomGAProblem(ElementwiseProblem):
         self.wellbeing_scores = df['Wellbeing_Score'].values if 'Wellbeing_Score' in df.columns else np.zeros(num_students)
         self.wellbeing_min = wellbeing_min
         self.wellbeing_max = wellbeing_max
+        
+        # Ensure StudentID is string for consistent lookup
+        self.df['StudentID'] = self.df['StudentID'].astype(str)
+        
+        self.friends_indices = []
+        if 'Friends' in df.columns:
+            id_list = list(self.df['StudentID']) # Already strings
+            id_to_idx = {sid: idx for idx, sid in enumerate(id_list)}
+            for friends_str in df['Friends'].fillna(''):
+                if isinstance(friends_str, str) and friends_str.strip():
+                    # Friend IDs are expected to be strings matching StudentID
+                    friend_ids = [fid.strip() for fid in friends_str.split(',') if fid.strip()]
+                    self.friends_indices.append([id_to_idx[fid] for fid in friend_ids if fid in id_to_idx])
+                else:
+                    self.friends_indices.append([])
+        else:
+            self.friends_indices = [[] for _ in range(num_students)]
 
     def _evaluate(self, x, out, *args, **kwargs):
         # x: array of class assignments for each student
@@ -120,7 +137,7 @@ class ClassroomGAProblem(ElementwiseProblem):
         num_larger_classes = self.num_students % self.num_classes
         max_class_size = min_class_size + 1 if num_larger_classes > 0 else min_class_size
         size_penalty = 0
-        for j in range(self.num_classes):
+        for j in range(self.num_classes):  # Added closing parenthesis
             if j < num_larger_classes:
                 if class_sizes[j] != max_class_size:
                     size_penalty += abs(class_sizes[j] - max_class_size) * 1000
@@ -146,7 +163,13 @@ class ClassroomGAProblem(ElementwiseProblem):
                         wellbeing_penalty += (self.wellbeing_min - avg_well) * 100
                     if self.wellbeing_max is not None and avg_well > self.wellbeing_max:
                         wellbeing_penalty += (avg_well - self.wellbeing_max) * 100
-        out["F"] = [size_penalty + total_penalty + bully_penalty + wellbeing_penalty]
+        # Social penalty: penalize if friends are split across classes
+        friends_penalty = 0
+        for i, friends in enumerate(self.friends_indices):
+            for fidx in friends:
+                if x[i] != x[fidx]:
+                    friends_penalty += 1  # Each split friend pair adds penalty
+        out["F"] = [size_penalty + total_penalty + bully_penalty + wellbeing_penalty + friends_penalty * 100]
 
 def solve_with_genetic_algorithm(df, class_size_limit=25, max_bullies_per_class=2, wellbeing_min=None, wellbeing_max=None, generations=50, pop_size=100):
     problem = ClassroomGAProblem(df, class_size_limit=class_size_limit, max_bullies_per_class=max_bullies_per_class, wellbeing_min=wellbeing_min, wellbeing_max=wellbeing_max)
@@ -169,25 +192,35 @@ def solve_with_genetic_algorithm(df, class_size_limit=25, max_bullies_per_class=
         # Build result structure
         classes = []
         violations = []
+        # Ensure 'Friends' column exists, fill NaN with empty string
+        if 'Friends' not in df.columns:
+            df['Friends'] = ''
+        else:
+            df['Friends'] = df['Friends'].fillna('')
+        
+        # Ensure StudentID is string for the output
+        df['StudentID'] = df['StudentID'].astype(str)
+
         for class_id in range(num_classes):
-            students = df[df["Class_GA"] == class_id]
+            students_in_class_df = df[df["Class_GA"] == class_id]
             classes.append({
                 "classId": class_id,
                 "students": [
                     {
-                        "id": row["StudentID"] if "StudentID" in row else row["Student_ID"],
+                        "id": row["StudentID"], # Already a string
                         "academicScore": row["Academic_Performance"],
                         "wellbeingScore": row["Wellbeing_Score"],
-                        "bullyingScore": row["Bullying_Score"]
+                        "bullyingScore": row["Bullying_Score"],
+                        "friends": row["Friends"] 
                     }
-                    for _, row in students.iterrows()
+                    for _, row in students_in_class_df.iterrows()
                 ]
             })
             # Constraint checks
-            if len(students) > class_size_limit:
-                violations.append(f"Class {class_id} exceeds max size ({len(students)}/{class_size_limit})")
+            if len(students_in_class_df) > class_size_limit:
+                violations.append(f"Class {class_id} exceeds max size ({len(students_in_class_df)}/{class_size_limit})")
             if "Bullying_Score" in df.columns:
-                bullies = students[students["Bullying_Score"] > 7]
+                bullies = students_in_class_df[students_in_class_df["Bullying_Score"] > 7]
                 if len(bullies) > max_bullies_per_class:
                     violations.append(f"Class {class_id} has {len(bullies)} bullies (max {max_bullies_per_class})")
         # Metrics
@@ -239,15 +272,26 @@ def index():
 def allocate():
     try:
         data = request.get_json()
-        students = data["students"]
+        students_data = data["students"]
         params = data.get("params", {})
-        # Map JS fields to DataFrame columns
+
+        # Filter out students with missing 'id' before creating DataFrame
+        valid_students_data = [s for s in students_data if s.get("id") is not None]
+        if not valid_students_data:
+            return jsonify({"success": False, "error": "No valid student data received (all students missing ID)."}), 400
+        
+        # Map JS fields to DataFrame columns, ensuring StudentID is primary
         df = pd.DataFrame([{
-            "StudentID": s.get("id", s.get("Student_ID")),
+            "StudentID": str(s.get("id")), # Ensure StudentID is a string and is the primary ID field
             "Academic_Performance": s.get("academicScore", s.get("Academic_Performance")),
             "Wellbeing_Score": s.get("wellbeingScore", s.get("Wellbeing_Score")),
-            "Bullying_Score": s.get("bullyingScore", s.get("Bullying_Score"))
-        } for s in students])
+            "Bullying_Score": s.get("bullyingScore", s.get("Bullying_Score")),
+            "Friends": s.get("friends", s.get("Friends"))
+        } for s in valid_students_data])
+        
+        if df.empty:
+            return jsonify({"success": False, "error": "DataFrame is empty after processing student data."}), 400
+            
         # Run GA
         result = solve_with_genetic_algorithm(
             df,

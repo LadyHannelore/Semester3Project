@@ -154,15 +154,15 @@ function initializeDynamicFilters() {
 function handleSearch(e) {
     if (!currentDataset) return;
     const searchTerm = e.target.value.toLowerCase();
-    // Filter based on Student_ID (assuming it's the first column) or any other identifiable column
-    const studentIdIndex = currentDataset.headers.indexOf('Student_ID'); // Or a more robust way to find ID
+    // Filter based on StudentID (assuming it's the first column) or any other identifiable column
+    const studentIdIndex = currentDataset.headers.indexOf('StudentID'); // Changed from 'Student_ID'
     if (studentIdIndex !== -1) {
         filteredData = currentDataset.rows.filter(row =>
-            row[studentIdIndex] && row[studentIdIndex].toLowerCase().includes(searchTerm)
+            row[studentIdIndex] && String(row[studentIdIndex]).toLowerCase().includes(searchTerm)
         );
-    } else { // Fallback if Student_ID is not found, search all columns
+    } else { // Fallback if StudentID is not found, search all columns
         filteredData = currentDataset.rows.filter(row =>
-            row.some(cell => cell && cell.toLowerCase().includes(searchTerm))
+            row.some(cell => cell && String(cell).toLowerCase().includes(searchTerm))
         );
     }
     currentPage = 1;
@@ -347,9 +347,9 @@ function showProfile(studentData) {
     const panel = document.getElementById('profilePanel');
     panel.classList.add('active');
 
-    const studentIdIndex = currentDataset.headers.indexOf('Student_ID');
-    // Set currentProfileStudentId using Student_ID if available, otherwise fallback to first column
-    currentProfileStudentId = studentIdIndex !== -1 ? studentData[studentIdIndex] : studentData[0]; 
+    const studentIdIndex = currentDataset.headers.indexOf('StudentID'); // Changed from 'Student_ID'
+    // Set currentProfileStudentId using StudentID if available, otherwise fallback to first column
+    currentProfileStudentId = studentIdIndex !== -1 ? String(studentData[studentIdIndex]) : String(studentData[0]); 
 
     const profileDetailsContainer = document.getElementById('profileDetailsContainer');
     profileDetailsContainer.innerHTML = ''; // Clear previous details
@@ -438,7 +438,7 @@ function createRadarChart(studentData) {
     window.radarChart = new Chart(ctx, {
         type: 'radar',
         data: {
-            labels: ['Academic', 'Wellbeing', 'Bullying'],
+            labels: ['Academic', 'Wellbeing', 'Bullying'], // Consider making these more descriptive if space allows
             datasets: [{
                 label: 'Student Profile',
                 data: [
@@ -446,19 +446,61 @@ function createRadarChart(studentData) {
                     wellbeingScore / 10,
                     bullyingScore / 10
                 ],
-                backgroundColor: 'rgba(66, 153, 225, 0.2)',
+                backgroundColor: 'rgba(66, 153, 225, 0.3)', // Slightly more opaque
                 borderColor: 'rgba(66, 153, 225, 1)',
                 pointBackgroundColor: 'rgba(66, 153, 225, 1)',
                 pointBorderColor: '#fff',
                 pointHoverBackgroundColor: '#fff',
-                pointHoverBorderColor: 'rgba(66, 153, 225, 1)'
+                pointHoverBorderColor: 'rgba(66, 153, 225, 1)',
+                borderWidth: 1.5, // Slightly thicker border
+                pointRadius: 4, // Slightly larger points
+                pointHoverRadius: 6
             }]
         },
         options: {
+            responsive: true,
+            maintainAspectRatio: false, // Important for respecting canvas height
             scales: {
                 r: {
                     beginAtZero: true,
-                    max: 1
+                    max: 1,
+                    angleLines: {
+                        color: 'rgba(0, 0, 0, 0.15)' // More visible angle lines
+                    },
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.15)' // More visible grid lines
+                    },
+                    pointLabels: {
+                        font: {
+                            size: 16, // Increased font size for point labels (Academic, Wellbeing, etc.)
+                            weight: '500'
+                        },
+                        color: '#333' // Darker point labels
+                    },
+                    ticks: {
+                        backdropColor: 'rgba(255, 255, 255, 0.75)', // Background for tick labels
+                        color: '#444', // Darker tick labels
+                        font: {
+                            size: 14 // Increased font size for radial ticks (0, 0.2, 0.4...)
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    labels: {
+                        font: {
+                            size: 16 // Increased font size for legend
+                        },
+                        color: '#333'
+                    }
+                },
+                title: { // Added chart title
+                    display: true,
+                    text: 'Student Profile Radar',
+                    font: { size: 20, weight: 'bold' }, // Increased font size for chart title
+                    color: '#333',
+                    padding: { top: 10, bottom: 20 }
                 }
             }
         }

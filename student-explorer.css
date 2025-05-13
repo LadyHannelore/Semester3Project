@@ -388,9 +388,18 @@
 
 .radar-chart-container {
     background-color: var(--gray-bg);
-    padding: 1.5rem;
-    border-radius: 1rem;
+    padding: 2rem; /* Increased padding */
+    border-radius: 1rem; /* Increased */
     margin-bottom: 2rem;
+    height: 600px; /* Match canvas height */
+    display: flex; /* To center canvas if needed */
+    justify-content: center;
+    align-items: center;
+}
+
+.radar-chart-container canvas {
+    max-width: 100%;
+    max-height: 100%;
 }
 
 .radar-warning {
