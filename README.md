@@ -21,35 +21,6 @@ ClassForge is an educational toolkit designed to automate and optimize classroom
 - The backend (Flask server) processes optimization requests.  
 - A separate script runs advanced ML or GA approaches.  
 
-## Project Structure
-The project is organized as follows:
-
-```
-ClassForge/
-├── backend/              # Server-side Python code
-│   ├── app.py            # Main Flask application
-│   ├── models/           # Data models
-│   ├── services/         # Business logic including GA
-│   │   └── ga.py         # Genetic Algorithm implementation
-│   └── utils/            # Helper functions
-├── frontend/             # Client-side code
-│   ├── assets/
-│   │   ├── css/          # Stylesheets
-│   │   ├── js/           # JavaScript files
-│   │   └── images/       # Image resources
-│   ├── pages/            # HTML templates
-│   │   ├── allocation.html
-│   │   ├── classroom.html
-│   │   └── ... 
-│   └── index.html        # Main entry point
-├── data/                 # Data files
-│   ├── synthetic_student_data.csv
-│   └── synthetic_student_data_1000.csv
-├── docs/                 # Additional documentation
-├── requirements.txt      # Python dependencies
-└── README.md             # This file
-```
-
 ## File Descriptions
 
 ### Backend Components

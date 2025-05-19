@@ -51,10 +51,10 @@ body {
 
 /* Main content area for index.html */
 .main-content {
-    margin-left: 250px; /* Adjust to match sidebar width */
+    margin-left: 240px; /* Adjusted to match sidebar width in styles.css */
     padding: 2rem;
-    width: calc(100% - 250px); /* Adjust to match sidebar width */
-    background-color: #f8fafc; /* White background for content area */
+    width: calc(100% - 240px); /* Adjusted to match sidebar width */
+    background-color: #f8fafc;
     min-height: 100vh;
 }
 
@@ -101,28 +101,39 @@ body {
     padding: 2rem;
     border-radius: 1rem;
     box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    width: 100%; /* Ensure full width */
+    display: flex;
+    flex-direction: column;
+    align-items: stretch; /* Align all content to stretch across */
 }
 
 .charts-section h3 {
-    font-size: 1.75rem; /* Increased */
+    font-size: 1.75rem;
     color: #2d3748;
-    margin-bottom: 2rem; /* Increased */
+    margin-bottom: 2rem;
+    width: 100%; /* Ensure heading takes full width */
+    text-align: left; /* Explicitly align text to left */
 }
 
 .charts-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(600px, 1fr)); /* Adjust minmax for new canvas size */
-    gap: 2.5rem; /* Increased */
+    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    gap: 2rem;
+    width: 100%;
+    margin: 0 auto; /* Center the grid in available space */
 }
 
 .chart-container {
     background-color: #fff;
-    padding: 2rem; /* Increased */
-    border-radius: 1rem; /* Increased */
-    box-shadow: 0 3px 6px rgba(0,0,0,0.08); /* Slightly adjusted shadow */
-    height: 600px; 
-    display: flex; 
+    padding: 1.5rem;
+    border-radius: 1rem;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+    height: 500px;
+    width: 100%;
+    display: flex;
     flex-direction: column;
+    justify-content: center; /* Center content vertically */
+    align-items: center; /* Center content horizontally */
 }
 
 .chart-container h4 {

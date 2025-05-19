@@ -82,11 +82,10 @@ body {
 /* Main Content Styles */
 .main-content {
     flex: 1;
-    margin-left: 0;
     padding: 2rem;
     overflow-y: auto; /* Enable vertical scrolling */
     transition: margin-left 0.3s ease; /* Smooth transition for content shift */
-    margin-left: 350px;
+    margin-left: 240px; /* Adjusted to match sidebar width */
 }
 
 /* Top Bar Styles */
