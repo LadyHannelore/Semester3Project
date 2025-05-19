@@ -87,8 +87,8 @@ In summary, the ClassForge project represents a comprehensive solution to the co
 
 ## Getting Started
 1. Ensure you have a Python environment and install dependencies using `pip install -r requirements.txt`
-2. Run the backend server with `python backend/app.py`
-3. Open `frontend/index.html` in your browser to begin using ClassForge
+2. Run the backend server with `ga.py`
+3. Open `index.html` in your browser to begin using ClassForge
 
 ## License & Contribution
 Open for educational discussions and improvements. Feel free to send pull requests or suggestions.
