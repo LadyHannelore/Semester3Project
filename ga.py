@@ -120,18 +120,30 @@ class ClassroomGAProblem(ElementwiseProblem):
         else:
             self.friends_indices = [[] for _ in range(num_students)]
 
+        # Build social network graph
+        self.social_graph = nx.Graph()
+        self.social_graph.add_nodes_from(range(self.num_students))
+        for student_idx, friend_indices_list in enumerate(self.friends_indices):
+            for friend_idx in friend_indices_list:
+                self.social_graph.add_edge(student_idx, friend_idx)
+
     def _evaluate(self, x, out, *args, **kwargs):
         # x: array of class assignments for each student
         class_sizes = np.zeros(self.num_classes, dtype=int)
         class_totals = np.zeros(self.num_classes, dtype=float)
         class_bullies = np.zeros(self.num_classes, dtype=int)
         class_wellbeing = [[] for _ in range(self.num_classes)]
+        
+        # Store student indices per class for SNA
+        class_student_indices = [[] for _ in range(self.num_classes)]
+
         for i, cls in enumerate(x):
             class_sizes[cls] += 1
             class_totals[cls] += self.academic_perf[i]
             if self.bullying_scores[i] > 7:
                 class_bullies[cls] += 1
             class_wellbeing[cls].append(self.wellbeing_scores[i])
+            class_student_indices[cls].append(i) # Store student index 'i' in class 'cls'
         # Penalize class size violations
         min_class_size = self.num_students // self.num_classes
         num_larger_classes = self.num_students % self.num_classes
@@ -169,7 +181,26 @@ class ClassroomGAProblem(ElementwiseProblem):
             for fidx in friends:
                 if x[i] != x[fidx]:
                     friends_penalty += 1  # Each split friend pair adds penalty
-        out["F"] = [size_penalty + total_penalty + bully_penalty + wellbeing_penalty + friends_penalty * 100]
+        
+        # SNA Penalty: Penalize low social cohesion within classes
+        social_cohesion_penalty = 0
+        SNA_WEIGHT = 50  # Weight for social cohesion penalty, can be tuned
+        SNA_ISOLATION_PENALTY = 50 # Penalty for a single student in a class from SNA perspective
+
+        for cls_idx in range(self.num_classes):
+            students_in_this_class = class_student_indices[cls_idx]
+            if len(students_in_this_class) > 1:
+                # Create a subgraph for the current class
+                class_subgraph = self.social_graph.subgraph(students_in_this_class)
+                # Calculate average clustering coefficient for the class subgraph
+                # nx.average_clustering returns 0 if no triangles (e.g., a line graph or isolated nodes)
+                avg_clustering = nx.average_clustering(class_subgraph)
+                social_cohesion_penalty += (1 - avg_clustering) * SNA_WEIGHT
+            elif len(students_in_this_class) == 1:
+                # Penalize classes with only one student from a social cohesion perspective
+                social_cohesion_penalty += SNA_ISOLATION_PENALTY
+                
+        out["F"] = [size_penalty + total_penalty + bully_penalty + wellbeing_penalty + friends_penalty * 100 + social_cohesion_penalty]
 
 def solve_with_genetic_algorithm(df, class_size_limit=25, max_bullies_per_class=2, wellbeing_min=None, wellbeing_max=None, generations=50, pop_size=100):
     problem = ClassroomGAProblem(df, class_size_limit=class_size_limit, max_bullies_per_class=max_bullies_per_class, wellbeing_min=wellbeing_min, wellbeing_max=wellbeing_max)
