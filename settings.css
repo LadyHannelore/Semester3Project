@@ -1,21 +1,71 @@
-/* Animations */
+/* CSS Custom Properties for Settings Performance */
+:root {
+    /* Colors */
+    --settings-bg: #f8fafc;
+    --settings-card-bg: #ffffff;
+    --settings-text-primary: #2d3748;
+    --settings-text-secondary: #4a5568;
+    --settings-text-muted: #718096;
+    --settings-border: #e2e8f0;
+    --settings-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --settings-primary: #4299e1;
+    --settings-success: #48bb78;
+    --settings-warning: #f6e05e;
+    --settings-warning-text: #744210;
+    
+    /* Spacing */
+    --settings-spacing-xs: 0.25rem;
+    --settings-spacing-sm: 0.5rem;
+    --settings-spacing-md: 1rem;
+    --settings-spacing-lg: 1.5rem;
+    --settings-spacing-xl: 2rem;
+    
+    /* Border Radius */
+    --settings-radius-xs: 0.25rem;
+    --settings-radius-sm: 0.375rem;
+    --settings-radius-md: 1rem;
+    
+    /* Transitions */
+    --settings-transition-fast: 0.15s ease-out;
+    --settings-transition-normal: 0.2s ease-out;
+    --settings-transition-slow: 0.3s ease-out;
+    
+    /* Performance */
+    --settings-will-change: transform, opacity;
+}
+
+/* Optimized animations for 60fps */
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from { 
+        opacity: 0;
+        transform: translateZ(0);
+    }
+    to { 
+        opacity: 1;
+        transform: translateZ(0);
+    }
 }
 
 @keyframes slideUp {
-    from { transform: translateY(20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+    from { 
+        transform: translateY(20px) translateZ(0); 
+        opacity: 0; 
+    }
+    to { 
+        transform: translateY(0) translateZ(0); 
+        opacity: 1; 
+    }
 }
 
-/* Animation classes */
+/* Animation classes with hardware acceleration */
 .fade-in {
-    animation: fadeIn 0.5s ease-out;
+    animation: fadeIn var(--settings-transition-slow) ease-out;
+    will-change: var(--settings-will-change);
 }
 
 .slide-up {
-    animation: slideUp 0.5s ease-out;
+    animation: slideUp var(--settings-transition-slow) ease-out;
+    will-change: var(--settings-will-change);
 }
 
 /* Main layout */
@@ -23,42 +73,48 @@
     display: flex;
     flex-direction: column;
     height: 100vh;
-    background-color: #f8fafc;
-    padding: 2rem;
-    gap: 2rem;
-    margin: 0 auto; /* Center horizontally */
-    overflow-y: auto; /* Enable vertical scrolling */
+    background-color: var(--settings-bg);
+    padding: var(--settings-spacing-xl);
+    gap: var(--settings-spacing-xl);
+    margin: 0 auto;
+    overflow-y: auto;
     margin-left: 350px;
+    /* Performance optimizations */
+    will-change: scroll-position;
+    transform: translateZ(0);
 }
 
 /* Section styling */
 .settings-section {
-    background-color: white;
-    border-radius: 1rem;
-    padding: 2rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    background-color: var(--settings-card-bg);
+    border-radius: var(--settings-radius-md);
+    padding: var(--settings-spacing-xl);
+    box-shadow: var(--settings-shadow);
+    /* Performance optimizations */
+    will-change: var(--settings-will-change);
+    transform: translateZ(0);
 }
 
 .section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: var(--settings-spacing-lg);
 }
 
 .section-header h3 {
     font-size: 1.25rem;
-    color: #2d3748;
+    color: var(--settings-text-primary);
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--settings-spacing-sm);
 }
 
 .beta-tag {
-    padding: 0.25rem 0.5rem;
-    background-color: #f6e05e;
-    color: #744210;
-    border-radius: 0.25rem;
+    padding: var(--settings-spacing-xs) var(--settings-spacing-sm);
+    background-color: var(--settings-warning);
+    color: var(--settings-warning-text);
+    border-radius: var(--settings-radius-xs);
     font-size: 0.75rem;
     font-weight: 600;
 }
@@ -67,49 +123,56 @@
 .settings-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
+    gap: var(--settings-spacing-xl);
 }
 
 /* Setting items */
 .setting-item {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: var(--settings-spacing-sm);
 }
 
 .setting-item label {
     font-size: 0.875rem;
     font-weight: 500;
-    color: #4a5568;
+    color: var(--settings-text-secondary);
 }
 
 .setting-item input[type="number"],
 .setting-item input[type="text"],
 .setting-item select {
-    padding: 0.5rem;
-    border: 1px solid #e2e8f0;
-    border-radius: 0.375rem;
+    padding: var(--settings-spacing-sm);
+    border: 1px solid var(--settings-border);
+    border-radius: var(--settings-radius-sm);
     font-size: 0.875rem;
-    color: #2d3748;
-    background-color: white;
+    color: var(--settings-text-primary);
+    background-color: var(--settings-card-bg);
+    transition: border-color var(--settings-transition-normal);
+    /* Performance optimizations */
+    will-change: border-color;
 }
 
 .setting-item input[type="range"] {
     width: 100%;
-    height: 0.5rem;
-    background-color: #e2e8f0;
-    border-radius: 0.25rem;
+    height: var(--settings-spacing-sm);
+    background-color: var(--settings-border);
+    border-radius: var(--settings-radius-xs);
+    appearance: none;
     -webkit-appearance: none;
+    /* Performance optimizations */
+    will-change: var(--settings-will-change);
 }
 
 .setting-item input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
     -webkit-appearance: none;
-    width: 1rem;
-    height: 1rem;
-    background-color: #4299e1;
+    width: var(--settings-spacing-md);
+    height: var(--settings-spacing-md);
+    background-color: var(--settings-primary);
     border-radius: 50%;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all var(--settings-transition-normal);
 }
 
 .setting-item input[type="range"]::-webkit-slider-thumb:hover {
@@ -119,28 +182,31 @@
 .setting-item.checkbox {
     flex-direction: row;
     align-items: flex-start;
-    gap: 1rem;
+    gap: var(--settings-spacing-md);
 }
 
 .setting-item.checkbox label {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--settings-spacing-sm);
     cursor: pointer;
 }
 
 .setting-item.checkbox input[type="checkbox"] {
-    width: 1rem;
-    height: 1rem;
-    border-radius: 0.25rem;
-    border: 2px solid #4299e1;
+    width: var(--settings-spacing-md);
+    height: var(--settings-spacing-md);
+    border-radius: var(--settings-radius-xs);
+    border: 2px solid var(--settings-primary);
+    appearance: none;
     -webkit-appearance: none;
     cursor: pointer;
     position: relative;
+    /* Performance optimizations */
+    will-change: var(--settings-will-change);
 }
 
 .setting-item.checkbox input[type="checkbox"]:checked {
-    background-color: #4299e1;
+    background-color: var(--settings-primary);
 }
 
 .setting-item.checkbox input[type="checkbox"]:checked::after {

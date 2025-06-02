@@ -1,3 +1,63 @@
+/* CSS Custom Properties for better maintainability and performance */
+:root {
+    /* Color palette */
+    --primary-blue: #4299e1;
+    --primary-blue-dark: #3182ce;
+    --primary-blue-light: #63b3ed;
+    --secondary-green: #48bb78;
+    --secondary-green-dark: #38a169;
+    --accent-orange: #ed8936;
+    --accent-orange-dark: #dd6b20;
+    --gray-50: #f7fafc;
+    --gray-100: #edf2f7;
+    --gray-200: #e2e8f0;
+    --gray-300: #cbd5e0;
+    --gray-400: #a0aec0;
+    --gray-500: #718096;
+    --gray-600: #4a5568;
+    --gray-700: #2d3748;
+    --gray-800: #1a202c;
+    --gray-900: #171923;
+    --white: #ffffff;
+    --red-500: #e53e3e;
+    --red-600: #c53030;
+    
+    /* Spacing */
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-2xl: 3rem;
+    
+    /* Typography */
+    --font-family: 'Inter', sans-serif;
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.875rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 1.5rem;
+    --font-size-3xl: 1.875rem;
+    
+    /* Layout */
+    --sidebar-width: 240px;
+    --header-height: 60px;
+    --border-radius: 0.5rem;
+    --border-radius-lg: 0.75rem;
+    --border-radius-xl: 1rem;
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    
+    /* Transitions */
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.3s ease;
+    --transition-slow: 0.5s ease;
+}
+
 /* Reset and Base Styles */
 * {
     margin: 0;
@@ -6,9 +66,9 @@
 }
 
 body {
-    font-family: 'Inter', sans-serif;
-    background-color: #f5f7fb; /* Light gray background */
-    color: #2d3748; /* Dark gray text */
+    font-family: var(--font-family);
+    background-color: var(--gray-50);
+    color: var(--gray-700);
     line-height: 1.6;
 }
 
@@ -20,25 +80,24 @@ body {
 }
 /* Sidebar Styles */
 .sidebar {
-    width: 240px;
+    width: var(--sidebar-width);
     flex-shrink: 0;
-    background-color: #1a202c;
-    color: #fff;
-    padding: 1.5rem;
+    background-color: var(--gray-800);
+    color: var(--white);
+    padding: var(--spacing-lg);
     position: fixed;
     height: 100vh;
     overflow-y: auto;
-    transform: translateX(-240px); /* Hide sidebar by default */
-    transition: transform 0.3s ease;
-    z-index: 1000; /* Ensure it appears above other content */
+    transform: translateX(calc(-1 * var(--sidebar-width)));
+    transition: transform var(--transition-normal);
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 
-.sidebar:hover {
-    transform: translateX(0); /* Show sidebar on hover */
-}
-
+.sidebar:hover,
 .container:hover .sidebar {
-    transform: translateX(0); /* Show sidebar when hovering over the container */
+    transform: translateX(0);
 }
 
 .logo h1 {
@@ -212,6 +271,68 @@ th {
 
 .action-btn .icon {
     margin-right: 0.5rem;
+}
+
+/* CSS Performance Optimizations */
+
+/* Hardware acceleration for critical elements */
+.sidebar,
+.main-content,
+.action-btn,
+.card,
+.student-row {
+    will-change: transform;
+    transform: translateZ(0);
+}
+
+/* Optimize animations for 60fps */
+.fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+}
+
+.slide-up {
+    animation: slideUp 0.4s ease-out forwards;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Optimize hover effects for performance */
+.action-btn,
+.nav-links a,
+.card {
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+/* Reduce layout shifts with content loading */
+.chart-container {
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.data-table {
+    contain: layout style paint;
 }
 
 /* Responsive Design */

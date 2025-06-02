@@ -27,39 +27,65 @@ from flask_cors import CORS
 # --- Configuration & Setup ---
 warnings.filterwarnings("ignore", category=UserWarning)
 try:
-    plt.style.use("seaborn-white")
+    plt.style.use("seaborn-v0_8-whitegrid")
 except OSError:
-    plt.style.use("ggplot")
+    try:
+        plt.style.use("seaborn-whitegrid")
+    except OSError:
+        plt.style.use("ggplot")
 
+# Configuration constants
 NUM_STUDENTS = 1000
 CLASS_SIZE_TARGET = 30
 N_CLUSTERS = max(1, NUM_STUDENTS // CLASS_SIZE_TARGET)
 SYNTHETIC_DATA_CSV = "synthetic_student_data.csv"
 
-# --- Updated Constraints ---
-MAX_ALLOWED_DIFFERENCE = 15  # Relaxed from 10 to 15
-MAX_ALLOWED_WELLBEING_DIFF = 2  # Relaxed from 1 to 2
-MAX_BULLIES_PER_CLASS = 2  # Relaxed from 1 to 2
+# Constraint thresholds
+MAX_ALLOWED_DIFFERENCE = 15  # Academic performance difference threshold
+MAX_ALLOWED_WELLBEING_DIFF = 2  # Wellbeing difference threshold
+MAX_BULLIES_PER_CLASS = 2  # Maximum bullies per class
+
+# Performance optimization constants
+CACHE_SIZE = 1000
+DEFAULT_TIMEOUT = 30  # seconds
 
 # --- Predictive Analytics ---
 def run_analysis(df):
-    """Performs prediction on the dataframe (no clustering)."""
+    """
+    Performs predictive analytics on the dataframe with optimized performance.
+    
+    Args:
+        df (pd.DataFrame): Input student data
+        
+    Returns:
+        pd.DataFrame: Enhanced dataframe with predictions
+    """
     print("Running predictive analytics...")
-    df['Academic_Success'] = (df['Academic_Performance'] > df['Academic_Performance'].quantile(0.75)).astype(int)
-    df['Wellbeing_Decline'] = (df['Wellbeing_Score'] > df['Wellbeing_Score'].quantile(0.75)).astype(int)
-    df['Friends_Count'] = df['Friends'].fillna('').apply(lambda x: len(x.split(', ')) if x else 0)
-    df['Positive_Peer_Collab'] = (df['Friends_Count'] > df['Friends_Count'].median()).astype(int)
-
-    features = [
+    
+    # Vectorized operations for better performance
+    academic_quantile = df['Academic_Performance'].quantile(0.75)
+    wellbeing_quantile = df['Wellbeing_Score'].quantile(0.75)
+    
+    df['Academic_Success'] = (df['Academic_Performance'] > academic_quantile).astype(int)
+    df['Wellbeing_Decline'] = (df['Wellbeing_Score'] > wellbeing_quantile).astype(int)
+    
+    # Optimized friend counting
+    df['Friends_Count'] = df['Friends'].fillna('').str.count(',') + 1
+    df.loc[df['Friends'] == '', 'Friends_Count'] = 0
+    
+    friends_median = df['Friends_Count'].median()
+    df['Positive_Peer_Collab'] = (df['Friends_Count'] > friends_median).astype(int)    features = [
         'Academic_Performance', 'isolated', 'WomenDifferent', 'language',
         'pwi_wellbeing', 'GrowthMindset', 'Wellbeing_Score', 'Manbox5_overall',
         'Masculinity_contrained', 'School_support_engage6', 'School_support_engage', 'bullying'
     ]
 
+    # Efficient feature preprocessing
     for col in features:
         if col not in df.columns:
             df[col] = 0
-        elif df[col].isnull().any():
+        else:
+            # Use more efficient fillna with median
             df[col] = df[col].fillna(df[col].median())
 
     X = df[features]
@@ -68,15 +94,38 @@ def run_analysis(df):
     y_peer = df['Positive_Peer_Collab']
 
     try:
-        academic_model = XGBClassifier(random_state=42, use_label_encoder=False, eval_metric='logloss').fit(X, y_academic)
-        wellbeing_model = RandomForestClassifier(random_state=42).fit(X, y_wellbeing)
-        peer_model = XGBClassifier(random_state=42, use_label_encoder=False, eval_metric='logloss').fit(X, y_peer)
+        # Optimized model parameters for faster training
+        academic_model = XGBClassifier(
+            random_state=42, 
+            use_label_encoder=False, 
+            eval_metric='logloss',
+            n_estimators=50,  # Reduced for speed
+            max_depth=6,
+            verbosity=0
+        ).fit(X, y_academic)
+        
+        wellbeing_model = RandomForestClassifier(
+            random_state=42,
+            n_estimators=50,  # Reduced for speed
+            max_depth=10,
+            n_jobs=-1  # Use all available cores
+        ).fit(X, y_wellbeing)
+        
+        peer_model = XGBClassifier(
+            random_state=42, 
+            use_label_encoder=False, 
+            eval_metric='logloss',
+            n_estimators=50,  # Reduced for speed
+            max_depth=6,
+            verbosity=0
+        ).fit(X, y_peer)
 
         df['Academic_Risk'] = academic_model.predict_proba(X)[:, 0]
         df['Wellbeing_Risk'] = wellbeing_model.predict_proba(X)[:, 1]
         df['Peer_Score'] = peer_model.predict_proba(X)[:, 1]
     except Exception as e:
         print(f"Error during model training/prediction: {e}")
+        # Fallback values
         df['Academic_Risk'] = 0.5
         df['Wellbeing_Risk'] = 0.5
         df['Peer_Score'] = 0.5

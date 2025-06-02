@@ -3,26 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ClassForge Upload & Simulate - Upload student data and simulate classroom allocations">
+    <meta name="keywords" content="data upload, student data, simulation, classroom allocation, CSV upload">
+    <meta name="author" content="ClassForge Team">
+    
+    <!-- Performance optimization -->
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    
     <title>ClassForge - Upload & Simulate</title>
+    
+    <!-- Critical CSS -->
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="upload.css">
+    
+    <!-- Non-critical resources -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Accessibility and performance -->
+    <meta name="theme-color" content="#4299e1">
+    <meta name="color-scheme" content="light">
 </head>
 <body>
     <div class="container">
         <!-- Sidebar Navigation -->
-        <nav class="sidebar">
+        <nav class="sidebar" role="navigation" aria-label="Main navigation">
             <div class="logo">
                 <h1>ClassForge</h1>
             </div>
             <ul class="nav-links">
-                <li><a href="index.html"><span class="icon">📊</span> Overview</a></li>
-                <li class="active"><a href="upload.html"><span class="icon">📤</span> Upload & Simulate</a></li>
-                <li><a href="student-explorer.html"><span class="icon">👥</span> Student Explorer</a></li>
-                <li><a href="allocation.html"><span class="icon">🎯</span> Group Allocation</a></li>
-                <li><a href="classroom.html"><span class="icon">🏫</span> Classroom View</a></li>
-                <li><a href="overrides.html"><span class="icon">⚙️</span> Manual Overrides</a></li>
-                <li><a href="settings.html"><span class="icon">⚙️</span> Settings</a></li>
+                <li><a href="index.html" aria-label="Overview dashboard"><span class="icon" aria-hidden="true">📊</span> Overview</a></li>
+                <li class="active"><a href="upload.html" aria-current="page" aria-label="Upload data and simulate"><span class="icon" aria-hidden="true">📤</span> Upload & Simulate</a></li>
+                <li><a href="student-explorer.html" aria-label="Explore student data"><span class="icon" aria-hidden="true">👥</span> Student Explorer</a></li>
+                <li><a href="allocation.html" aria-label="Group allocation configuration"><span class="icon" aria-hidden="true">🎯</span> Group Allocation</a></li>
+                <li><a href="classroom.html" aria-label="View classroom layout"><span class="icon" aria-hidden="true">🏫</span> Classroom View</a></li>
+                <li><a href="overrides.html" aria-label="Manual allocation overrides"><span class="icon" aria-hidden="true">⚙️</span> Manual Overrides</a></li>
+                <li><a href="settings.html" aria-label="Application settings"><span class="icon" aria-hidden="true">⚙️</span> Settings</a></li>
             </ul>
         </nav>
 

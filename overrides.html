@@ -3,27 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ClassForge Manual Overrides - Manually adjust and optimize student-class assignments">
+    <meta name="keywords" content="class assignments, manual override, student allocation, classroom management">
+    <meta name="author" content="ClassForge Team">
+    
+    <!-- Performance optimization -->
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    
     <title>ClassForge - Manual Overrides</title>
+    
+    <!-- Critical CSS -->
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="overrides.css">
+    
+    <!-- Non-critical resources with preload -->
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js" as="script">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    
+    <!-- Accessibility and performance -->
+    <meta name="theme-color" content="#4299e1">
+    <meta name="color-scheme" content="light">
 </head>
 <body>
-    <div class="container">
-        <!-- Sidebar Navigation -->
-        <nav class="sidebar">
+    <div class="container">        <!-- Sidebar Navigation -->
+        <nav class="sidebar" role="navigation" aria-label="Main navigation">
             <div class="logo">
                 <h1>ClassForge</h1>
             </div>
             <ul class="nav-links">
-                <li><a href="index.html"><span class="icon">📊</span> Overview</a></li>
-                <li><a href="upload.html"><span class="icon">📤</span> Upload & Simulate</a></li>
-                <li><a href="student-explorer.html"><span class="icon">👥</span> Student Explorer</a></li>
-                <li><a href="allocation.html"><span class="icon">🎯</span> Group Allocation</a></li>
-                <li><a href="classroom.html"><span class="icon">🏫</span> Classroom View</a></li>
-                <li class="active"><a href="overrides.html"><span class="icon">⚙️</span> Manual Overrides</a></li>
-                <li><a href="settings.html"><span class="icon">⚙️</span> Settings</a></li>
+                <li><a href="index.html" aria-label="Overview dashboard"><span class="icon" aria-hidden="true">📊</span> Overview</a></li>
+                <li><a href="upload.html" aria-label="Upload data and simulate"><span class="icon" aria-hidden="true">📤</span> Upload & Simulate</a></li>
+                <li><a href="student-explorer.html" aria-label="Explore student data"><span class="icon" aria-hidden="true">👥</span> Student Explorer</a></li>
+                <li><a href="allocation.html" aria-label="Group allocation configuration"><span class="icon" aria-hidden="true">🎯</span> Group Allocation</a></li>
+                <li><a href="classroom.html" aria-label="View classroom layout"><span class="icon" aria-hidden="true">🏫</span> Classroom View</a></li>
+                <li class="active"><a href="overrides.html" aria-current="page" aria-label="Manual allocation overrides"><span class="icon" aria-hidden="true">⚙️</span> Manual Overrides</a></li>
+                <li><a href="settings.html" aria-label="Application settings"><span class="icon" aria-hidden="true">⚙️</span> Settings</a></li>
             </ul>
         </nav>
 
@@ -34,37 +53,41 @@
                 <div class="header-content">
                     <h2>Manual Overrides</h2>
                     <p class="subtitle">Manually adjust student-class assignments</p>
-                </div>
-                <div class="user-info">
+                </div>                <div class="user-info" role="region" aria-label="Current user information">
                     <span class="user-name">Admin User</span>
-                    <span class="user-avatar">👤</span>
+                    <span class="user-avatar" aria-label="User avatar" tabindex="0">👤</span>
                 </div>
             </header>
 
             <!-- Add New Student Section -->
-            <section class="add-student-section slide-up" aria-label="Add New Student">
-                <div class="section-header">
-                    <h3>➕ Add New Student</h3>
-                </div>
-                <form id="addStudentForm" class="add-student-form">
-                    <div class="form-group" style="display: none;"> <!-- Hide or remove this block -->
+            <section class="add-student-section slide-up" aria-label="Add New Student">                <div class="section-header">
+                    <h3 id="add-student-heading">➕ Add New Student</h3>
+                </div><form id="addStudentForm" class="add-student-form" role="form" aria-labelledby="add-student-heading">
+                    <div class="form-group visuallyhidden"> <!-- Proper accessibility hiding -->
                         <label for="newStudentId">Student ID</label>
-                        <input type="text" id="newStudentId" placeholder="e.g., S1001" required>
+                        <input type="text" id="newStudentId" placeholder="e.g., S1001" required aria-describedby="id-hint">
+                        <span id="id-hint" class="form-hint">System will auto-generate if left empty</span>
                     </div>
                     <div class="form-group">
                         <label for="newAcademicScore">Academic Score (0-100)</label>
-                        <input type="number" id="newAcademicScore" min="0" max="100" step="1" placeholder="e.g., 75" required>
+                        <input type="number" id="newAcademicScore" min="0" max="100" step="1" placeholder="e.g., 75" required 
+                            aria-describedby="academic-hint" autocomplete="off">
+                        <span id="academic-hint" class="form-hint">Enter a value between 0-100</span>
                     </div>
                     <div class="form-group">
                         <label for="newWellbeingScore">Wellbeing Score (0-10)</label>
-                        <input type="number" id="newWellbeingScore" min="0" max="10" step="1" placeholder="e.g., 7" required>
+                        <input type="number" id="newWellbeingScore" min="0" max="10" step="1" placeholder="e.g., 7" required
+                            aria-describedby="wellbeing-hint" autocomplete="off">
+                        <span id="wellbeing-hint" class="form-hint">Enter a value between 0-10</span>
                     </div>
                     <div class="form-group">
                         <label for="newBullyingScore">Bullying Score (0-10)</label>
-                        <input type="number" id="newBullyingScore" min="0" max="10" step="1" placeholder="e.g., 2" required>
+                        <input type="number" id="newBullyingScore" min="0" max="10" step="1" placeholder="e.g., 2" required
+                            aria-describedby="bullying-hint" autocomplete="off">
+                        <span id="bullying-hint" class="form-hint">Enter a value between 0-10</span>
                     </div>
                     <button type="submit" class="add-student-btn" aria-label="Add Student to Allocation">
-                        <span class="icon">👤</span> Add Student to Allocation
+                        <span class="icon" aria-hidden="true">👤</span> Add Student to Allocation
                     </button>
                 </form>
             </section>
@@ -117,9 +140,7 @@
                 </div>
             </section>
         </main>
-    </div>
-
-    <!-- Student Card Template -->
+    </div>    <!-- Student Card Template -->
     <template id="studentCardTemplate">
         <div class="student-card" draggable="true">
             <div class="student-header">
@@ -134,6 +155,56 @@
         </div>
     </template>
 
-    <script src="overrides.js"></script>
+    <!-- Optimized script loading -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js" defer></script>
+    <script src="overrides.js" defer></script>
+    
+    <!-- Enhanced performance monitoring -->
+    <script>
+        // Advanced performance monitoring
+        window.addEventListener('load', function() {
+            if (window.performance) {
+                const pageLoadTime = window.performance.timing.loadEventEnd - window.performance.timing.navigationStart;
+                console.info('Page load time:', pageLoadTime + 'ms');
+                
+                // Report core web vitals
+                setTimeout(() => {
+                    if ('PerformanceObserver' in window) {
+                        // Log key metrics if available
+                        const lcpEntry = window.performance.getEntriesByType('paint')
+                            .find(entry => entry.name === 'largest-contentful-paint');
+                        if (lcpEntry) {
+                            console.info('Largest Contentful Paint:', Math.round(lcpEntry.startTime), 'ms');
+                        }
+                        
+                        const fid = window.performance.getEntriesByType('first-input')[0];
+                        if (fid) {
+                            console.info('First Input Delay:', Math.round(fid.processingStart - fid.startTime), 'ms');
+                        }
+                        
+                        // Track layout shifts
+                        let cumulativeLayoutShift = 0;
+                        new PerformanceObserver((entryList) => {
+                            for (const entry of entryList.getEntries()) {
+                                if (!entry.hadRecentInput) {
+                                    cumulativeLayoutShift += entry.value;
+                                }
+                            }
+                            console.info('Cumulative Layout Shift:', cumulativeLayoutShift.toFixed(3));
+                        }).observe({type: 'layout-shift', buffered: true});
+                    }
+                    
+                    // Track long tasks for responsiveness
+                    if ('PerformanceObserver' in window) {
+                        new PerformanceObserver((entryList) => {
+                            for (const entry of entryList.getEntries()) {
+                                console.warn('Long task detected:', Math.round(entry.duration), 'ms');
+                            }
+                        }).observe({type: 'longtask', buffered: true});
+                    }
+                }, 0);
+            }
+        });
+    </script>
 </body>
 </html>

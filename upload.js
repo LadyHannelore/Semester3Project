@@ -1,3 +1,48 @@
+// Performance constants
+const DEBOUNCE_DELAY = 300; // ms for parameter changes
+const THROTTLE_DELAY = 16; // ms for progress updates
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB max file size
+const CHUNK_SIZE = 1024 * 1024; // 1MB chunks for large file processing
+
+// Utility functions for performance optimization
+function debounce(func, delay) {
+    let timeoutId;
+    return function (...args) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => func.apply(this, args), delay);
+    };
+}
+
+function throttle(func, delay) {
+    let lastCall = 0;
+    return function (...args) {
+        const now = new Date().getTime();
+        if (now - lastCall < delay) return;
+        lastCall = now;
+        return func.apply(this, args);
+    };
+}
+
+// File validation helper
+function validateFile(file) {
+    const errors = [];
+    
+    if (!file) {
+        errors.push('No file selected');
+        return errors;
+    }
+    
+    if (file.size > MAX_FILE_SIZE) {
+        errors.push(`File size (${(file.size / 1024 / 1024).toFixed(1)}MB) exceeds maximum allowed size (${MAX_FILE_SIZE / 1024 / 1024}MB)`);
+    }
+    
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+        errors.push('File must be a CSV (.csv) file');
+    }
+    
+    return errors;
+}
+
 // Global state
 let uploadedData = null;
 let dataPreviewTable = null;
@@ -25,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Set up event listeners for file upload
+// Set up event listeners for file upload with validation
 function initializeUploadListeners() {
     const fileInput = document.getElementById('file-upload');
     if (fileInput) {
@@ -41,22 +86,73 @@ function initializeUploadListeners() {
     }
 }
 
-// Initialize generation controls
+// Initialize generation controls with debounced parameter updates
 function initializeGenerationControls() {
-    // Optionally, update generationParameters when inputs change
+    // Update generationParameters when inputs change with debouncing
     const paramIds = [
         'studentCount', 'meanAcademic', 'stdAcademic',
         'meanWellbeing', 'stdWellbeing', 'bullyingPercent', 'friendsPerStudent'
     ];
+    
     paramIds.forEach(id => {
         const input = document.getElementById(id);
         if (input) {
-            input.addEventListener('input', function() {
-                generationParameters[id] = parseFloat(input.value);
-            });
+            input.addEventListener('input', debounce(function() {
+                const value = parseFloat(input.value);
+                if (!isNaN(value)) {
+                    generationParameters[id] = value;
+                    validateGenerationParameters();
+                }
+            }, DEBOUNCE_DELAY));
         }
     });
     console.log('Generation controls initialized');
+}
+
+// Add validation function for generation parameters
+function validateGenerationParameters() {
+    const errors = [];
+    
+    if (generationParameters.studentCount < 10 || generationParameters.studentCount > 10000) {
+        errors.push('Student count must be between 10 and 10,000');
+    }
+    
+    if (generationParameters.meanAcademic < 0 || generationParameters.meanAcademic > 100) {
+        errors.push('Mean academic score must be between 0 and 100');
+    }
+    
+    if (generationParameters.stdAcademic < 1 || generationParameters.stdAcademic > 50) {
+        errors.push('Academic standard deviation must be between 1 and 50');
+    }
+    
+    if (generationParameters.meanWellbeing < 1 || generationParameters.meanWellbeing > 10) {
+        errors.push('Mean wellbeing score must be between 1 and 10');
+    }
+    
+    if (generationParameters.stdWellbeing < 0.1 || generationParameters.stdWellbeing > 5) {
+        errors.push('Wellbeing standard deviation must be between 0.1 and 5');
+    }
+    
+    if (generationParameters.bullyingPercent < 0 || generationParameters.bullyingPercent > 50) {
+        errors.push('Bullying percentage must be between 0 and 50');
+    }
+    
+    if (generationParameters.friendsPerStudent < 0 || generationParameters.friendsPerStudent > 20) {
+        errors.push('Friends per student must be between 0 and 20');
+    }
+    
+    // Display validation errors
+    const errorContainer = document.getElementById('generation-errors');
+    if (errorContainer) {
+        if (errors.length > 0) {
+            errorContainer.innerHTML = `<div class="error-message">${errors.join('<br>')}</div>`;
+            errorContainer.style.display = 'block';
+        } else {
+            errorContainer.style.display = 'none';
+        }
+    }
+    
+    return errors.length === 0;
 }
 
 // Handle file upload event
@@ -142,57 +238,28 @@ function previewData(data) {
     if (!data || data.length === 0) return;
     // Show preview section
     const previewSection = document.querySelector('.data-preview-section');
-    if (previewSection) previewSection.style.display = 'block';
+    if (previewSection) {
+        previewSection.style.display = 'block';
+    }
 
-    // Set headers
-    const headers = Object.keys(data[0]);
-    const headerRow = document.getElementById('preview-headers');
-    headerRow.innerHTML = '';
-    headers.forEach(h => {
-        const th = document.createElement('th');
-        th.textContent = h;
-        headerRow.appendChild(th);
-    });
-
-    // Set body
-    const body = document.getElementById('preview-body');
-    body.innerHTML = '';
-    data.slice(0, 20).forEach(row => {
-        const tr = document.createElement('tr');
-        headers.forEach(h => {
-            const td = document.createElement('td');
-            td.textContent = row[h];
-            tr.appendChild(td);
+    // Create or update the data table
+    if (!dataPreviewTable) {
+        dataPreviewTable = new DataTable('#data-preview-table', {
+            data: data,
+            columns: [
+                { title: 'Student ID', data: 'StudentID' },
+                { title: 'Academic Performance', data: 'Academic_Performance' },
+                { title: 'Wellbeing Score', data: 'Wellbeing_Score' },
+                { title: 'Bullying Score', data: 'Bullying_Score' },
+                { title: 'Friends', data: 'Friends' }
+            ],
+            pageLength: 10,
+            searchable: true,
+            order: [[1, 'desc']]
         });
-        body.appendChild(tr);
-    });
-
-    // Wire up "Use This Data" button
-    const useDataBtn = document.getElementById('useDataBtn');
-    if (useDataBtn) {
-        useDataBtn.onclick = function() {
-            saveData(data);
-            alert('Synthetic data saved! You can now proceed.');
-        };
+    } else {
+        dataPreviewTable.clear().rows.add(data).draw();
     }
 }
 
-// Save data to localStorage
-function saveData(data) {
-    // Convert array of objects to { headers: [...], rows: [...] }
-    if (!Array.isArray(data) || data.length === 0) return;
-    const headers = Object.keys(data[0]);
-    const rows = data.map(row => {
-        return headers.map(h => {
-            // Ensure StudentID is always a string
-            if (h === 'StudentID' || h === 'Student_ID') {
-                return String(row[h]);
-            }
-            // Friends should already be a string "id1,id2,id3"
-            return row[h];
-        });
-    });
-    const dataset = { headers, rows };
-    localStorage.setItem('classforgeDataset', JSON.stringify(dataset));
-    console.log('Data saved to localStorage. Student_ID forced to string.');
-}
+//# sourceMappingURL=upload.js.map

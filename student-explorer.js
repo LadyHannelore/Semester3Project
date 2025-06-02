@@ -1,3 +1,31 @@
+// Performance constants
+const DEBOUNCE_DELAY = 300; // ms for search input
+const THROTTLE_DELAY = 16; // ms for 60fps animations
+const CACHE_DURATION = 300000; // 5 minutes
+const MAX_VISIBLE_ROWS = 100; // Virtual scrolling threshold
+
+// Utility functions for performance optimization
+function debounce(func, delay) {
+    let timeoutId;
+    return function (...args) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => func.apply(this, args), delay);
+    };
+}
+
+function throttle(func, delay) {
+    let lastCall = 0;
+    return function (...args) {
+        const now = new Date().getTime();
+        if (now - lastCall < delay) return;
+        lastCall = now;
+        return func.apply(this, args);
+    };
+}
+
+// Cache for filtered results
+const filterCache = new Map();
+
 // Global state
 let currentDataset = null;
 let filteredData = [];
@@ -79,18 +107,34 @@ function showEmptyState(message = "No dataset loaded.") {
     });
 }
 
-// Initialize event listeners
+// Initialize event listeners with optimized handlers
 function initializeEventListeners() {
-    // Search input
-    document.getElementById('searchInput').addEventListener('input', handleSearch);
+    // Search input with debouncing
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', debounce(handleSearch, DEBOUNCE_DELAY));
+    }
 
-    // Filter selects
-    document.getElementById('bullyingFilter').addEventListener('change', applyFilters);
-    document.getElementById('wellbeingFilter').addEventListener('change', applyFilters);
+    // Filter selects with throttling
+    const bullyingFilter = document.getElementById('bullyingFilter');
+    if (bullyingFilter) {
+        bullyingFilter.addEventListener('change', throttle(applyFilters, THROTTLE_DELAY));
+    }
+    
+    const wellbeingFilter = document.getElementById('wellbeingFilter');
+    if (wellbeingFilter) {
+        wellbeingFilter.addEventListener('change', throttle(applyFilters, THROTTLE_DELAY));
+    }
 
     // Pagination buttons
-    document.getElementById('prevPage').addEventListener('click', () => changePage(currentPage - 1));
-    document.getElementById('nextPage').addEventListener('click', () => changePage(currentPage + 1));
+    const prevButton = document.getElementById('prevPage');
+    const nextButton = document.getElementById('nextPage');
+    if (prevButton) {
+        prevButton.addEventListener('click', () => changePage(currentPage - 1));
+    }
+    if (nextButton) {
+        nextButton.addEventListener('click', () => changePage(currentPage + 1));
+    }
 
     // Sort headers (will be attached in renderTableHeaders)
 }
@@ -150,26 +194,49 @@ function initializeDynamicFilters() {
     // Add more dynamic filters here for other columns as needed
 }
 
-// Handle search
+// Handle search with caching
 function handleSearch(e) {
     if (!currentDataset) return;
     const searchTerm = e.target.value.toLowerCase();
+    
+    // Check cache first
+    const cacheKey = `search_${searchTerm}`;
+    if (filterCache.has(cacheKey)) {
+        const cachedResult = filterCache.get(cacheKey);
+        if (Date.now() - cachedResult.timestamp < CACHE_DURATION) {
+            filteredData = cachedResult.data;
+            currentPage = 1;
+            applyFilters();
+            return;
+        }
+    }
+    
     // Filter based on StudentID (assuming it's the first column) or any other identifiable column
     const studentIdIndex = currentDataset.headers.indexOf('StudentID'); // Changed from 'Student_ID'
+    let searchResult;
+    
     if (studentIdIndex !== -1) {
-        filteredData = currentDataset.rows.filter(row =>
+        searchResult = currentDataset.rows.filter(row =>
             row[studentIdIndex] && String(row[studentIdIndex]).toLowerCase().includes(searchTerm)
         );
     } else { // Fallback if StudentID is not found, search all columns
-        filteredData = currentDataset.rows.filter(row =>
+        searchResult = currentDataset.rows.filter(row =>
             row.some(cell => cell && String(cell).toLowerCase().includes(searchTerm))
         );
     }
+    
+    // Cache the result
+    filterCache.set(cacheKey, {
+        data: searchResult,
+        timestamp: Date.now()
+    });
+    
+    filteredData = searchResult;
     currentPage = 1;
     applyFilters();
 }
 
-// Apply filters
+// Apply filters with caching and optimization
 function applyFilters() {
     if (!currentDataset) return;
 
@@ -179,40 +246,75 @@ function applyFilters() {
     // Get dynamic filter values
     const k6FilterSelect = document.getElementById('k6Filter');
     const k6Filter = k6FilterSelect ? k6FilterSelect.value : "";
+    
+    // Create cache key from filter combination
+    const cacheKey = `filters_${bullyingFilter}_${wellbeingFilter}_${k6Filter}`;
+    
+    // Check cache first
+    if (filterCache.has(cacheKey)) {
+        const cachedResult = filterCache.get(cacheKey);
+        if (Date.now() - cachedResult.timestamp < CACHE_DURATION) {
+            filteredData = cachedResult.data;
+            if (sortColumn) {
+                sortData(sortColumn, sortDirection);
+            }
+            updateTable();
+            return;
+        }
+    }
 
+    // Pre-calculate column indices for better performance
     const bullyingScoreIndex = currentDataset.headers.indexOf('Bullying_Score');
     const wellbeingScoreIndex = currentDataset.headers.indexOf('Wellbeing_Score');
     const k6ScoreIndex = currentDataset.headers.indexOf('K6_Score');
 
-    filteredData = currentDataset.rows.filter(row => {
+    // Use more efficient filtering with early returns
+    const result = currentDataset.rows.filter(row => {
         // Ensure indices are valid before accessing row data
-        const bullyingScore = bullyingScoreIndex !== -1 ? parseInt(row[bullyingScoreIndex]) : NaN;
-        const wellbeingScore = wellbeingScoreIndex !== -1 ? parseInt(row[wellbeingScoreIndex]) : NaN;
-        const k6Score = k6ScoreIndex !== -1 ? parseInt(row[k6ScoreIndex]) : NaN;
-
-        // Apply bullying filter
         if (bullyingFilter && bullyingScoreIndex !== -1) {
-            if (bullyingFilter === 'high' && bullyingScore < 6) return false;
-            if (bullyingFilter === 'medium' && (bullyingScore < 3 || bullyingScore > 5)) return false;
-            if (bullyingFilter === 'low' && bullyingScore > 2) return false;
+            const bullyingScore = parseInt(row[bullyingScoreIndex]);
+            if (isNaN(bullyingScore)) return false;
+            
+            switch (bullyingFilter) {
+                case 'high': if (bullyingScore < 6) return false; break;
+                case 'medium': if (bullyingScore < 3 || bullyingScore > 5) return false; break;
+                case 'low': if (bullyingScore > 2) return false; break;
+            }
         }
 
-        // Apply wellbeing filter
         if (wellbeingFilter && wellbeingScoreIndex !== -1) {
-            if (wellbeingFilter === 'high' && wellbeingScore <= 7) return false;
-            if (wellbeingFilter === 'medium' && (wellbeingScore < 3 || wellbeingScore > 7)) return false;
-            if (wellbeingFilter === 'low' && wellbeingScore >= 3) return false;
+            const wellbeingScore = parseInt(row[wellbeingScoreIndex]);
+            if (isNaN(wellbeingScore)) return false;
+            
+            switch (wellbeingFilter) {
+                case 'high': if (wellbeingScore <= 7) return false; break;
+                case 'medium': if (wellbeingScore < 3 || wellbeingScore > 7) return false; break;
+                case 'low': if (wellbeingScore >= 3) return false; break;
+            }
         }
 
         // Apply K6_Score filter (example dynamic filter)
-        if (k6Filter && k6ScoreIndex !== -1 && !isNaN(k6Score)) {
-            if (k6Filter === 'low' && k6Score > 10) return false;
-            if (k6Filter === 'medium' && (k6Score < 11 || k6Score > 17)) return false;
-            if (k6Filter === 'high' && k6Score < 18) return false;
+        if (k6Filter && k6ScoreIndex !== -1) {
+            const k6Score = parseInt(row[k6ScoreIndex]);
+            if (!isNaN(k6Score)) {
+                switch (k6Filter) {
+                    case 'low': if (k6Score > 10) return false; break;
+                    case 'medium': if (k6Score < 11 || k6Score > 17) return false; break;
+                    case 'high': if (k6Score < 18) return false; break;
+                }
+            }
         }
 
         return true;
     });
+
+    // Cache the result
+    filterCache.set(cacheKey, {
+        data: result,
+        timestamp: Date.now()
+    });
+    
+    filteredData = result;
 
     if (sortColumn) {
         sortData(sortColumn, sortDirection);

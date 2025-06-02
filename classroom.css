@@ -1,89 +1,148 @@
-/* Animations */
+/* CSS Custom Properties for Classroom Performance */
+:root {
+    /* Colors */
+    --classroom-bg: #f8fafc;
+    --classroom-card-bg: #ffffff;
+    --classroom-text-primary: #1a202c;
+    --classroom-text-secondary: #2d3748;
+    --classroom-text-muted: #718096;
+    --classroom-primary: #4299e1;
+    --classroom-primary-hover: #3182ce;
+    --classroom-border: #e2e8f0;
+    --classroom-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --classroom-shadow-hover: 0 8px 15px -3px rgba(0, 0, 0, 0.1);
+    
+    /* Spacing */
+    --classroom-spacing-xs: 0.5rem;
+    --classroom-spacing-sm: 0.75rem;
+    --classroom-spacing-md: 1rem;
+    --classroom-spacing-lg: 1.5rem;
+    --classroom-spacing-xl: 2rem;
+    
+    /* Border Radius */
+    --classroom-radius-sm: 0.5rem;
+    --classroom-radius-md: 1rem;
+    
+    /* Transitions - Optimized for 60fps */
+    --classroom-transition-fast: 0.15s ease-out;
+    --classroom-transition-normal: 0.2s ease-out;
+    --classroom-transition-slow: 0.3s ease-out;
+    
+    /* Performance */
+    --classroom-will-change: transform, opacity;
+}
+
+/* Optimized animations for 60fps */
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from { 
+        opacity: 0;
+        transform: translateZ(0);
+    }
+    to { 
+        opacity: 1;
+        transform: translateZ(0);
+    }
 }
 
 @keyframes slideUp {
-    from { transform: translateY(20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+    from { 
+        transform: translateY(20px) translateZ(0); 
+        opacity: 0; 
+    }
+    to { 
+        transform: translateY(0) translateZ(0); 
+        opacity: 1; 
+    }
 }
 
-/* Animation classes */
+/* Animation classes with hardware acceleration */
 .fade-in {
-    animation: fadeIn 0.5s ease-out;
+    animation: fadeIn var(--classroom-transition-slow) ease-out;
+    will-change: var(--classroom-will-change);
 }
 
 .slide-up {
-    animation: slideUp 0.5s ease-out;
+    animation: slideUp var(--classroom-transition-slow) ease-out;
+    will-change: var(--classroom-will-change);
 }
 
 /* Main layout */
 .main-content {
     display: flex;
     flex-direction: column;
-    min-height: 100vh; /* Ensure it takes full viewport height */
-    background-color: #f8fafc;
-    padding: 2rem;
-    gap: 2rem;
-    margin: 0 auto; /* Center horizontally */
+    min-height: 100vh;
+    background-color: var(--classroom-bg);
+    padding: var(--classroom-spacing-xl);
+    gap: var(--classroom-spacing-xl);
+    margin: 0 auto;
     margin-left: 350px;
-    overflow-y: auto; /* Enable vertical scrolling */
+    overflow-y: auto;
+    /* Performance optimizations */
+    will-change: scroll-position;
+    transform: translateZ(0);
 }
 
 /* Header styles */
 .top-bar {
-    background-color: white;
-    padding: 1.5rem 2rem;
-    border-radius: 1rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    background-color: var(--classroom-card-bg);
+    padding: var(--classroom-spacing-lg) var(--classroom-spacing-xl);
+    border-radius: var(--classroom-radius-md);
+    box-shadow: var(--classroom-shadow);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    /* Performance optimizations */
+    will-change: var(--classroom-will-change);
+    transform: translateZ(0);
 }
 
 .header-content h2 {
     font-size: 1.875rem;
-    color: #1a202c;
-    margin-bottom: 0.5rem;
+    color: var(--classroom-text-primary);
+    margin-bottom: var(--classroom-spacing-xs);
 }
 
 .subtitle {
-    color: #718096;
+    color: var(--classroom-text-muted);
     font-size: 1rem;
 }
 
 /* Classroom container */
 .classroom-container {
     display: flex;
-    gap: 2rem;
+    gap: var(--classroom-spacing-xl);
     flex: 1;
     min-height: 0;
-    overflow-y: auto; /* Allow scrolling within the container */
+    overflow-y: auto;
+    /* Performance optimizations */
+    contain: layout;
 }
 
 /* Class selector */
 .class-selector {
     width: 300px;
-    background-color: white;
-    border-radius: 1rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    background-color: var(--classroom-card-bg);
+    border-radius: var(--classroom-radius-md);
+    box-shadow: var(--classroom-shadow);
     display: flex;
     flex-direction: column;
+    /* Performance optimizations */
+    will-change: var(--classroom-will-change);
+    transform: translateZ(0);
 }
 
 .selector-header {
-    padding: 1.5rem;
-    border-bottom: 1px solid #e2e8f0;
+    padding: var(--classroom-spacing-lg);
+    border-bottom: 1px solid var(--classroom-border);
 }
 
 .selector-header h3 {
     font-size: 1.25rem;
-    color: #2d3748;
-    margin-bottom: 1rem;
+    color: var(--classroom-text-secondary);
+    margin-bottom: var(--classroom-spacing-md);
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--classroom-spacing-xs);
 }
 
 .search-box {
@@ -92,11 +151,14 @@
 
 .search-box input {
     width: 100%;
-    padding: 0.75rem 1rem;
+    padding: var(--classroom-spacing-sm) var(--classroom-spacing-md);
     padding-left: 2.5rem;
-    border: 1px solid #e2e8f0;
-    border-radius: 0.5rem;
+    border: 1px solid var(--classroom-border);
+    border-radius: var(--classroom-radius-sm);
     font-size: 0.875rem;
+    transition: border-color var(--classroom-transition-normal);
+    /* Performance optimizations */
+    will-change: border-color;
 }
 
 .search-box::before {

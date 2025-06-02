@@ -1,6 +1,69 @@
 document.addEventListener('DOMContentLoaded', function() {
     loadDataAndRenderCharts();
+    initializeResponsiveCharts();
 });
+
+// Performance constants
+const CHART_ANIMATION_DURATION = 300; // ms for chart animations
+const RESIZE_DEBOUNCE_DELAY = 250; // ms for window resize events
+const CHART_UPDATE_THROTTLE = 100; // ms for chart updates
+const CACHE_DURATION = 300000; // 5 minutes
+
+// Utility functions for performance optimization
+function debounce(func, delay) {
+    let timeoutId;
+    return function (...args) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => func.apply(this, args), delay);
+    };
+}
+
+function throttle(func, delay) {
+    let lastCall = 0;
+    return function (...args) {
+        const now = new Date().getTime();
+        if (now - lastCall < delay) return;
+        lastCall = now;
+        return func.apply(this, args);
+    };
+}
+
+// Chart cache for better performance
+const chartCache = new Map();
+
+// Optimized chart configuration
+const chartDefaults = {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: {
+        duration: CHART_ANIMATION_DURATION
+    },
+    plugins: {
+        legend: {
+            display: true,
+            position: 'top'
+        },
+        tooltip: {
+            enabled: true,
+            intersect: false,
+            mode: 'nearest'
+        }
+    }
+};
+
+// Initialize responsive chart handling
+function initializeResponsiveCharts() {
+    const debouncedResize = debounce(() => {
+        // Resize all charts when window resizes
+        Object.values(Chart.instances).forEach(chart => {
+            if (chart) {
+                chart.resize();
+            }
+        });
+    }, RESIZE_DEBOUNCE_DELAY);
+    
+    window.addEventListener('resize', debouncedResize);
+}
 
 // Function to load data and render all charts on the dashboard
 function loadDataAndRenderCharts() {
@@ -151,6 +214,7 @@ function calculateDistribution(data, min, max, step) {
     return distribution;
 }
 
+// Optimized histogram rendering with caching
 function renderHistogram(canvas, data, label, color, min, max, step) {
     if (!canvas || !data || data.length === 0) {
         if (canvas && canvas.parentElement) {
@@ -160,9 +224,31 @@ function renderHistogram(canvas, data, label, color, min, max, step) {
         }
         return;
     }
-    const ctx = canvas.getContext('2d');
+    
+    // Create cache key for this chart
+    const cacheKey = `histogram_${label}_${data.length}_${min}_${max}_${step}`;
+    
+    // Check if we have cached distribution data
+    let bins;
+    if (chartCache.has(cacheKey)) {
+        const cached = chartCache.get(cacheKey);
+        if (Date.now() - cached.timestamp < CACHE_DURATION) {
+            bins = cached.data;
+        } else {
+            chartCache.delete(cacheKey);
+        }
+    }
+    
+    if (!bins) {
+        bins = calculateDistribution(data, min, max, step);
+        // Cache the calculated distribution
+        chartCache.set(cacheKey, {
+            data: bins,
+            timestamp: Date.now()
+        });
+    }
 
-    const bins = calculateDistribution(data, min, max, step);
+    const ctx = canvas.getContext('2d');
 
     const chartDataValues = Object.values(bins);
     if (chartDataValues.every(v => v === 0)) {
@@ -177,7 +263,9 @@ function renderHistogram(canvas, data, label, color, min, max, step) {
     if (ctx._chartInstance) {
         ctx._chartInstance.destroy();
     }
-    ctx._chartInstance = new Chart(ctx, {
+    
+    // Use optimized chart configuration
+    const chartConfig = {
         type: 'bar',
         data: {
             labels: Object.keys(bins),
@@ -190,8 +278,7 @@ function renderHistogram(canvas, data, label, color, min, max, step) {
             }]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
+            ...chartDefaults,
             scales: {
                 y: {
                     beginAtZero: true,
@@ -204,6 +291,7 @@ function renderHistogram(canvas, data, label, color, min, max, step) {
                 }
             },
             plugins: {
+                ...chartDefaults.plugins,
                 legend: {
                     display: true,
                     labels: { font: { size: 16 } }
@@ -216,7 +304,9 @@ function renderHistogram(canvas, data, label, color, min, max, step) {
                 }
             }
         }
-    });
+    };
+    
+    ctx._chartInstance = new Chart(ctx, chartConfig);
 }
 
 function renderSchoolFriendsGraph(canvas, studentRows, studentIdColIndex, friendsColIndex, graphLabel) {

@@ -1,39 +1,93 @@
-/* Animations */
+/* CSS Custom Properties for Student Explorer Performance */
+:root {
+    /* Enhanced color system */
+    --explorer-primary: #4299e1;
+    --explorer-primary-dark: #3182ce;
+    --explorer-accent-green: #48bb78;
+    --explorer-accent-yellow: #ecc94b;
+    --explorer-accent-red: #f56565;
+    --explorer-bg: #f8fafc;
+    --explorer-card-bg: #ffffff;
+    --explorer-border: #e2e8f0;
+    --explorer-text-primary: #1a202c;
+    --explorer-text-secondary: #4a5568;
+    --explorer-text-muted: #718096;
+    --explorer-gray-light: #f7fafc;
+    --explorer-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --explorer-shadow-hover: 0 8px 15px -3px rgba(0, 0, 0, 0.1);
+    
+    /* Spacing system */
+    --explorer-spacing-xs: 0.5rem;
+    --explorer-spacing-sm: 0.75rem;
+    --explorer-spacing-md: 1rem;
+    --explorer-spacing-lg: 1.5rem;
+    --explorer-spacing-xl: 2rem;
+    
+    /* Border radius */
+    --explorer-radius-sm: 0.5rem;
+    --explorer-radius-md: 1rem;
+    
+    /* Transitions optimized for 60fps */
+    --explorer-transition-fast: 0.15s ease-out;
+    --explorer-transition-normal: 0.2s ease-out;
+    --explorer-transition-slow: 0.3s ease-out;
+    
+    /* Performance */
+    --explorer-will-change: transform, opacity;
+    
+    /* Legacy support */
+    --primary-blue: var(--explorer-primary);
+    --primary-blue-dark: var(--explorer-primary-dark);
+    --accent-green: var(--explorer-accent-green);
+    --accent-yellow: var(--explorer-accent-yellow);
+    --accent-red: var(--explorer-accent-red);
+    --gray-bg: var(--explorer-bg);
+    --gray-border: var(--explorer-border);
+    --gray-text: var(--explorer-text-secondary);
+    --gray-light: var(--explorer-gray-light);
+}
+
+/* Optimized animations for 60fps performance */
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from { 
+        opacity: 0;
+        transform: translateZ(0);
+    }
+    to { 
+        opacity: 1;
+        transform: translateZ(0);
+    }
 }
 
 @keyframes slideUp {
-    from { transform: translateY(20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+    from { 
+        transform: translateY(20px) translateZ(0); 
+        opacity: 0; 
+    }
+    to { 
+        transform: translateY(0) translateZ(0); 
+        opacity: 1; 
+    }
 }
 
 @keyframes slideIn {
-    from { transform: translateX(100%); }
-    to { transform: translateX(0); }
+    from { 
+        transform: translateX(100%) translateZ(0); 
+    }
+    to { 
+        transform: translateX(0) translateZ(0); 
+    }
 }
 
-/* Animation classes */
+/* Animation classes with hardware acceleration */
 .fade-in {
-    animation: fadeIn 0.5s ease-out;
+    animation: fadeIn var(--explorer-transition-slow) ease-out;
+    will-change: var(--explorer-will-change);
 }
 
 .slide-up {
-    animation: slideUp 0.5s ease-out;
-}
-
-/* CSS Variables */
-:root {
-    --primary-blue: #4299e1;
-    --primary-blue-dark: #3182ce;
-    --accent-green: #48bb78;
-    --accent-yellow: #ecc94b;
-    --accent-red: #f56565;
-    --gray-bg: #f8fafc;
-    --gray-border: #e2e8f0;
-    --gray-text: #4a5568;
-    --gray-light: #f7fafc;
+    animation: slideUp var(--explorer-transition-slow) ease-out;
+    will-change: var(--explorer-will-change);
 }
 
 /* Main layout */
@@ -41,60 +95,71 @@
     display: flex;
     flex-direction: column;
     height: 100vh;
-    background-color: var(--gray-bg);
-    padding: 2rem;
-    gap: 2rem;
-    overflow-y: auto; /* Enable vertical scrolling */
-    margin-left: 350px; /* Ensure content starts after sidebar */
+    background-color: var(--explorer-bg);
+    padding: var(--explorer-spacing-xl);
+    gap: var(--explorer-spacing-xl);
+    overflow-y: auto;
+    margin-left: 350px;
+    /* Performance optimizations */
+    will-change: scroll-position;
+    transform: translateZ(0);
 }
 
 /* Header styles */
 .top-bar {
-    background-color: white;
-    padding: 1.5rem 2rem;
-    border-radius: 1rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    background-color: var(--explorer-card-bg);
+    padding: var(--explorer-spacing-lg) var(--explorer-spacing-xl);
+    border-radius: var(--explorer-radius-md);
+    box-shadow: var(--explorer-shadow);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    /* Performance optimizations */
+    will-change: var(--explorer-will-change);
+    transform: translateZ(0);
 }
 
 .header-content h2 {
     font-size: 1.875rem;
-    color: #1a202c;
-    margin-bottom: 0.5rem;
+    color: var(--explorer-text-primary);
+    margin-bottom: var(--explorer-spacing-xs);
 }
 
 .subtitle {
-    color: #718096;
+    color: var(--explorer-text-muted);
     font-size: 1rem;
 }
 
 /* Explorer container */
 .explorer-container {
     display: flex;
-    gap: 2rem;
+    gap: var(--explorer-spacing-xl);
     flex: 1;
     min-height: 0;
+    /* Performance optimizations */
+    contain: layout;
 }
 
 .table-section {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: var(--explorer-spacing-lg);
     min-width: 0;
 }
 
 /* Filters bar */
 .filters-bar {
-    background-color: white;
-    padding: 1.5rem;
-    border-radius: 1rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    background-color: var(--explorer-card-bg);
+    padding: var(--explorer-spacing-lg);
+    border-radius: var(--explorer-radius-md);
+    box-shadow: var(--explorer-shadow);
     display: flex;
-    gap: 2rem;
+    gap: var(--explorer-spacing-xl);
     align-items: center;
+    /* Performance optimizations */
+    will-change: var(--explorer-will-change);
+    transform: translateZ(0);
 }
 
 .search-box {

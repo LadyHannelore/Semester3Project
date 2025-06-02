@@ -3,11 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ClassForge Student Explorer - Browse and analyze individual student records for optimal class allocation">
+    <meta name="keywords" content="student data, education analytics, class allocation, student profiles">
+    <meta name="author" content="ClassForge">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#667eea">
+    
+    <!-- Performance optimizations -->
+    <meta name="format-detection" content="telephone=no">
+    <meta name="dns-prefetch" content="//fonts.googleapis.com">
+    <meta name="dns-prefetch" content="//cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    
     <title>ClassForge - Student Explorer</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="student-explorer.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
     <style>
         /* Additional styles specific to student explorer */
         .explorer-container {
@@ -187,20 +200,19 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Sidebar Navigation -->
-        <nav class="sidebar">
+    <div class="container">        <!-- Sidebar Navigation -->
+        <nav class="sidebar" role="navigation" aria-label="Main Navigation">
             <div class="logo">
                 <h1>ClassForge</h1>
             </div>
             <ul class="nav-links">
-                <li><a href="index.html"><span class="icon">📊</span> Overview</a></li>
-                <li><a href="upload.html"><span class="icon">📤</span> Upload & Simulate</a></li>
-                <li class="active"><a href="student-explorer.html"><span class="icon">👥</span> Student Explorer</a></li>
-                <li><a href="allocation.html"><span class="icon">🎯</span> Group Allocation</a></li>
-                <li><a href="classroom.html"><span class="icon">🏫</span> Classroom View</a></li>
-                 <li><a href="overrides.html"><span class="icon">⚙️</span> Manual Overrides</a></li>
-                <li><a href="settings.html"><span class="icon">⚙️</span> Settings</a></li>
+                <li><a href="index.html" aria-label="Overview Dashboard"><span class="icon">📊</span> Overview</a></li>
+                <li><a href="upload.html" aria-label="Upload and Simulate Data"><span class="icon">📤</span> Upload & Simulate</a></li>
+                <li class="active"><a href="student-explorer.html" aria-current="page" aria-label="Student Explorer"><span class="icon">👥</span> Student Explorer</a></li>
+                <li><a href="allocation.html" aria-label="Group Allocation Tool"><span class="icon">🎯</span> Group Allocation</a></li>
+                <li><a href="classroom.html" aria-label="Classroom View"><span class="icon">🏫</span> Classroom View</a></li>
+                 <li><a href="overrides.html" aria-label="Manual Overrides"><span class="icon">⚙️</span> Manual Overrides</a></li>
+                <li><a href="settings.html" aria-label="Application Settings"><span class="icon">⚙️</span> Settings</a></li>
             </ul>
         </nav>
 
@@ -307,10 +319,22 @@
                 </button>
                 <button class="action-btn primary" type="button" onclick="window.location.href='allocation.html'" aria-label="Run Group Allocation">
                     <span class="icon">⚙️</span> Run Group Allocation
-                </button>
-            </div>
+                </button>            </div>
         </main>
     </div>
-    <script src="student-explorer.js"></script>
+    
+    <!-- Optimized script loading -->
+    <script src="student-explorer.js" defer></script>
+    
+    <!-- Performance monitoring -->
+    <script>
+        // Simple performance monitoring
+        window.addEventListener('load', function() {
+            if (window.performance) {
+                const pageLoadTime = window.performance.timing.loadEventEnd - window.performance.timing.navigationStart;
+                console.info('Page load time:', pageLoadTime + 'ms');
+            }
+        });
+    </script>
 </body>
 </html>

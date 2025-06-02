@@ -1,31 +1,75 @@
-/* General body and container styling if not already in styles.css */
+/* CSS Custom Properties for Dashboard Performance */
+:root {
+    /* Colors */
+    --dashboard-bg-page: #f0f2f5;
+    --dashboard-bg-main: #f8fafc;
+    --dashboard-card-bg: #ffffff;
+    --dashboard-sidebar-bg: #2d3748;
+    --dashboard-sidebar-hover: #4a5568;
+    --dashboard-text-primary: #1a202c;
+    --dashboard-text-light: #e2e8f0;
+    --dashboard-text-muted: #718096;
+    --dashboard-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    
+    /* Spacing */
+    --dashboard-spacing-xs: 0.5rem;
+    --dashboard-spacing-sm: 0.75rem;
+    --dashboard-spacing-md: 1rem;
+    --dashboard-spacing-lg: 1.5rem;
+    --dashboard-spacing-xl: 2rem;
+    
+    /* Layout */
+    --dashboard-sidebar-width: 250px;
+    --dashboard-main-margin: 240px;
+    
+    /* Border Radius */
+    --dashboard-radius-sm: 0.375rem;
+    --dashboard-radius-md: 1rem;
+    
+    /* Transitions */
+    --dashboard-transition-fast: 0.15s ease-out;
+    --dashboard-transition-normal: 0.2s ease-out;
+    
+    /* Performance */
+    --dashboard-will-change: transform, opacity, background-color;
+}
+
+/* General body and container styling optimized for performance */
 body {
     font-family: 'Inter', sans-serif;
     margin: 0;
-    background-color: #f0f2f5; /* Light gray background for the page */
+    background-color: var(--dashboard-bg-page);
     display: flex;
+    /* Performance optimizations */
+    will-change: scroll-position;
+    transform: translateZ(0);
 }
 
 .container {
     display: flex;
     width: 100%;
+    /* Performance optimizations */
+    contain: layout;
 }
 
-/* Sidebar styling (basic, assuming it's similar to other pages) */
+/* Sidebar styling with hardware acceleration */
 .sidebar {
-    width: 250px; /* Adjust as needed */
-    background-color: #2d3748; /* Dark sidebar */
+    width: var(--dashboard-sidebar-width);
+    background-color: var(--dashboard-sidebar-bg);
     color: white;
-    padding: 1rem;
+    padding: var(--dashboard-spacing-md);
     height: 100vh;
     position: fixed;
     left: 0;
     top: 0;
+    /* Performance optimizations */
+    will-change: var(--dashboard-will-change);
+    transform: translateZ(0);
 }
 
 .sidebar .logo h1 {
     text-align: center;
-    margin-bottom: 2rem;
+    margin-bottom: var(--dashboard-spacing-xl);
 }
 
 .sidebar .nav-links {
@@ -35,55 +79,63 @@ body {
 
 .sidebar .nav-links li a {
     display: block;
-    padding: 0.75rem 1rem;
-    color: #e2e8f0;
+    padding: var(--dashboard-spacing-sm) var(--dashboard-spacing-md);
+    color: var(--dashboard-text-light);
     text-decoration: none;
-    border-radius: 0.375rem;
-    margin-bottom: 0.5rem;
-    transition: background-color 0.2s;
+    border-radius: var(--dashboard-radius-sm);
+    margin-bottom: var(--dashboard-spacing-xs);
+    transition: background-color var(--dashboard-transition-normal);
+    /* Performance optimizations */
+    will-change: var(--dashboard-will-change);
 }
 
 .sidebar .nav-links li a:hover,
 .sidebar .nav-links li.active a {
-    background-color: #4a5568;
+    background-color: var(--dashboard-sidebar-hover);
     color: white;
 }
 
-/* Main content area for index.html */
+/* Main content area optimized for performance */
 .main-content {
-    margin-left: 240px; /* Adjusted to match sidebar width in styles.css */
-    padding: 2rem;
-    width: calc(100% - 240px); /* Adjusted to match sidebar width */
-    background-color: #f8fafc;
+    margin-left: var(--dashboard-main-margin);
+    padding: var(--dashboard-spacing-xl);
+    width: calc(100% - var(--dashboard-main-margin));
+    background-color: var(--dashboard-bg-main);
     min-height: 100vh;
+    /* Performance optimizations */
+    will-change: scroll-position;
+    transform: translateZ(0);
 }
 
 .top-bar {
-    background-color: white;
-    padding: 1.5rem 2rem;
-    border-radius: 1rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    background-color: var(--dashboard-card-bg);
+    padding: var(--dashboard-spacing-lg) var(--dashboard-spacing-xl);
+    border-radius: var(--dashboard-radius-md);
+    box-shadow: var(--dashboard-shadow);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 2rem;
+    margin-bottom: var(--dashboard-spacing-xl);
+    /* Performance optimizations */
+    will-change: var(--dashboard-will-change);
+    transform: translateZ(0);
 }
 
 .header-content h2 {
     font-size: 1.875rem;
-    color: #1a202c;
-    margin-bottom: 0.5rem;
+    color: var(--dashboard-text-primary);
+    margin-bottom: var(--dashboard-spacing-xs);
 }
 
 .subtitle {
-    color: #718096;
+    color: var(--dashboard-text-muted);
     font-size: 1rem;
 }
 
 .user-info {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: var(--dashboard-spacing-sm);
 }
 
 .user-name {
@@ -94,11 +146,10 @@ body {
     font-size: 1.5rem;
 }
 
-
-/* Chart specific styles for index.html */
+/* Chart specific styles optimized for performance */
 .charts-section {
-    background-color: white;
-    padding: 2rem;
+    background-color: var(--dashboard-card-bg);
+    padding: var(--dashboard-spacing-xl);
     border-radius: 1rem;
     box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
     width: 100%; /* Ensure full width */

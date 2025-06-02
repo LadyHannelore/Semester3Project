@@ -1,3 +1,56 @@
+// Performance constants
+const DEBOUNCE_DELAY = 300; // ms for input changes
+const THROTTLE_DELAY = 16; // ms for 60fps animations
+const BATCH_SIZE = 50; // Number of DOM operations per batch
+const ANIMATION_DURATION = 150; // ms for drag animations
+
+// Error tracking
+const ERROR_LOG_ENDPOINT = '/api/log-error';
+const MAX_ERROR_RETRY = 3;
+
+// Performance monitoring
+let renderTimes = [];
+let interactionTimes = [];
+
+// Utility functions for performance optimization
+function debounce(func, delay) {
+    let timeoutId;
+    return function (...args) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+            try {
+                func.apply(this, args);
+            } catch (error) {
+                handleError(error, 'debounce');
+            }
+        }, delay);
+    };
+}
+
+function throttle(func, delay) {
+    let lastCall = 0;
+    return function (...args) {
+        const now = new Date().getTime();
+        if (now - lastCall < delay) return;
+        lastCall = now;
+        try {
+            func.apply(this, args);
+        } catch (error) {
+            handleError(error, 'throttle');
+        }
+    };
+}
+
+// Optimized batch DOM operations
+function batchDOMUpdates(operations) {
+    return new Promise(resolve => {
+        requestAnimationFrame(() => {
+            operations.forEach(op => op());
+            resolve();
+        });
+    });
+}
+
 // Global state
 let allocationData = null;
 let moveHistory = [];
@@ -22,43 +75,66 @@ function loadAllocationData() {
     }
 }
 
-// Initialize event listeners
+// Initialize event listeners with optimized handlers
 function initializeEventListeners() {
-    // View toggle button
-    document.getElementById('viewToggleBtn').addEventListener('click', toggleView);
+    // View toggle button with throttling
+    const viewToggleBtn = document.getElementById('viewToggleBtn');
+    if (viewToggleBtn) {
+        viewToggleBtn.addEventListener('click', throttle(toggleView, THROTTLE_DELAY));
+    }
 
-    // Action buttons
-    document.getElementById('saveBtn').addEventListener('click', saveChanges);
-    document.getElementById('undoBtn').addEventListener('click', undoLastMove);
-    document.getElementById('resetBtn').addEventListener('click', resetToAutoAllocation);
+    // Action buttons with debouncing for save operations
+    const saveBtn = document.getElementById('saveBtn');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', debounce(saveChanges, DEBOUNCE_DELAY));
+    }
+    
+    const undoBtn = document.getElementById('undoBtn');
+    if (undoBtn) {
+        undoBtn.addEventListener('click', undoLastMove);
+    }
+    
+    const resetBtn = document.getElementById('resetBtn');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', resetToAutoAllocation);
+    }
 
-    // Add student form
+    // Add student form with optimized submission
     const addStudentForm = document.getElementById('addStudentForm');
     if (addStudentForm) {
-        addStudentForm.addEventListener('submit', handleAddStudentFormSubmit);
+        addStudentForm.addEventListener('submit', debounce(handleAddStudentFormSubmit, DEBOUNCE_DELAY));
     }
 }
 
-// Initialize class grid with Sortable.js
-function initializeClassGrid() {
+// Initialize class grid with Sortable.js and optimized rendering
+async function initializeClassGrid() {
     const classGrid = document.getElementById('classGrid');
     classGrid.innerHTML = '';
 
-    allocationData.classes.forEach((classData, index) => {
-        const column = createClassColumn(index, classData);
-        classGrid.appendChild(column);
+    // Batch DOM operations for better performance
+    const operations = allocationData.classes.map((classData, index) => 
+        () => {
+            const column = createClassColumn(index, classData);
+            classGrid.appendChild(column);
 
-        // Initialize Sortable.js for drag and drop
-        new Sortable(column.querySelector('.class-content'), {
-            group: 'classes',
-            animation: 150,
-            ghostClass: 'sortable-ghost',
-            chosenClass: 'sortable-chosen',
-            onEnd: function(evt) {
-                handleStudentMove(evt);
-            }
-        });
-    });
+            // Initialize Sortable.js for drag and drop with optimized settings
+            new Sortable(column.querySelector('.class-content'), {
+                group: 'classes',
+                animation: ANIMATION_DURATION,
+                ghostClass: 'sortable-ghost',
+                chosenClass: 'sortable-chosen',
+                forceFallback: false, // Use native HTML5 DnD when possible
+                fallbackTolerance: 3,
+                onEnd: throttle(handleStudentMove, THROTTLE_DELAY)
+            });
+        }
+    );
+
+    // Execute operations in batches to prevent UI blocking
+    for (let i = 0; i < operations.length; i += BATCH_SIZE) {
+        const batch = operations.slice(i, i + BATCH_SIZE);
+        await batchDOMUpdates(batch);
+    }
 }
 
 // Create class column
@@ -423,14 +499,77 @@ function resetToAutoAllocation() {
     }
 }
 
-// Show error message (replace alert with a notification system for production)
-function showError(message) {
-    // TODO: Replace alert with a professional notification system
-    alert(message);
+// Error handling
+function handleError(error, context = 'unknown') {
+    console.error(`[${context}] Error:`, error);
+    
+    // Display user-friendly message
+    const errorElement = document.createElement('div');
+    errorElement.className = 'error-message';
+    errorElement.textContent = 'Something went wrong. Please try again.';
+    errorElement.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background-color: #f8d7da; color: #721c24; padding: 10px 20px; border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 1000;';
+    document.body.appendChild(errorElement);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (document.body.contains(errorElement)) {
+            document.body.removeChild(errorElement);
+        }
+    }, 5000);
+    
+    // Log to server if possible
+    try {
+        logErrorToServer(error, context);
+    } catch (loggingError) {
+        console.error('Failed to log error:', loggingError);
+    }
 }
 
-// Show success message (replace alert with a notification system for production)
-function showSuccess(message) {
-    // TODO: Replace alert with a professional notification system
-    alert(message);
+// Error logging
+function logErrorToServer(error, context) {
+    const errorData = {
+        message: error.message || 'Unknown error',
+        stack: error.stack || '',
+        context: context,
+        timestamp: new Date().toISOString(),
+        url: window.location.href,
+        userAgent: navigator.userAgent
+    };
+    
+    // Use sendBeacon if available for non-blocking logging
+    if (navigator.sendBeacon) {
+        const blob = new Blob([JSON.stringify(errorData)], { type: 'application/json' });
+        navigator.sendBeacon(ERROR_LOG_ENDPOINT, blob);
+        return;
+    }
+    
+    // Fallback to fetch with keepalive
+    fetch(ERROR_LOG_ENDPOINT, {
+        method: 'POST',
+        body: JSON.stringify(errorData),
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        keepalive: true
+    }).catch(e => console.error('Error logging failed:', e));
+}
+
+// Performance monitoring
+function trackRender(componentName, startTime) {
+    const endTime = performance.now();
+    const renderTime = endTime - startTime;
+    renderTimes.push({ component: componentName, time: renderTime });
+    
+    if (renderTime > 100) { // Slow render threshold
+        console.warn(`Slow render detected in ${componentName}: ${renderTime.toFixed(2)}ms`);
+    }
+}
+
+function trackInteraction(interactionName, startTime) {
+    const endTime = performance.now();
+    interactionTimes.push({ 
+        interaction: interactionName, 
+        time: endTime - startTime,
+        timestamp: Date.now()
+    });
 }

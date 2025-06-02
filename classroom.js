@@ -1,3 +1,31 @@
+// Performance constants
+const DEBOUNCE_DELAY = 300; // ms for search input
+const THROTTLE_DELAY = 16; // ms for 60fps animations
+const CACHE_DURATION = 300000; // 5 minutes
+const ANIMATION_DURATION = 200; // ms for transitions
+
+// Utility functions for performance optimization
+function debounce(func, delay) {
+    let timeoutId;
+    return function (...args) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => func.apply(this, args), delay);
+    };
+}
+
+function throttle(func, delay) {
+    let lastCall = 0;
+    return function (...args) {
+        const now = new Date().getTime();
+        if (now - lastCall < delay) return;
+        lastCall = now;
+        return func.apply(this, args);
+    };
+}
+
+// Cache for expensive operations
+const classroomCache = new Map();
+
 // Global state
 let allocationData = null;
 let currentClassId = null;
@@ -210,11 +238,25 @@ function renderStudentsTable(students) {
 }
 
 function initializeEventListeners() {
-    document.getElementById('classSearch').addEventListener('input', filterClassList);
-    document.getElementById('studentSearch').addEventListener('input', filterStudentTable);
-    document.getElementById('filterBtn').addEventListener('click', showFilterModal);
+    // Use debounced search for better performance
+    const classSearch = document.getElementById('classSearch');
+    if (classSearch) {
+        classSearch.addEventListener('input', debounce(filterClassList, DEBOUNCE_DELAY));
+    }
+    
+    const studentSearch = document.getElementById('studentSearch');
+    if (studentSearch) {
+        studentSearch.addEventListener('input', debounce(filterStudentTable, DEBOUNCE_DELAY));
+    }
+    
+    const filterBtn = document.getElementById('filterBtn');
+    if (filterBtn) {
+        filterBtn.addEventListener('click', showFilterModal);
+    }
+    
+    // Use throttled sorting for better responsiveness
     document.querySelectorAll('th[data-sort]').forEach(th => {
-        th.addEventListener('click', () => sortTable(th.dataset.sort));
+        th.addEventListener('click', throttle(() => sortTable(th.dataset.sort), THROTTLE_DELAY));
     });
 }
 

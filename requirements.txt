@@ -1,9 +1,17 @@
 # Core dependencies
-flask==2.0.1
-flask-cors==3.0.10
-numpy==1.21.1
-pandas==1.3.1
-scikit-learn==0.24.2
-xgboost==1.4.2
-matplotlib==3.4.3
-seaborn==0.11.2
+flask==2.3.3
+flask-cors==4.0.0
+numpy==1.24.3
+pandas==2.0.3
+scikit-learn==1.3.0
+xgboost==1.7.6
+matplotlib==3.7.2
+seaborn==0.12.2
+
+# Optimization and algorithms
+pymoo==0.6.0.1
+ortools==9.7.2996
+networkx==3.1
+
+# Additional utilities
+gradio==3.45.2

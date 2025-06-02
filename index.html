@@ -3,27 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ClassForge - Overview</title>
+    <meta name="description" content="ClassForge - AI-powered classroom optimization and student group allocation system">
+    <meta name="keywords" content="classroom, education, AI, student allocation, optimization">
+    <meta name="author" content="ClassForge Team">
+    
+    <!-- Preconnect to external domains for faster loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    
+    <title>ClassForge - AI-Powered Classroom Optimization</title>
+    
+    <!-- Critical CSS first -->
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="dashboard.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Non-critical resources with optimizations -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    
+    <!-- Defer non-critical JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    
+    <!-- Favicon and app icons -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
 </head>
 <body>
     <div class="container">
         <!-- Sidebar Navigation -->
-        <nav class="sidebar">
+        <nav class="sidebar" role="navigation" aria-label="Main navigation">
             <div class="logo">
                 <h1>ClassForge</h1>
             </div>
             <ul class="nav-links">
-                <li class="active"><a href="index.html"><span class="icon">📊</span> Overview</a></li>
-                <li><a href="upload.html"><span class="icon">📤</span> Upload & Simulate</a></li>
-                <li><a href="student-explorer.html"><span class="icon">👥</span> Student Explorer</a></li>
-                <li><a href="allocation.html"><span class="icon">🎯</span> Group Allocation</a></li>
-                <li><a href="classroom.html"><span class="icon">🏫</span> Classroom View</a></li>
-                <li><a href="overrides.html"><span class="icon">⚙️</span> Manual Overrides</a></li>
-                 <li><a href="settings.html"><span class="icon">⚙️</span> Settings</a></li>
+                <li class="active"><a href="index.html" aria-current="page"><span class="icon" aria-hidden="true">📊</span> Overview</a></li>
+                <li><a href="upload.html"><span class="icon" aria-hidden="true">📤</span> Upload & Simulate</a></li>
+                <li><a href="student-explorer.html"><span class="icon" aria-hidden="true">👥</span> Student Explorer</a></li>
+                <li><a href="allocation.html"><span class="icon" aria-hidden="true">🎯</span> Group Allocation</a></li>
+                <li><a href="classroom.html"><span class="icon" aria-hidden="true">🏫</span> Classroom View</a></li>
+                <li><a href="overrides.html"><span class="icon" aria-hidden="true">⚙️</span> Manual Overrides</a></li>
+                <li><a href="settings.html"><span class="icon" aria-hidden="true">⚙️</span> Settings</a></li>
             </ul>
         </nav>
 

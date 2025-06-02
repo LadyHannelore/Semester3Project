@@ -3,31 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ClassForge Group Allocation - Configure and run classroom optimization algorithms using genetic algorithms with social network analysis">
+    <meta name="keywords" content="classroom allocation, genetic algorithm, student grouping, optimization">
+    <meta name="author" content="ClassForge Team">
+    
+    <!-- Performance optimization -->
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    
     <title>ClassForge - Group Allocation</title>
+    
+    <!-- Critical CSS -->
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="allocation.css">
+    
+    <!-- Non-critical font loading -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Accessibility and performance -->
+    <meta name="theme-color" content="#4299e1">
+    <meta name="color-scheme" content="light">
 </head>
 <body>
     <div class="container">
         <!-- Sidebar Navigation -->
-        <nav class="sidebar">
+        <nav class="sidebar" role="navigation" aria-label="Main navigation">
             <div class="logo">
                 <h1>ClassForge</h1>
             </div>
             <ul class="nav-links">
-                <li><a href="index.html"><span class="icon">📊</span> Overview</a></li>
-                <li><a href="upload.html"><span class="icon">📤</span> Upload & Simulate</a></li>
-                <li><a href="student-explorer.html"><span class="icon">👥</span> Student Explorer</a></li>
-                <li class="active"><a href="allocation.html"><span class="icon">🎯</span> Group Allocation</a></li>
-                <li><a href="classroom.html"><span class="icon">🏫</span> Classroom View</a></li>
-                <li><a href="overrides.html"><span class="icon">⚙️</span> Manual Overrides</a></li>
-                 <li><a href="settings.html"><span class="icon">⚙️</span> Settings</a></li>
+                <li><a href="index.html" aria-label="Overview dashboard"><span class="icon" aria-hidden="true">📊</span> Overview</a></li>
+                <li><a href="upload.html" aria-label="Upload data and simulate"><span class="icon" aria-hidden="true">📤</span> Upload & Simulate</a></li>
+                <li><a href="student-explorer.html" aria-label="Explore student data"><span class="icon" aria-hidden="true">👥</span> Student Explorer</a></li>
+                <li class="active"><a href="allocation.html" aria-current="page" aria-label="Group allocation configuration"><span class="icon" aria-hidden="true">🎯</span> Group Allocation</a></li>
+                <li><a href="classroom.html" aria-label="View classroom layout"><span class="icon" aria-hidden="true">🏫</span> Classroom View</a></li>
+                <li><a href="overrides.html" aria-label="Manual allocation overrides"><span class="icon" aria-hidden="true">⚙️</span> Manual Overrides</a></li>
+                <li><a href="settings.html" aria-label="Application settings"><span class="icon" aria-hidden="true">⚙️</span> Settings</a></li>
             </ul>
         </nav>
 
         <!-- Main Content -->
-        <main class="main-content">
+        <main class="main-content" role="main">
             <header class="top-bar fade-in">
                 <div class="header-content">
                     <h2>Group Allocation</h2>
@@ -35,20 +53,20 @@
                 </div>
                 <div class="user-info">
                     <span class="user-name">Admin User</span>
-                    <span class="user-avatar">👤</span>
+                    <span class="user-avatar" aria-label="User avatar">👤</span>
                 </div>
             </header>
 
             <div class="allocation-container slide-up">
                 <!-- Strategy Selector Section -->
-                <section class="strategy-section">
-                    <h3>🎯 Allocation Strategy</h3>
-                    <div class="strategy-options">
+                <section class="strategy-section" aria-labelledby="strategy-heading">
+                    <h3 id="strategy-heading">🎯 Allocation Strategy</h3>
+                    <div class="strategy-options" role="radiogroup" aria-labelledby="strategy-heading">
                         <div class="strategy-card" data-strategy="genetic">
-                            <input type="radio" name="strategy" id="genetic" value="genetic" checked disabled>
+                            <input type="radio" name="strategy" id="genetic" value="genetic" checked disabled aria-describedby="genetic-desc">
                             <label for="genetic">
                                 <h4>Genetic Algorithm</h4>
-                                <p>Advanced optimization using evolutionary algorithms (sole method used by this system)</p>
+                                <p id="genetic-desc">Advanced optimization using evolutionary algorithms (sole method used by this system)</p>
                             </label>
                         </div>
                     </div>

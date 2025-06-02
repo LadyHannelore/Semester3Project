@@ -1,7 +1,33 @@
-// Global state
+// Global state with performance optimizations
 let selectedStrategy = null;
 let allocationInProgress = false;
 let allocationResults = null;
+
+// Performance optimization constants
+const DEBOUNCE_DELAY = 300;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+// Utility functions
+const debounce = (func, delay) => {
+    let timeoutId;
+    return (...args) => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => func.apply(null, args), delay);
+    };
+};
+
+const throttle = (func, limit) => {
+    let inThrottle;
+    return function() {
+        const args = arguments;
+        const context = this;
+        if (!inThrottle) {
+            func.apply(context, args);
+            inThrottle = true;
+            setTimeout(() => inThrottle = false, limit);
+        }
+    };
+};
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function() {
@@ -25,19 +51,23 @@ function initializeStrategySelection() {
     updateRunButtonState();
 }
 
-// Parameter controls
+// Parameter controls with optimized event handling
 function initializeParameterControls() {
     // Genetic algorithm parameters
     const geneticInputs = document.querySelectorAll('#genetic-params input');
+    const debouncedValidation = debounce(validateNumberInput, DEBOUNCE_DELAY);
+    
     geneticInputs.forEach(input => {
-        input.addEventListener('change', validateNumberInput);
+        input.addEventListener('change', debouncedValidation);
         if (input.type === 'range') {
             const valueSpan = input.nextElementSibling;
             if (valueSpan && valueSpan.classList.contains('slider-value')) {
-                // Add event listener to update slider value display
-                input.addEventListener('input', (event) => {
+                // Throttled event listener for better performance during dragging
+                const throttledUpdate = throttle((event) => {
                     valueSpan.textContent = event.target.id === 'mutationRate' ? `${event.target.value}%` : event.target.value;
-                });
+                }, 16); // ~60fps
+                
+                input.addEventListener('input', throttledUpdate);
                 // Set initial display value
                 valueSpan.textContent = input.id === 'mutationRate' ? `${input.value}%` : input.value;
             }

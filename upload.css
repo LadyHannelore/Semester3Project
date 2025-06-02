@@ -1,29 +1,75 @@
+/* CSS Custom Properties for Upload Performance */
+:root {
+    /* Colors */
+    --upload-card-bg: #ffffff;
+    --upload-text-primary: #2d3748;
+    --upload-text-secondary: #4a5568;
+    --upload-text-muted: #718096;
+    --upload-border: #e2e8f0;
+    --upload-border-dashed: #cbd5e0;
+    --upload-primary: #4299e1;
+    --upload-success: #2f855a;
+    --upload-success-bg: #c6f6d5;
+    --upload-error: #c53030;
+    --upload-error-bg: #fed7d7;
+    --upload-gray-bg: #f7fafc;
+    --upload-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --upload-shadow-hover: 0 4px 8px rgba(0, 0, 0, 0.15);
+    
+    /* Spacing */
+    --upload-spacing-xs: 0.5rem;
+    --upload-spacing-sm: 0.75rem;
+    --upload-spacing-md: 1rem;
+    --upload-spacing-lg: 1.5rem;
+    --upload-spacing-xl: 2rem;
+    
+    /* Border Radius */
+    --upload-radius-sm: 0.5rem;
+    --upload-radius-md: 0.75rem;
+    
+    /* Transitions - Optimized for performance */
+    --upload-transition-fast: 0.15s ease-out;
+    --upload-transition-normal: 0.2s ease-out;
+    --upload-transition-slow: 0.3s ease;
+    
+    /* Performance */
+    --upload-will-change: transform, opacity, border-color;
+}
+
 /* Additional styles specific to upload page */
 .upload-section {
-    background-color: #fff;
-    padding: 2rem;
-    border-radius: 0.75rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin-bottom: 2rem;
+    background-color: var(--upload-card-bg);
+    padding: var(--upload-spacing-xl);
+    border-radius: var(--upload-radius-md);
+    box-shadow: var(--upload-shadow);
+    margin-bottom: var(--upload-spacing-xl);
+    /* Performance optimizations */
+    will-change: var(--upload-will-change);
+    transform: translateZ(0);
 }
 
 .upload-section h2 {
-    margin-bottom: 1.5rem;
-    color: #2d3748;
+    margin-bottom: var(--upload-spacing-lg);
+    color: var(--upload-text-primary);
 }
 
 .file-upload {
-    border: 2px dashed #cbd5e0;
-    padding: 2rem;
+    border: 2px dashed var(--upload-border-dashed);
+    padding: var(--upload-spacing-xl);
     text-align: center;
-    border-radius: 0.5rem;
-    margin-bottom: 1.5rem;
+    border-radius: var(--upload-radius-sm);
+    margin-bottom: var(--upload-spacing-lg);
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all var(--upload-transition-slow);
+    /* Performance optimizations */
+    will-change: var(--upload-will-change);
+    transform: translateZ(0);
 }
 
 .file-upload:hover {
-    border-color: #4299e1;
+    border-color: var(--upload-primary);
+    transform: translateY(-2px) translateZ(0);
+    box-shadow: var(--upload-shadow-hover);
 }
 
 .file-upload input[type="file"] {
@@ -32,73 +78,80 @@
 
 .preview-table {
     width: 100%;
-    margin-top: 1.5rem;
-    border: 1px solid #e2e8f0;
-    border-radius: 0.5rem;
+    margin-top: var(--upload-spacing-lg);
+    border: 1px solid var(--upload-border);
+    border-radius: var(--upload-radius-sm);
     overflow: hidden;
+    /* Performance optimizations */
+    contain: layout;
 }
 
 .preview-table th {
-    background-color: #f7fafc;
+    background-color: var(--upload-gray-bg);
 }
 
 .validation-result {
-    margin: 1rem 0;
-    padding: 1rem;
-    border-radius: 0.5rem;
+    margin: var(--upload-spacing-md) 0;
+    padding: var(--upload-spacing-md);
+    border-radius: var(--upload-radius-sm);
 }
 
 .validation-success {
-    background-color: #c6f6d5;
-    color: #2f855a;
+    background-color: var(--upload-success-bg);
+    color: var(--upload-success);
 }
 
 .validation-error {
-    background-color: #fed7d7;
-    color: #c53030;
+    background-color: var(--upload-error-bg);
+    color: var(--upload-error);
 }
 
 .synthetic-options {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    margin: 1.5rem 0;
+    gap: var(--upload-spacing-md);
+    margin: var(--upload-spacing-lg) 0;
 }
 
 .option-group {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--upload-spacing-xs);
 }
 
 .option-group input[type="checkbox"] {
     width: 1.2rem;
     height: 1.2rem;
+    /* Performance optimizations */
+    will-change: var(--upload-will-change);
 }
 
 .dataset-summary {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    margin-top: 1.5rem;
+    gap: var(--upload-spacing-md);
+    margin-top: var(--upload-spacing-lg);
 }
 
 .summary-card {
-    background-color: #f7fafc;
-    padding: 1rem;
-    border-radius: 0.5rem;
+    background-color: var(--upload-gray-bg);
+    padding: var(--upload-spacing-md);
+    border-radius: var(--upload-radius-sm);
     text-align: center;
+    /* Performance optimizations */
+    will-change: var(--upload-will-change);
+    transform: translateZ(0);
 }
 
 .summary-card h4 {
-    color: #4a5568;
-    margin-bottom: 0.5rem;
+    color: var(--upload-text-secondary);
+    margin-bottom: var(--upload-spacing-xs);
 }
 
 .summary-card .value {
     font-size: 1.25rem;
     font-weight: 600;
-    color: #2d3748;
+    color: var(--upload-text-primary);
 }
 
 .placeholder {

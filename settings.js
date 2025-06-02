@@ -1,3 +1,34 @@
+// Performance constants
+const DEBOUNCE_DELAY = 300; // ms for input changes
+const THROTTLE_DELAY = 16; // ms for slider updates
+const VALIDATION_DELAY = 150; // ms for form validation
+const SAVE_DELAY = 500; // ms for auto-save
+
+// Utility functions for performance optimization
+function debounce(func, delay) {
+    let timeoutId;
+    return function (...args) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => func.apply(this, args), delay);
+    };
+}
+
+function throttle(func, delay) {
+    let lastCall = 0;
+    return function (...args) {
+        const now = new Date().getTime();
+        if (now - lastCall < delay) return;
+        lastCall = now;
+        return func.apply(this, args);
+    };
+}
+
+// Auto-save functionality
+const autoSave = debounce(() => {
+    saveSettings();
+    showToast('Settings auto-saved', 'success');
+}, SAVE_DELAY);
+
 // Default settings
 const defaultSettings = {
     classConfig: {
@@ -42,32 +73,87 @@ function loadSettings() {
     }
 }
 
-// Initialize event listeners
+// Initialize event listeners with optimized handlers
 function initializeEventListeners() {
-    // Class Configuration
-    document.getElementById('maxClassSize').addEventListener('input', handleClassConfigChange);
-    document.getElementById('totalClasses').addEventListener('change', handleTotalClassesChange);
-    document.getElementById('manualClassCount').addEventListener('input', handleClassConfigChange);
-    document.getElementById('allowUneven').addEventListener('change', handleClassConfigChange);
+    // Class Configuration with debounced input handling
+    const maxClassSize = document.getElementById('maxClassSize');
+    if (maxClassSize) {
+        maxClassSize.addEventListener('input', debounce(handleClassConfigChange, DEBOUNCE_DELAY));
+    }
+    
+    const totalClasses = document.getElementById('totalClasses');
+    if (totalClasses) {
+        totalClasses.addEventListener('change', handleTotalClassesChange);
+    }
+    
+    const manualClassCount = document.getElementById('manualClassCount');
+    if (manualClassCount) {
+        manualClassCount.addEventListener('input', debounce(handleClassConfigChange, DEBOUNCE_DELAY));
+    }
+    
+    const allowUneven = document.getElementById('allowUneven');
+    if (allowUneven) {
+        allowUneven.addEventListener('change', handleClassConfigChange);
+    }
 
-    // Constraint Parameters
-    document.getElementById('academicThreshold').addEventListener('input', handleConstraintChange);
-    document.getElementById('wellbeingThreshold').addEventListener('input', handleConstraintChange);
-    document.getElementById('maxBullies').addEventListener('input', handleConstraintChange);
-    document.getElementById('maxFriendsSplit').addEventListener('input', handleConstraintChange);
+    // Constraint Parameters with throttled slider updates
+    const academicThreshold = document.getElementById('academicThreshold');
+    if (academicThreshold) {
+        academicThreshold.addEventListener('input', throttle(handleConstraintChange, THROTTLE_DELAY));
+    }
+    
+    const wellbeingThreshold = document.getElementById('wellbeingThreshold');
+    if (wellbeingThreshold) {
+        wellbeingThreshold.addEventListener('input', throttle(handleConstraintChange, THROTTLE_DELAY));
+    }
+    
+    const maxBullies = document.getElementById('maxBullies');
+    if (maxBullies) {
+        maxBullies.addEventListener('input', debounce(handleConstraintChange, DEBOUNCE_DELAY));
+    }
+    
+    const maxFriendsSplit = document.getElementById('maxFriendsSplit');
+    if (maxFriendsSplit) {
+        maxFriendsSplit.addEventListener('input', debounce(handleConstraintChange, DEBOUNCE_DELAY));
+    }
 
-    // Visualization Defaults
-    document.getElementById('showAcademic').addEventListener('change', handleVisualizationChange);
-    document.getElementById('showNetwork').addEventListener('change', handleVisualizationChange);
-    document.getElementById('showBullying').addEventListener('change', handleVisualizationChange);
+    // Visualization Defaults with immediate updates
+    const showAcademic = document.getElementById('showAcademic');
+    if (showAcademic) {
+        showAcademic.addEventListener('change', handleVisualizationChange);
+    }
+    
+    const showNetwork = document.getElementById('showNetwork');
+    if (showNetwork) {
+        showNetwork.addEventListener('change', handleVisualizationChange);
+    }
+    
+    const showBullying = document.getElementById('showBullying');
+    if (showBullying) {
+        showBullying.addEventListener('change', handleVisualizationChange);
+    }
 
-    // Experimental Features
-    document.getElementById('enableRL').addEventListener('change', handleExperimentalChange);
-    document.getElementById('enableGNN').addEventListener('change', handleExperimentalChange);
-    document.getElementById('enableLiveReopt').addEventListener('change', handleExperimentalChange);
+    // Experimental Features with validation
+    const enableRL = document.getElementById('enableRL');
+    if (enableRL) {
+        enableRL.addEventListener('change', debounce(handleExperimentalChange, VALIDATION_DELAY));
+    }
+    
+    const enableGNN = document.getElementById('enableGNN');
+    if (enableGNN) {
+        enableGNN.addEventListener('change', debounce(handleExperimentalChange, VALIDATION_DELAY));
+    }
+    
+    const enableLiveReopt = document.getElementById('enableLiveReopt');
+    if (enableLiveReopt) {
+        enableLiveReopt.addEventListener('change', debounce(handleExperimentalChange, VALIDATION_DELAY));
+    }
 
     // Action Buttons
-    document.getElementById('saveSettingsBtn').addEventListener('click', saveSettings);
+    const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+    if (saveSettingsBtn) {
+        saveSettingsBtn.addEventListener('click', saveSettings);
+    }
     document.getElementById('resetSettingsBtn').addEventListener('click', resetSettings);
 
     // Range input value displays
