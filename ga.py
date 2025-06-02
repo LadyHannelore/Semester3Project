@@ -74,7 +74,8 @@ def run_analysis(df):
     df.loc[df['Friends'] == '', 'Friends_Count'] = 0
     
     friends_median = df['Friends_Count'].median()
-    df['Positive_Peer_Collab'] = (df['Friends_Count'] > friends_median).astype(int)    features = [
+    df['Positive_Peer_Collab'] = (df['Friends_Count'] > friends_median).astype(int)    
+    features = [
         'Academic_Performance', 'isolated', 'WomenDifferent', 'language',
         'pwi_wellbeing', 'GrowthMindset', 'Wellbeing_Score', 'Manbox5_overall',
         'Masculinity_contrained', 'School_support_engage6', 'School_support_engage', 'bullying'
