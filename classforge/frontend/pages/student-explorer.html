@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -17,8 +17,8 @@
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     
     <title>ClassForge - Student Explorer</title>
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="student-explorer.css">
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/student-explorer.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
     <style>
@@ -206,13 +206,13 @@
                 <h1>ClassForge</h1>
             </div>
             <ul class="nav-links">
-                <li><a href="index.html" aria-label="Overview Dashboard"><span class="icon">📊</span> Overview</a></li>
-                <li><a href="upload.html" aria-label="Upload and Simulate Data"><span class="icon">📤</span> Upload & Simulate</a></li>
-                <li class="active"><a href="student-explorer.html" aria-current="page" aria-label="Student Explorer"><span class="icon">👥</span> Student Explorer</a></li>
-                <li><a href="allocation.html" aria-label="Group Allocation Tool"><span class="icon">🎯</span> Group Allocation</a></li>
-                <li><a href="classroom.html" aria-label="Classroom View"><span class="icon">🏫</span> Classroom View</a></li>
-                 <li><a href="overrides.html" aria-label="Manual Overrides"><span class="icon">⚙️</span> Manual Overrides</a></li>
-                <li><a href="settings.html" aria-label="Application Settings"><span class="icon">⚙️</span> Settings</a></li>
+                <li><a href="../pages/index.html" aria-label="Overview Dashboard"><span class="icon">ðŸ“Š</span> Overview</a></li>
+                <li><a href="../pages/upload.html" aria-label="Upload and Simulate Data"><span class="icon">ðŸ“¤</span> Upload & Simulate</a></li>
+                <li class="active"><a href="../pages/student-explorer.html" aria-current="page" aria-label="Student Explorer"><span class="icon">ðŸ‘¥</span> Student Explorer</a></li>
+                <li><a href="../pages/allocation.html" aria-label="Group Allocation Tool"><span class="icon">ðŸŽ¯</span> Group Allocation</a></li>
+                <li><a href="../pages/classroom.html" aria-label="Classroom View"><span class="icon">ðŸ«</span> Classroom View</a></li>
+                 <li><a href="../pages/overrides.html" aria-label="Manual Overrides"><span class="icon">âš™ï¸</span> Manual Overrides</a></li>
+                <li><a href="../pages/settings.html" aria-label="Application Settings"><span class="icon">âš™ï¸</span> Settings</a></li>
             </ul>
         </nav>
 
@@ -225,7 +225,7 @@
                 </div>
                 <div class="user-info">
                     <span class="user-name">Admin User</span>
-                    <span class="user-avatar">👤</span>
+                    <span class="user-avatar">ðŸ‘¤</span>
                 </div>
             </header>
 
@@ -235,14 +235,14 @@
                     <!-- Filters Bar -->
                     <div class="filters-bar" role="region" aria-label="Filters">
                         <div class="search-box">
-                            <span class="search-icon">🔍</span>
+                            <span class="search-icon">ðŸ”</span>
                             <input type="text" id="searchInput" placeholder="Search by Student ID..." class="search-input">
                         </div>
                         <div class="filter-group">
                             <label>Filter by:</label>
                             <select id="bullyingFilter" class="filter-select">
                                 <option value="">Bullying Score</option>
-                                <option value="high">High Risk (≥6)</option>
+                                <option value="high">High Risk (â‰¥6)</option>
                                 <option value="medium">Medium Risk (3-5)</option>
                                 <option value="low">Low Risk (0-2)</option>
                             </select>
@@ -276,11 +276,11 @@
                             </div>
                             <div class="pagination-controls">
                                 <button class="pagination-button" id="prevPage" type="button" aria-label="Previous Page">
-                                    <span class="icon">←</span> Previous
+                                    <span class="icon">â†</span> Previous
                                 </button>
                                 <span id="currentPage" class="current-page">Page 1</span>
                                 <button class="pagination-button" id="nextPage" type="button" aria-label="Next Page">
-                                    Next <span class="icon">→</span>
+                                    Next <span class="icon">â†’</span>
                                 </button>
                             </div>
                         </div>
@@ -291,7 +291,7 @@
                 <div class="profile-panel" id="profilePanel" aria-label="Student Profile Panel" tabindex="0">
                     <div class="profile-header">
                         <h3>Student Profile</h3>
-                        <button class="close-profile" type="button" onclick="closeProfile()" aria-label="Close Profile">×</button>
+                        <button class="close-profile" type="button" onclick="closeProfile()" aria-label="Close Profile">Ã—</button>
                     </div>
                     <div class="profile-content">
                         <div class="profile-details-grid" id="profileDetailsContainer">
@@ -312,19 +312,19 @@
             <!-- Footer Actions -->
             <div class="action-buttons fade-in">
                 <button class="action-btn export-btn" type="button" onclick="exportFilteredData()" aria-label="Export Filtered Data">
-                    <span class="icon">📤</span> Export Filtered Data (CSV)
+                    <span class="icon">ðŸ“¤</span> Export Filtered Data (CSV)
                 </button>
                 <button class="action-btn" type="button" onclick="window.location.href='index.html'" aria-label="Back to Overview">
-                    <span class="icon">↩</span> Back to Overview
+                    <span class="icon">â†©</span> Back to Overview
                 </button>
                 <button class="action-btn primary" type="button" onclick="window.location.href='allocation.html'" aria-label="Run Group Allocation">
-                    <span class="icon">⚙️</span> Run Group Allocation
+                    <span class="icon">âš™ï¸</span> Run Group Allocation
                 </button>            </div>
         </main>
     </div>
     
     <!-- Optimized script loading -->
-    <script src="student-explorer.js" defer></script>
+    <script src="../assets/js/student-explorer.js" defer></script>
     
     <!-- Performance monitoring -->
     <script>

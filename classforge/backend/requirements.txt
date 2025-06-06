@@ -15,3 +15,10 @@ networkx==3.1
 
 # Additional utilities
 gradio==3.45.2
+pytest==7.3.1
+pytest-cov==4.1.0
+# Database dependencies
+SQLAlchemy==2.0.15
+Flask-SQLAlchemy==3.0.3
+alembic==1.10.4
+psycopg2-binary==2.9.6

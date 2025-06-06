@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -18,8 +18,8 @@
     <title>ClassForge - Classroom View</title>
     
     <!-- Critical CSS -->
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="classroom.css">
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/classroom.css">
     
     <!-- Non-critical resources -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -36,13 +36,13 @@
                 <h1>ClassForge</h1>
             </div>
             <ul class="nav-links">
-                <li><a href="index.html" aria-label="Overview dashboard"><span class="icon" aria-hidden="true">📊</span> Overview</a></li>
-                <li><a href="upload.html" aria-label="Upload data and simulate"><span class="icon" aria-hidden="true">📤</span> Upload & Simulate</a></li>
-                <li><a href="student-explorer.html" aria-label="Explore student data"><span class="icon" aria-hidden="true">👥</span> Student Explorer</a></li>
-                <li><a href="allocation.html" aria-label="Group allocation configuration"><span class="icon" aria-hidden="true">🎯</span> Group Allocation</a></li>
-                <li class="active"><a href="classroom.html" aria-current="page" aria-label="View classroom layout"><span class="icon" aria-hidden="true">🏫</span> Classroom View</a></li>
-                <li><a href="overrides.html" aria-label="Manual allocation overrides"><span class="icon" aria-hidden="true">⚙️</span> Manual Overrides</a></li>
-                <li><a href="settings.html" aria-label="Application settings"><span class="icon" aria-hidden="true">⚙️</span> Settings</a></li>
+                <li><a href="../pages/index.html" aria-label="Overview dashboard"><span class="icon" aria-hidden="true">ðŸ“Š</span> Overview</a></li>
+                <li><a href="../pages/upload.html" aria-label="Upload data and simulate"><span class="icon" aria-hidden="true">ðŸ“¤</span> Upload & Simulate</a></li>
+                <li><a href="../pages/student-explorer.html" aria-label="Explore student data"><span class="icon" aria-hidden="true">ðŸ‘¥</span> Student Explorer</a></li>
+                <li><a href="../pages/allocation.html" aria-label="Group allocation configuration"><span class="icon" aria-hidden="true">ðŸŽ¯</span> Group Allocation</a></li>
+                <li class="active"><a href="../pages/classroom.html" aria-current="page" aria-label="View classroom layout"><span class="icon" aria-hidden="true">ðŸ«</span> Classroom View</a></li>
+                <li><a href="../pages/overrides.html" aria-label="Manual allocation overrides"><span class="icon" aria-hidden="true">âš™ï¸</span> Manual Overrides</a></li>
+                <li><a href="../pages/settings.html" aria-label="Application settings"><span class="icon" aria-hidden="true">âš™ï¸</span> Settings</a></li>
             </ul>
         </nav>
 
@@ -56,7 +56,7 @@
                 </div>
                 <div class="user-info">
                     <span class="user-name">Admin User</span>
-                    <span class="user-avatar" aria-label="User avatar">👤</span>
+                    <span class="user-avatar" aria-label="User avatar">ðŸ‘¤</span>
                 </div>
             </header>
 
@@ -64,7 +64,7 @@
                 <!-- Section 1: Class Selection -->
                 <aside class="class-selector slide-up" aria-label="Class Selector">
                     <div class="selector-header">
-                        <h3 id="class-selector-heading">🏫 Classes</h3>
+                        <h3 id="class-selector-heading">ðŸ« Classes</h3>
                         <div class="search-box">
                             <input type="text" id="classSearch" placeholder="Search class..." aria-label="Search classes" aria-describedby="class-selector-heading">
                         </div>
@@ -124,13 +124,13 @@
                     <!-- Students Table -->
                     <section class="students-table" aria-label="Students in Class">
                         <div class="table-header">
-                            <h3>👨‍🎓 Students in Class</h3>
+                            <h3>ðŸ‘¨â€ðŸŽ“ Students in Class</h3>
                             <div class="table-controls">
                                 <div class="search-box">
                                     <input type="text" id="studentSearch" placeholder="Search students..." aria-label="Search students">
                                 </div>
                                 <button class="filter-btn" id="filterBtn" type="button" aria-label="Filter Students">
-                                    <span class="icon">🔍</span> Filter
+                                    <span class="icon">ðŸ”</span> Filter
                                 </button>
                             </div>
                         </div>
@@ -138,10 +138,10 @@
                             <table>
                                 <thead>
                                     <tr>
-                                        <th data-sort="id">Student ID <span class="sort-icon">↕️</span></th>
-                                        <th data-sort="academic">Academic Score <span class="sort-icon">↕️</span></th>
-                                        <th data-sort="wellbeing">Wellbeing Score <span class="sort-icon">↕️</span></th>
-                                        <th data-sort="bullying">Bullying Score <span class="sort-icon">↕️</span></th>
+                                        <th data-sort="id">Student ID <span class="sort-icon">â†•ï¸</span></th>
+                                        <th data-sort="academic">Academic Score <span class="sort-icon">â†•ï¸</span></th>
+                                        <th data-sort="wellbeing">Wellbeing Score <span class="sort-icon">â†•ï¸</span></th>
+                                        <th data-sort="bullying">Bullying Score <span class="sort-icon">â†•ï¸</span></th>
                                         <th>Flags</th>
                                         <th>Actions</th>
                                     </tr>
@@ -164,7 +164,7 @@
                         <!-- Classes will be populated by JavaScript -->
                     </select>
                     <div class="warning-message" id="moveWarning" style="display: none;">
-                        ⚠️ This move will cause constraint violations
+                        âš ï¸ This move will cause constraint violations
                     </div>
                     <div class="modal-actions">
                         <button class="cancel-btn" type="button" onclick="closeReassignModal()">Cancel</button>
@@ -211,20 +211,20 @@
             <!-- Footer Navigation -->
             <div class="action-buttons fade-in">
                 <button class="action-btn" type="button" onclick="window.location.href='allocation.html'" aria-label="Back to Group Allocation">
-                    <span class="icon">↩</span> Back to Group Allocation
+                    <span class="icon">â†©</span> Back to Group Allocation
                 </button>
                 <button class="action-btn" type="button" onclick="window.location.href='model-comparison.html'" aria-label="Compare Model Results">
-                    <span class="icon">📈</span> Compare Model Results
+                    <span class="icon">ðŸ“ˆ</span> Compare Model Results
                 </button>
                 <button class="action-btn" type="button" onclick="window.location.href='overrides.html'" aria-label="Edit Assignments Manually">
-                    <span class="icon">⚙️</span> Edit Assignments Manually
+                    <span class="icon">âš™ï¸</span> Edit Assignments Manually
                 </button>            </div>
         </main>
     </div>
       <!-- Optimized script loading -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/d3@7" defer></script>
-    <script src="classroom.js" defer></script>
+    <script src="../assets/js/classroom.js" defer></script>
       <!-- Enhanced performance monitoring -->
     <script>
         // Advanced performance monitoring

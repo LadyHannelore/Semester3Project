@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -18,8 +18,8 @@
     <title>ClassForge - Manual Overrides</title>
     
     <!-- Critical CSS -->
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="overrides.css">
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/overrides.css">
     
     <!-- Non-critical resources with preload -->
     <link rel="preload" href="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js" as="script">
@@ -36,13 +36,13 @@
                 <h1>ClassForge</h1>
             </div>
             <ul class="nav-links">
-                <li><a href="index.html" aria-label="Overview dashboard"><span class="icon" aria-hidden="true">📊</span> Overview</a></li>
-                <li><a href="upload.html" aria-label="Upload data and simulate"><span class="icon" aria-hidden="true">📤</span> Upload & Simulate</a></li>
-                <li><a href="student-explorer.html" aria-label="Explore student data"><span class="icon" aria-hidden="true">👥</span> Student Explorer</a></li>
-                <li><a href="allocation.html" aria-label="Group allocation configuration"><span class="icon" aria-hidden="true">🎯</span> Group Allocation</a></li>
-                <li><a href="classroom.html" aria-label="View classroom layout"><span class="icon" aria-hidden="true">🏫</span> Classroom View</a></li>
-                <li class="active"><a href="overrides.html" aria-current="page" aria-label="Manual allocation overrides"><span class="icon" aria-hidden="true">⚙️</span> Manual Overrides</a></li>
-                <li><a href="settings.html" aria-label="Application settings"><span class="icon" aria-hidden="true">⚙️</span> Settings</a></li>
+                <li><a href="../pages/index.html" aria-label="Overview dashboard"><span class="icon" aria-hidden="true">ðŸ“Š</span> Overview</a></li>
+                <li><a href="../pages/upload.html" aria-label="Upload data and simulate"><span class="icon" aria-hidden="true">ðŸ“¤</span> Upload & Simulate</a></li>
+                <li><a href="../pages/student-explorer.html" aria-label="Explore student data"><span class="icon" aria-hidden="true">ðŸ‘¥</span> Student Explorer</a></li>
+                <li><a href="../pages/allocation.html" aria-label="Group allocation configuration"><span class="icon" aria-hidden="true">ðŸŽ¯</span> Group Allocation</a></li>
+                <li><a href="../pages/classroom.html" aria-label="View classroom layout"><span class="icon" aria-hidden="true">ðŸ«</span> Classroom View</a></li>
+                <li class="active"><a href="../pages/overrides.html" aria-current="page" aria-label="Manual allocation overrides"><span class="icon" aria-hidden="true">âš™ï¸</span> Manual Overrides</a></li>
+                <li><a href="../pages/settings.html" aria-label="Application settings"><span class="icon" aria-hidden="true">âš™ï¸</span> Settings</a></li>
             </ul>
         </nav>
 
@@ -55,13 +55,13 @@
                     <p class="subtitle">Manually adjust student-class assignments</p>
                 </div>                <div class="user-info" role="region" aria-label="Current user information">
                     <span class="user-name">Admin User</span>
-                    <span class="user-avatar" aria-label="User avatar" tabindex="0">👤</span>
+                    <span class="user-avatar" aria-label="User avatar" tabindex="0">ðŸ‘¤</span>
                 </div>
             </header>
 
             <!-- Add New Student Section -->
             <section class="add-student-section slide-up" aria-label="Add New Student">                <div class="section-header">
-                    <h3 id="add-student-heading">➕ Add New Student</h3>
+                    <h3 id="add-student-heading">âž• Add New Student</h3>
                 </div><form id="addStudentForm" class="add-student-form" role="form" aria-labelledby="add-student-heading">
                     <div class="form-group visuallyhidden"> <!-- Proper accessibility hiding -->
                         <label for="newStudentId">Student ID</label>
@@ -87,7 +87,7 @@
                         <span id="bullying-hint" class="form-hint">Enter a value between 0-10</span>
                     </div>
                     <button type="submit" class="add-student-btn" aria-label="Add Student to Allocation">
-                        <span class="icon" aria-hidden="true">👤</span> Add Student to Allocation
+                        <span class="icon" aria-hidden="true">ðŸ‘¤</span> Add Student to Allocation
                     </button>
                 </form>
             </section>
@@ -95,10 +95,10 @@
             <!-- Class Grid Section -->
             <section class="class-grid-section slide-up" aria-label="Class Assignments">
                 <div class="section-header">
-                    <h3>🧭 Class Assignments</h3>
+                    <h3>ðŸ§­ Class Assignments</h3>
                     <div class="grid-controls">
                         <button class="view-toggle-btn" id="viewToggleBtn" type="button">
-                            <span class="icon">📋</span> Toggle View
+                            <span class="icon">ðŸ“‹</span> Toggle View
                         </button>
                     </div>
                 </div>
@@ -110,7 +110,7 @@
             <!-- Validation Feedback Section -->
             <section class="validation-section slide-up">
                 <div class="section-header">
-                    <h3>⚠️ Live Validation</h3>
+                    <h3>âš ï¸ Live Validation</h3>
                 </div>
                 <div class="validation-grid">
                     <div class="validation-card">
@@ -157,7 +157,7 @@
 
     <!-- Optimized script loading -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js" defer></script>
-    <script src="overrides.js" defer></script>
+    <script src="../assets/js/overrides.js" defer></script>
     
     <!-- Enhanced performance monitoring -->
     <script>

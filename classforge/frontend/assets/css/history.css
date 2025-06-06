@@ -1,0 +1,356 @@
+/**
+ * History page styles for ClassForge
+ */
+
+/* History container */
+.history-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+/* History item */
+.history-item {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-left: 4px solid #4299e1;
+}
+
+.history-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* History header */
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.history-header h3 {
+    margin: 0;
+    color: #2d3748;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.history-date {
+    color: #718096;
+    font-size: 0.85rem;
+}
+
+/* History statistics */
+.history-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+}
+
+.stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.stat-label {
+    color: #718096;
+    font-weight: 500;
+}
+
+.stat-value {
+    color: #2d3748;
+    font-weight: 600;
+}
+
+/* History actions */
+.history-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+}
+
+/* Filters panel */
+.filters-panel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f7fafc;
+    padding: 1rem;
+    border-radius: 8px;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.filter-group, .search-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.filter-group label {
+    color: #4a5568;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.filter-group select, .search-group input {
+    padding: 0.5rem;
+    border-radius: 4px;
+    border: 1px solid #cbd5e0;
+    background-color: white;
+    font-size: 0.9rem;
+}
+
+.search-group {
+    flex: 1;
+    justify-content: flex-end;
+    min-width: 220px;
+}
+
+.search-group input {
+    flex: 1;
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: #718096;
+}
+
+/* Loading spinner */
+.loading-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    color: #718096;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(66, 153, 225, 0.2);
+    border-radius: 50%;
+    border-top-color: #4299e1;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Error message */
+.error-message {
+    background-color: #fed7d7;
+    color: #c53030;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+    margin: 1rem 0;
+}
+
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    max-width: 800px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 0;
+    position: relative;
+}
+
+/* Allocation details */
+.allocation-details {
+    padding: 2rem;
+}
+
+.allocation-details h2 {
+    margin-top: 0;
+    color: #2d3748;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.details-section {
+    margin-bottom: 2rem;
+}
+
+.details-section h3 {
+    color: #4a5568;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.detail-label {
+    color: #718096;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.detail-value {
+    color: #2d3748;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+/* Class distribution */
+.class-distribution {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.class-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.class-bar-label {
+    min-width: 80px;
+    text-align: right;
+    font-size: 0.9rem;
+    color: #4a5568;
+}
+
+.class-bar-container {
+    flex: 1;
+    height: 24px;
+    background-color: #edf2f7;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+}
+
+.class-bar-fill {
+    height: 100%;
+    background-color: #4299e1;
+    transition: width 0.5s ease;
+}
+
+.class-bar-text {
+    position: absolute;
+    top: 0;
+    left: 8px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    font-size: 0.8rem;
+    color: white;
+    text-shadow: 0 1px 1px rgba(0,0,0,0.3);
+}
+
+/* Modal actions */
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 2rem;
+}
+
+/* Toast messages */
+#message-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+}
+
+.message-toast {
+    background-color: #2d3748;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    max-width: 300px;
+    animation: fadeIn 0.3s ease;
+    opacity: 0.95;
+}
+
+.message-toast.fade-out {
+    animation: fadeOut 0.5s ease forwards;
+}
+
+@keyframes fadeIn {
+    0% { opacity: 0; transform: translateY(10px); }
+    100% { opacity: 0.95; transform: translateY(0); }
+}
+
+@keyframes fadeOut {
+    0% { opacity: 0.95; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(10px); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .filters-panel {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .filter-group, .search-group {
+        width: 100%;
+    }
+    
+    .history-stats {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .details-grid {
+        grid-template-columns: 1fr;
+    }
+}

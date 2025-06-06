@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -16,8 +16,8 @@
     <title>ClassForge - Upload & Simulate</title>
     
     <!-- Critical CSS -->
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="upload.css">
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/upload.css">
     
     <!-- Non-critical resources -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -34,13 +34,13 @@
                 <h1>ClassForge</h1>
             </div>
             <ul class="nav-links">
-                <li><a href="index.html" aria-label="Overview dashboard"><span class="icon" aria-hidden="true">📊</span> Overview</a></li>
-                <li class="active"><a href="upload.html" aria-current="page" aria-label="Upload data and simulate"><span class="icon" aria-hidden="true">📤</span> Upload & Simulate</a></li>
-                <li><a href="student-explorer.html" aria-label="Explore student data"><span class="icon" aria-hidden="true">👥</span> Student Explorer</a></li>
-                <li><a href="allocation.html" aria-label="Group allocation configuration"><span class="icon" aria-hidden="true">🎯</span> Group Allocation</a></li>
-                <li><a href="classroom.html" aria-label="View classroom layout"><span class="icon" aria-hidden="true">🏫</span> Classroom View</a></li>
-                <li><a href="overrides.html" aria-label="Manual allocation overrides"><span class="icon" aria-hidden="true">⚙️</span> Manual Overrides</a></li>
-                <li><a href="settings.html" aria-label="Application settings"><span class="icon" aria-hidden="true">⚙️</span> Settings</a></li>
+                <li><a href="../pages/index.html" aria-label="Overview dashboard"><span class="icon" aria-hidden="true">ðŸ“Š</span> Overview</a></li>
+                <li class="active"><a href="../pages/upload.html" aria-current="page" aria-label="Upload data and simulate"><span class="icon" aria-hidden="true">ðŸ“¤</span> Upload & Simulate</a></li>
+                <li><a href="../pages/student-explorer.html" aria-label="Explore student data"><span class="icon" aria-hidden="true">ðŸ‘¥</span> Student Explorer</a></li>
+                <li><a href="../pages/allocation.html" aria-label="Group allocation configuration"><span class="icon" aria-hidden="true">ðŸŽ¯</span> Group Allocation</a></li>
+                <li><a href="../pages/classroom.html" aria-label="View classroom layout"><span class="icon" aria-hidden="true">ðŸ«</span> Classroom View</a></li>
+                <li><a href="../pages/overrides.html" aria-label="Manual allocation overrides"><span class="icon" aria-hidden="true">âš™ï¸</span> Manual Overrides</a></li>
+                <li><a href="../pages/settings.html" aria-label="Application settings"><span class="icon" aria-hidden="true">âš™ï¸</span> Settings</a></li>
             </ul>
         </nav>
 
@@ -53,31 +53,31 @@
                 </div>
                 <div class="user-info">
                     <span class="user-name">Admin User</span>
-                    <span class="user-avatar">👤</span>
+                    <span class="user-avatar">ðŸ‘¤</span>
                 </div>
             </header>
 
             <div class="data-options-container slide-up">
                 <!-- Upload Data Section -->
                 <section class="upload-section">
-                    <h3>📤 Upload Data</h3>
+                    <h3>ðŸ“¤ Upload Data</h3>
                     <form id="upload-form" class="upload-form">
                         <div class="file-upload-container">
                             <label for="file-upload" class="file-upload-label">
-                                <span class="icon">📁</span> Choose CSV File
+                                <span class="icon">ðŸ“</span> Choose CSV File
                             </label>
                             <input type="file" id="file-upload" accept=".csv" hidden>
                             <span id="file-details" class="file-details" style="display: none;"></span>
                         </div>
                         <button type="submit" class="upload-btn">
-                            <span class="icon">📤</span> Upload & Process
+                            <span class="icon">ðŸ“¤</span> Upload & Process
                         </button>
                     </form>
                 </section>
 
                 <!-- Generate Data Section -->
                 <section class="generate-section">
-                    <h3>🧪 Generate Synthetic Data</h3>
+                    <h3>ðŸ§ª Generate Synthetic Data</h3>
                     <div class="generation-controls">
                         <div class="control-group">
                             <label for="studentCount">Number of Students</label>
@@ -109,14 +109,14 @@
                         </div>
                     </div>
                     <button id="generateBtn" class="generate-btn">
-                        <span class="icon">🔄</span> Generate Data
+                        <span class="icon">ðŸ”„</span> Generate Data
                     </button>
                 </section>
             </div>
 
             <!-- Data Preview Section -->
             <section class="data-preview-section slide-up" style="display: none;">
-                <h3>👁️ Data Preview</h3>
+                <h3>ðŸ‘ï¸ Data Preview</h3>
                 <div class="table-container">
                     <table id="data-preview-table">
                         <thead>
@@ -127,7 +127,7 @@
                 </div>
                 <div class="preview-actions">
                     <button id="useDataBtn" class="use-data-btn">
-                        <span class="icon">✅</span> Use This Data
+                        <span class="icon">âœ…</span> Use This Data
                     </button>
                 </div>
             </section>
@@ -135,14 +135,14 @@
             <!-- Footer Navigation -->
             <div class="action-buttons fade-in">
                 <button class="action-btn" onclick="window.location.href='index.html'">
-                    <span class="icon">↩</span> Back to Overview
+                    <span class="icon">â†©</span> Back to Overview
                 </button>
                 <button class="action-btn primary" onclick="window.location.href='student-explorer.html'">
-                    <span class="icon">👥</span> Explore Student Data
+                    <span class="icon">ðŸ‘¥</span> Explore Student Data
                 </button>
             </div>
         </main>
     </div>
-    <script src="upload.js"></script>
+    <script src="../assets/js/upload.js"></script>
 </body>
 </html>

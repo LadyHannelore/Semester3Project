@@ -1,0 +1,97 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<                <li class="active"><a href="index.html" aria-current="page"><span class="icon" aria-hidden="true">ðŸ"Š</span> Overview</a></li>
+                <li><a href="pages/upload.html"><span class="icon" aria-hidden="true">ðŸ"¤</span> Upload & Simulate</a></li>
+                <li><a href="pages/student-explorer.html"><span class="icon" aria-hidden="true">ðŸ'¥</span> Student Explorer</a></li>
+                <li><a href="pages/allocation.html"><span class="icon" aria-hidden="true">ðŸŽ¯</span> Group Allocation</a></li>
+                <li><a href="pages/classroom.html"><span class="icon" aria-hidden="true">ðŸ«</span> Classroom View</a></li>
+                <li><a href="pages/history.html"><span class="icon" aria-hidden="true">📜</span> History</a></li>
+                <li><a href="pages/overrides.html"><span class="icon" aria-hidden="true">âš™ï¸</span> Manual Overrides</a></li>
+                <li><a href="pages/settings.html"><span class="icon" aria-hidden="true">âš™ï¸</span> Settings</a></li>    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ClassForge - AI-powered classroom optimization and student group allocation system">
+    <meta name="keywords" content="classroom, education, AI, student allocation, optimization">
+    <meta name="author" content="ClassForge Team">
+    
+    <!-- Preconnect to external domains for faster loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    
+    <title>ClassForge - AI-Powered Classroom Optimization</title>
+      <!-- Critical CSS first -->
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+    
+    <!-- Non-critical resources with optimizations -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    
+    <!-- Defer non-critical JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    
+    <!-- Favicon and app icons -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>ðŸ“Š</text></svg>">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar" role="navigation" aria-label="Main navigation">
+            <div class="logo">
+                <h1>ClassForge</h1>
+            </div>
+            <ul class="nav-links">
+                <li class="active"><a href="index.html" aria-current="page"><span class="icon" aria-hidden="true">ðŸ“Š</span> Overview</a></li>
+                <li><a href="upload.html"><span class="icon" aria-hidden="true">ðŸ“¤</span> Upload & Simulate</a></li>
+                <li><a href="student-explorer.html"><span class="icon" aria-hidden="true">ðŸ‘¥</span> Student Explorer</a></li>
+                <li><a href="allocation.html"><span class="icon" aria-hidden="true">ðŸŽ¯</span> Group Allocation</a></li>
+                <li><a href="classroom.html"><span class="icon" aria-hidden="true">ðŸ«</span> Classroom View</a></li>
+                <li><a href="overrides.html"><span class="icon" aria-hidden="true">âš™ï¸</span> Manual Overrides</a></li>
+                <li><a href="settings.html"><span class="icon" aria-hidden="true">âš™ï¸</span> Settings</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content" role="main">
+            <header class="top-bar fade-in" aria-label="Dashboard Header">
+                <div class="header-content">
+                    <h2>Dashboard Overview</h2>
+                    <p class="subtitle">Key metrics and insights at a glance</p>
+                </div>
+                <div class="user-info">
+                    <span class="user-name">Admin User</span>
+                    <span class="user-avatar">ðŸ‘¤</span>
+                </div>
+            </header>
+
+            <!-- Placeholder for Key Metrics -->
+            <section class="key-metrics-section slide-up" aria-label="Key Metrics">
+                <!-- Add metric cards here if needed -->
+            </section>
+
+            <!-- Charts Section -->
+            <section class="charts-section slide-up" aria-label="Data Visualizations">
+                <h3>Data Visualizations</h3>
+                <div class="charts-grid">
+                    <div class="chart-container" id="schoolAcademicChartContainer">
+                        <h4>Schoolwide Academic Performance</h4>
+                        <canvas id="schoolAcademicChart" width="600" height="600" aria-label="School Academic Performance Chart"></canvas>
+                    </div>
+                    <div class="chart-container" id="schoolWellbeingChartContainer">
+                        <h4>Schoolwide Wellbeing Scores</h4>
+                        <canvas id="schoolWellbeingChart" width="600" height="600" aria-label="School Wellbeing Scores Chart"></canvas>
+                    </div>
+                    <div class="chart-container" id="schoolBullyingChartContainer">
+                        <h4>Schoolwide Bullying Risk</h4>
+                        <canvas id="schoolBullyingChart" width="600" height="600" aria-label="School Bullying Risk Chart"></canvas>
+                    </div>
+                    <div class="chart-container" id="schoolFriendsChartContainer">
+                        <h4>Schoolwide Friends Network</h4>
+                        <canvas id="schoolFriendsGraph" width="600" height="600" aria-label="School Friends Graph"></canvas>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="assets/js/script.js"></script>
+</body>
+</html>

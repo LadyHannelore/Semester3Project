@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -16,8 +16,8 @@
     <title>ClassForge - Group Allocation</title>
     
     <!-- Critical CSS -->
-    <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="allocation.css">
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/allocation.css">
     
     <!-- Non-critical font loading -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -34,13 +34,13 @@
                 <h1>ClassForge</h1>
             </div>
             <ul class="nav-links">
-                <li><a href="index.html" aria-label="Overview dashboard"><span class="icon" aria-hidden="true">📊</span> Overview</a></li>
-                <li><a href="upload.html" aria-label="Upload data and simulate"><span class="icon" aria-hidden="true">📤</span> Upload & Simulate</a></li>
-                <li><a href="student-explorer.html" aria-label="Explore student data"><span class="icon" aria-hidden="true">👥</span> Student Explorer</a></li>
-                <li class="active"><a href="allocation.html" aria-current="page" aria-label="Group allocation configuration"><span class="icon" aria-hidden="true">🎯</span> Group Allocation</a></li>
-                <li><a href="classroom.html" aria-label="View classroom layout"><span class="icon" aria-hidden="true">🏫</span> Classroom View</a></li>
-                <li><a href="overrides.html" aria-label="Manual allocation overrides"><span class="icon" aria-hidden="true">⚙️</span> Manual Overrides</a></li>
-                <li><a href="settings.html" aria-label="Application settings"><span class="icon" aria-hidden="true">⚙️</span> Settings</a></li>
+                <li><a href="../pages/index.html" aria-label="Overview dashboard"><span class="icon" aria-hidden="true">ðŸ“Š</span> Overview</a></li>
+                <li><a href="../pages/upload.html" aria-label="Upload data and simulate"><span class="icon" aria-hidden="true">ðŸ“¤</span> Upload & Simulate</a></li>
+                <li><a href="../pages/student-explorer.html" aria-label="Explore student data"><span class="icon" aria-hidden="true">ðŸ‘¥</span> Student Explorer</a></li>
+                <li class="active"><a href="../pages/allocation.html" aria-current="page" aria-label="Group allocation configuration"><span class="icon" aria-hidden="true">ðŸŽ¯</span> Group Allocation</a></li>
+                <li><a href="../pages/classroom.html" aria-label="View classroom layout"><span class="icon" aria-hidden="true">ðŸ«</span> Classroom View</a></li>
+                <li><a href="../pages/overrides.html" aria-label="Manual allocation overrides"><span class="icon" aria-hidden="true">âš™ï¸</span> Manual Overrides</a></li>
+                <li><a href="../pages/settings.html" aria-label="Application settings"><span class="icon" aria-hidden="true">âš™ï¸</span> Settings</a></li>
             </ul>
         </nav>
 
@@ -53,14 +53,14 @@
                 </div>
                 <div class="user-info">
                     <span class="user-name">Admin User</span>
-                    <span class="user-avatar" aria-label="User avatar">👤</span>
+                    <span class="user-avatar" aria-label="User avatar">ðŸ‘¤</span>
                 </div>
             </header>
 
             <div class="allocation-container slide-up">
                 <!-- Strategy Selector Section -->
                 <section class="strategy-section" aria-labelledby="strategy-heading">
-                    <h3 id="strategy-heading">🎯 Allocation Strategy</h3>
+                    <h3 id="strategy-heading">ðŸŽ¯ Allocation Strategy</h3>
                     <div class="strategy-options" role="radiogroup" aria-labelledby="strategy-heading">
                         <div class="strategy-card" data-strategy="genetic">
                             <input type="radio" name="strategy" id="genetic" value="genetic" checked disabled aria-describedby="genetic-desc">
@@ -74,7 +74,7 @@
 
                 <!-- Model Parameters Section -->
                 <section class="parameters-section">
-                    <h3>⚙️ Model Parameters</h3>
+                    <h3>âš™ï¸ Model Parameters</h3>
 
                     <!-- Genetic Algorithm Parameters -->
                     <div class="parameter-group" id="genetic-params">
@@ -118,10 +118,10 @@
 
                 <!-- Run Allocation Section -->
                 <section class="run-section">
-                    <h3>▶️ Run Allocation</h3>
+                    <h3>â–¶ï¸ Run Allocation</h3>
                     <div class="run-container">
                         <button id="runAllocation" class="run-button">
-                            <span class="icon">▶️</span>
+                            <span class="icon">â–¶ï¸</span>
                             Run Allocation
                         </button>
                         
@@ -136,7 +136,7 @@
                         <!-- Results Summary -->
                         <div id="resultsSummary" class="results-summary" style="display: none;">
                             <div class="success-message">
-                                <span class="icon">✅</span>
+                                <span class="icon">âœ…</span>
                                 <h4>Allocation Complete</h4>
                             </div>
                             <div class="metrics-grid">
@@ -201,14 +201,14 @@
             <!-- Footer Navigation -->
             <div class="action-buttons fade-in">
                 <button class="action-btn" onclick="window.location.href='index.html'">
-                    <span class="icon">↩</span> Back to Overview
+                    <span class="icon">â†©</span> Back to Overview
                 </button>
                 <button class="action-btn" onclick="window.location.href='classroom.html'" id="viewClassroomBtn" disabled>
-                    <span class="icon">🏫</span> View Classroom Assignments
+                    <span class="icon">ðŸ«</span> View Classroom Assignments
                 </button>
             </div>
         </main>
     </div>
-    <script src="allocation.js"></script>
+    <script src="../assets/js/allocation.js"></script>
 </body>
 </html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ClassForge Allocation History - View past classroom allocations and their metrics">
+    <meta name="keywords" content="classroom history, past allocations, allocation metrics, classroom optimization">
+    <meta name="author" content="ClassForge Team">
+    
+    <!-- Performance optimization -->
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    
+    <title>ClassForge - Allocation History</title>
+    
+    <!-- Critical CSS -->
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../assets/css/history.css">
+    
+    <!-- Non-critical font loading -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Accessibility and performance -->
+    <meta name="theme-color" content="#4299e1">
+    <meta name="color-scheme" content="light">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar" role="navigation" aria-label="Main navigation">
+            <div class="logo">
+                <h1>ClassForge</h1>
+            </div>
+            <ul class="nav-links">
+                <li><a href="../index.html" aria-label="Overview dashboard"><span class="icon" aria-hidden="true">📊</span> Overview</a></li>
+                <li><a href="upload.html" aria-label="Upload data and simulate"><span class="icon" aria-hidden="true">📤</span> Upload & Simulate</a></li>
+                <li><a href="student-explorer.html" aria-label="Explore student data"><span class="icon" aria-hidden="true">👥</span> Student Explorer</a></li>
+                <li><a href="allocation.html" aria-label="Group allocation configuration"><span class="icon" aria-hidden="true">🎯</span> Group Allocation</a></li>
+                <li><a href="classroom.html" aria-label="View classroom layout"><span class="icon" aria-hidden="true">🏫</span> Classroom View</a></li>
+                <li class="active"><a href="history.html" aria-current="page" aria-label="View allocation history"><span class="icon" aria-hidden="true">📜</span> History</a></li>
+                <li><a href="overrides.html" aria-label="Manual allocation overrides"><span class="icon" aria-hidden="true">⚙️</span> Manual Overrides</a></li>
+                <li><a href="settings.html" aria-label="Application settings"><span class="icon" aria-hidden="true">⚙️</span> Settings</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content" role="main">
+            <!-- Header -->
+            <header class="top-bar fade-in" aria-label="History Header">
+                <div class="header-content">
+                    <h1>Allocation History</h1>
+                    <p class="header-description">View past classroom allocations and their metrics</p>
+                </div>
+                <div class="header-actions">
+                    <button class="action-btn" onclick="window.location.href='allocation.html'">
+                        <span class="icon">🎯</span> Create New Allocation
+                    </button>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <div class="content-section fade-in">
+                <div class="filters-panel">
+                    <div class="filter-group">
+                        <label for="sort-order">Sort by:</label>
+                        <select id="sort-order">
+                            <option value="date-desc">Date (newest first)</option>
+                            <option value="date-asc">Date (oldest first)</option>
+                            <option value="score-desc">Score (highest first)</option>
+                            <option value="score-asc">Score (lowest first)</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="algorithm-filter">Algorithm:</label>
+                        <select id="algorithm-filter">
+                            <option value="all">All Algorithms</option>
+                            <option value="genetic_algorithm">Genetic Algorithm</option>
+                            <option value="constraint_programming">Constraint Programming</option>
+                        </select>
+                    </div>
+                    <div class="search-group">
+                        <input type="text" id="search-allocations" placeholder="Search allocations...">
+                        <button class="btn btn-sm btn-primary" id="search-btn">Search</button>
+                    </div>
+                </div>
+
+                <div id="history-container" class="history-container">
+                    <!-- Allocation history items will be loaded here via JavaScript -->
+                    <div class="loading-spinner">
+                        <div class="spinner"></div>
+                        <p>Loading allocation history...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="details-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div id="allocation-details" class="allocation-details">
+                <!-- Allocation details will be displayed here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Message container for notifications -->
+    <div id="message-container"></div>
+
+    <!-- Scripts -->
+    <script src="../assets/js/history.js"></script>
+    <script>
+        // Add event listeners for filters
+        document.getElementById('sort-order').addEventListener('change', function() {
+            loadAllocationHistory();
+        });
+        
+        document.getElementById('algorithm-filter').addEventListener('change', function() {
+            loadAllocationHistory();
+        });
+        
+        document.getElementById('search-btn').addEventListener('click', function() {
+            loadAllocationHistory();
+        });
+    </script>
+</body>
+</html>
